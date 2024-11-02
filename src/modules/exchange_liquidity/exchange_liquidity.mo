@@ -61,8 +61,10 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, t : I.CreateRequest) : T.Create {
-
+        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+            if (req.ledgers[0] != #ic(swap._primary_ledger) and req.ledgers[1] != #ic(swap._primary_ledger)) {
+                return #err("One of the ledgers has to be the primary ledger");
+            };
             let obj : VM.NodeMem = {
                 init = t.init;
                 variables = {
@@ -131,7 +133,7 @@ module {
             let ?ex = Map.get(mem.main, Map.n32hash, vid) else U.trap("Vector in module not found");
             let now = U.now();
 
-
+            U.log("Running exchange liquidity " # debug_show(ex.variables.flow));
             switch(ex.variables.flow) {
                 case (#add) Run.add(vid, vec);
                 case (#remove) Run.remove(vid, vec);
@@ -142,7 +144,6 @@ module {
 
         public module Run {
             public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : () {
-                
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);
 
@@ -154,6 +155,8 @@ module {
 
                 let {balance; total} = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
+                if (balance == 0) return;
+
                 let intent = swap.LiquidityIntentRemove.get(
                     from_account,
                     { ledger = ledger_A; account = destination_A},
@@ -162,12 +165,12 @@ module {
 
                 switch(intent) {
                     case (#ok(intent)) {
-                        Debug.print(debug_show(intent));
+                        Debug.print("REMOVING " # debug_show(intent));
                         let quote = swap.LiquidityIntentRemove.quote(intent);
 
                         swap.LiquidityIntentRemove.commit(intent);
                     };
-                    case (#err(e)) U.trap("Error getting intent: " # e);
+                    case (#err(e)) U.log("Error getting intent: " # e);
                 };
 
     
@@ -197,7 +200,7 @@ module {
 
                 switch(swap.Price.get(ledger_A, ledger_B, 0)) {
                     case (?price) {
-                        Debug.print("Price found " # debug_show(price));
+                        // Debug.print("Price found " # debug_show(price));
                         // We will add liquidity only at the rate the pool is currently
                         // If bal_a is more valuable than bal_b, in_a will be limited to the amount of bal_b
                         // and vice versa with in_b
@@ -210,7 +213,7 @@ module {
 
                     };
                     case (null) {
-                        Debug.print("Adding first time" # debug_show({bal_a; bal_b}));
+                        // Debug.print("Adding first time" # debug_show({bal_a; bal_b}));
                         // First time adding liquidity
                         // We will add liquidity at the incoming rate unless one of the balances is 0
                         if ((in_a == 0) or (in_b == 0)) U.trap("First time adding liquidity, one of the balances is 0");
@@ -227,7 +230,7 @@ module {
 
                 switch(intent) {
                     case (#ok(intent)) {
-                       Debug.print(debug_show(intent));
+                    //    Debug.print(debug_show(intent));
                         let quote = swap.LiquidityIntentAdd.quote(intent);
 
                         swap.LiquidityIntentAdd.commit(intent);

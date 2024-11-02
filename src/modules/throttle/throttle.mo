@@ -82,7 +82,7 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
 
             let obj : M.NodeMem = {
                 init = t.init;

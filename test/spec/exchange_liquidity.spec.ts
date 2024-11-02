@@ -19,7 +19,7 @@ describe('Exchange liquidity', () => {
           'flow': { 'add': null },
         },
       },
-    },[1,2]);
+    },[0,1]);
 
 
     await d.u.setDestination(node.id, 0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] });
@@ -38,8 +38,8 @@ describe('Exchange liquidity', () => {
   async function addLiquidity(node_id:number, a: bigint, b: bigint) : Promise<{ balance: bigint, total: bigint }> {
     
 
-    await d.u.sendToNode(node_id, 0, a, 1);
-    await d.u.sendToNode(node_id, 1, b, 2);
+    await d.u.sendToNode(node_id, 0, a, 0);
+    await d.u.sendToNode(node_id, 1, b, 1);
 
     await d.passTime(3);
 
@@ -100,7 +100,97 @@ describe('Exchange liquidity', () => {
 
   });
 
+  it("Remove liquidity of node 0", async () => {
 
+
+    let resp = await d.u.modifyNodeCustom(0, {
+      'exchange_liquidity': {
+          'flow': { 'remove': null },
+      },
+    });
+
+    expect("ok" in resp).toBe(true);
+    
+    await d.passTime(5);
+
+    
+    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, 0);
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, 1);
+
+    expect(balance_a).toBe(1999978360n);
+    expect(balance_b).toBe(999970000n);
+
+  });
+
+  it("Remove liquidity of node 1", async () => {
+
+
+    let resp = await d.u.modifyNodeCustom(1, {
+      'exchange_liquidity': {
+          'flow': { 'remove': null },
+      },
+    });
+
+    expect("ok" in resp).toBe(true);
+    
+    await d.passTime(5);
+
+    
+    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, 0);
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, 1);
+
+    expect(balance_a).toBe(3999946680n);
+    expect(balance_b).toBe(1999934980n);
+
+  });
+
+
+  it(`Add same liquidity third time`, async () => {
+
+    await d.u.modifyNodeCustom(1, {
+      'exchange_liquidity': {
+          'flow': { 'add': null },
+      },
+    });
+
+    let a = 20_0000_0000n;
+    let b = 10_0000_0000n;
+    let n1 = await addLiquidity(1, a, b);
+
+    let expected_lp_balance = 1414179337n;
+    let lp_perc = n1.balance * 100000n / n1.total;
+    expect(lp_perc).toBe(49999n);
+    expect(n1.balance).toBe(expected_lp_balance);
+    expect(n1.total).toBe(2828361050n);
+
+  });
+
+  it(`Make exchange vector`, async () => {
+
+    let node = await d.u.createNode({
+      'exchange': {
+        'init': { },
+        'variables': {
+          'interest': 1n,
+        },
+      },
+    },[0,1]);
+
+    let a = 5000_0000n;
+    
+    // Send funds to source 1
+    await d.u.sendToNode(node.id, 0, a, 0);
+
+    // Set destination
+    await d.u.setDestination(node.id, 0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] });
+
+    await d.passTime(3);
+
+    // Check balance of destination
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] }, 1);
+
+    expect(balance_b).toBe(2393_0752n);
+  });
 
 });
 

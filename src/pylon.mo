@@ -70,7 +70,7 @@ actor class () = this {
 
     // Shared modules
     let mem_swap_1 = Swap.Mem.Swap.V1.new();
-    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai"); swap_fee = 3000_0000});
+    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai"); swap_fee = 300});
 
 
     // Vector modules
@@ -122,10 +122,7 @@ actor class () = this {
             if (not core.hasDestination(vec, 0)) continue vloop;
 
             let ?source = core.getSource(vid, vec, 0) else continue vloop;
-            let bal = core.Source.balance(source);
-
-            let fee = core.Source.fee(source);
-            if (bal <= fee * 100) continue vloop;
+    
             switch (vec.module_id) {
                 case ("exchange_liquidity") {
                     vec_exchange_liquidity.run(vid, vec);

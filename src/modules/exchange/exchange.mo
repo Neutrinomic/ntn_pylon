@@ -60,7 +60,7 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
 
             let obj : VM.NodeMem = {
                 init = t.init;
@@ -121,11 +121,25 @@ module {
             let now = U.now();
 
             let ?source = core.getSource(vid, vec, 0) else return;
+            let ?destination = core.getDestinationAccountIC(vec, 0) else return;
+            let ?source_account = core.Source.getAccount(source) else return;
+            
             let bal = core.Source.balance(source);
-
-            let intent = swap.Intent.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
-            let quote = swap.Intent.quote(intent);
-            swap.Intent.commit(intent);
+            U.log("Swapping" # debug_show(bal));
+            if (bal == 0) return;
+            
+            let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
+            U.log(debug_show(intent));
+                switch(intent) {
+                    case (#err(e)) U.log("Error in intent " # debug_show(e));
+                
+                    case (#ok(intent)) {
+                        let quote = swap.Intent.quote(intent);
+                        swap.Intent.commit(intent);
+                        U.log("Intent is ok");
+                    }
+                }
+           
         
         };
 

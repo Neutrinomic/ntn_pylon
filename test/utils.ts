@@ -11,6 +11,7 @@ import {
     GetNodeResponse,
     CommandResponse,
     NodeShared,
+    ModifyRequest,
     PylonMetaResp,
     VirtualBalancesResponse,
     BatchCommandResponse,
@@ -418,6 +419,14 @@ export function createNodeUtils({
                     active :[]
                 }], []]
             }]});
+        },
+        async modifyNodeCustom(nodeId: NodeId, req: ModifyRequest): Promise<BatchCommandResponse> {
+            return await pylon.icrc55_command({
+                expire_at : [],
+                request_id : [],
+                controller : {owner:user, subaccount:[]},
+                signature : [],
+                commands:[{ modify_node: [nodeId, [], [req]] } ]});
         },
         async setSource(nodeId: NodeId, port: number, account: Account, ledger_idx : number = 0): Promise<BatchCommandResponse> {
             let ledgerCanisterId = ledgers[ledger_idx].id;

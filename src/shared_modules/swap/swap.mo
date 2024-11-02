@@ -29,27 +29,20 @@ module {
             account: Core.Account
         };
 
-        type Intent = {
-            pool_account : Core.Account;
-            asset_in : LedgerAccount;
-            asset_out : LedgerAccount;
-            amount_in : Nat;
-            amount_out : Nat;
-            swap_fee : Nat;
-        };
-        type IntentPath = [Intent];
+
 
         public class Mod({
             xmem : MU.MemShell<VM.Mem>;
             core : Core.Mod;
             dvf : DeVeFi.DeVeFi;
             primary_ledger : Principal;
-            swap_fee : Nat; // 8 decimals
+            swap_fee : Nat; // 4 decimals
         }) {
 
         let mem = MU.access(xmem);
 
         public let scale = 1_0000_0000;
+        public let _primary_ledger = primary_ledger;
 
         public module Price = {
             public func get(ledger_a: Principal, ledger_b: Principal, idx:Nat8) : ?Nat {
@@ -156,9 +149,8 @@ module {
                 // Ensure the removal results in at least the ledger fee amounts to avoid dust
                 let ledger_a_fee = dvf.fee(to_a.ledger);
                 let ledger_b_fee = dvf.fee(to_b.ledger);
-                if (amount_a < 100 * ledger_a_fee or amount_b < 100 * ledger_b_fee) {
-                    return #err("Removal must result in at least 100x ledger fee for each token");
-                };
+                if (amount_a < 100 * ledger_a_fee) return #err("Removal must result in at least 100x ledger fee for each token. Bal A " # debug_show(amount_a));
+                if (amount_b < 100 * ledger_b_fee) return #err("Removal must result in at least 100x ledger fee for each token. Bal B " # debug_show(amount_b));
 
                 // Calculate the new total liquidity after removal
                 let new_total = total - remove_tokens:Nat;
@@ -373,78 +365,130 @@ module {
             };
         };
 
-        public module Intent {
-            
-            public func quote(path: IntentPath) : Nat {
-                let last = path[path.size() - 1];
-                last.amount_out;
-            };
 
-            public func commit(path: IntentPath) : () {
-                for (intent in path.vals()) {
-                    ignore dvf.send({
-                        ledger = intent.asset_in.ledger;
-                        to = intent.pool_account;
-                        amount = intent.amount_in;
-                        memo = null;
-                        from_subaccount = intent.asset_in.account.subaccount;
-                    });
-                };
-            };
+    public type Intent = {
+        from: Core.Account;
+        to: Core.Account;
+        pool_account : Core.Account;
+        asset_in : LedgerAccount;
+        asset_out : LedgerAccount;
+        amount_in : Nat;
+        amount_out : Nat;
+        swap_fee : Nat;
+    };
+    public type IntentPath = [Intent];
 
-            public func get(from:Principal, to:Principal, start_amount: Nat) : IntentPath {
-                if (to == primary_ledger or from == primary_ledger) {
-                    getExact([from, to], start_amount);
-                } else {
-                    getExact([from, primary_ledger, to], start_amount);
-                };
-            };
-
-            public func getExact(ledgers : [Principal], start_amount: Nat) : IntentPath {
-                let path = Vector.new<Intent>();
-                var acc_bal = start_amount;
-                for (i in Iter.range(0, ledgers.size() - 2)) {
-                    let ledger = ledgers[i];
-                    let next_ledger = ledgers[i + 1];
-                    
-                    let ledger_fee = dvf.fee(ledger);
-                    
-                    let amount_fwd = acc_bal - ledger_fee:Nat;
-
-                    let swap_fee_fwd = amount_fwd * swap_fee / 1_0000_0000;
-
-                    let pool_account = getPoolAccount(ledger, next_ledger, 0);
-
-                    let asset_A = LedgerAccount.get(pool_account, ledger); 
-                    let asset_B = LedgerAccount.get(pool_account, next_ledger); 
-
-                    let reserve_A = LedgerAccount.balance(asset_A);
-                    let reserve_B = LedgerAccount.balance(asset_B);
-
-                    let request_amount = acc_bal;
-
-                    let rate_fwd = ((reserve_A + request_amount) * scale) / reserve_B;
-
-                    let afterfee_fwd = request_amount - swap_fee_fwd:Nat;
-
-                    let recieve_fwd = (afterfee_fwd / rate_fwd) * scale;
-                    Vector.add(path, {
-                        pool_account = pool_account;
-                        asset_in = asset_A;
-                        asset_out = asset_B;
-                        amount_in = request_amount;
-                        amount_out = recieve_fwd;
-                        swap_fee = swap_fee_fwd;
-                    });
-
-                    acc_bal := recieve_fwd;
-                };
-                Vector.toArray(path);
-            };
-
+    public module Intent {
+        
+        public func quote(path: IntentPath) : Nat {
+            let last = path[path.size() - 1];
+            last.amount_out;
         };
 
+        public func commit(path: IntentPath) : () {
+            for (intent in path.vals()) {
+      
+                switch(dvf.send({
+                    ledger = intent.asset_in.ledger;
+                    to = intent.pool_account;
+                    amount = intent.amount_in;
+                    memo = null;
+                    from_subaccount = intent.from.subaccount;
+                })) {
+                    case (#ok(_)) ();
+                    case (#err(e)) U.trap("Error sending token A to pool: " # debug_show(e));
+                };
+
+                switch(dvf.send({
+                    ledger = intent.asset_out.ledger;
+                    to = intent.to;
+                    amount = intent.amount_out;
+                    memo = null;
+                    from_subaccount = intent.pool_account.subaccount
+                })) {
+                    case (#ok(_)) ();
+                    case (#err(e)) U.trap("Error sending token B to pool: " # debug_show(e));
+                };
+
+                // Update pool total
+                let pool = Pool.get(intent.pool_account);
+                pool.total := pool.total + intent.amount_in;
+            };
+        };
+
+        public func get(from_account: Core.Account, to_account: Core.Account, from: Principal, to: Principal, start_amount: Nat) : R<IntentPath, Text> {
+            if (to == primary_ledger or from == primary_ledger) {
+                getExact(from_account, to_account, [from, to], start_amount);
+            } else {
+                getExact(from_account, to_account, [from, primary_ledger, to], start_amount);
+            };
+        };
+
+        public func getExact(from_account: Core.Account, to_account: Core.Account, ledgers: [Principal], start_amount: Nat) : R<IntentPath,Text> {
+            let path = Vector.new<Intent>();
+            var acc_bal = start_amount;
+
+            for (i in Iter.range(0, ledgers.size() - 2)) {
+                let ledger = ledgers[i];
+                let next_ledger = ledgers[i + 1];
+                
+                let ledger_fee = dvf.fee(ledger);
+
+                // Ensure sufficient balance to cover ledger fee
+                if (acc_bal <= ledger_fee) return #err("Insufficient balance to cover ledger fee");
+
+                let amount_fwd = acc_bal - ledger_fee:Nat;
+
+                let swap_fee_fwd = (amount_fwd * swap_fee) / 1_0000;
+
+                // Ensure amount_fwd is sufficient to cover swap fee
+                if (amount_fwd <= swap_fee_fwd) return #err("Insufficient balance to cover swap fee");
+
+                let pool_account = getPoolAccount(ledger, next_ledger, 0);
+
+                let asset_A = LedgerAccount.get(pool_account, ledger); 
+                let asset_B = LedgerAccount.get(pool_account, next_ledger); 
+
+                let reserve_A = LedgerAccount.balance(asset_A);
+                let reserve_B = LedgerAccount.balance(asset_B);
+
+
+                // Calculate rate_fwd safely and ensure non-zero values
+                if (reserve_B == 0) return #err("Reserve B is zero");
+                let rate_fwd = ((reserve_A + amount_fwd) * scale) / reserve_B;
+
+                // Calculate amount after fee and ensure it’s positive
+                let afterfee_fwd = amount_fwd - swap_fee_fwd:Nat;
+                if (afterfee_fwd <= 0) return #err("Amount after fee is zero");
+
+                // Calculate receive_fwd safely
+                let receive_fwd = (afterfee_fwd * scale) / rate_fwd;
+                if (receive_fwd <= 0) return #err("Receive amount is zero");
+
+                // Add intent with calculated values to path
+                Vector.add(path, {
+                    from = from_account;
+                    to = to_account;
+                    pool_account = pool_account;
+                    asset_in = asset_A;
+                    asset_out = asset_B;
+                    amount_in = amount_fwd;
+                    amount_out = receive_fwd;
+                    swap_fee = swap_fee_fwd;
+                });
+
+                acc_bal := receive_fwd;
+            };
+            
+            #ok(Vector.toArray(path));
+        };
+    };
+
+
         public func getPoolAccount(a : Principal, b : Principal, pool_idx : Nat8) : Core.Account {
+            if (a != primary_ledger and b != primary_ledger) {
+                U.trap("One of the ledgers must be the primary ledger");
+            };
             let ledger_idx = Array.sort<Nat>([U.not_opt(dvf.get_ledger_idx(a)), U.not_opt(dvf.get_ledger_idx(b))], Nat.compare);
             {
                 owner = core.getThisCan();

@@ -144,16 +144,16 @@ module {
 
 
 
-        public func create(id:Core.NodeId, req : CreateRequest) : Result.Result<Core.ModuleId, Text> {
+        public func create(id:Core.NodeId, creq:Core.CommonCreateRequest, req : CreateRequest) : Result.Result<Core.ModuleId, Text> {
             
             switch (req) {
-                case (#throttle(t)) return m.vec_throttle.create(id, t);
-                case (#lend(t)) return m.vec_lend.create(id, t);
-                case (#borrow(t)) return m.vec_borrow.create(id, t);
-                case (#exchange(t)) return m.vec_exchange.create(id, t);
-                case (#escrow(t)) return m.vec_escrow.create(id, t);
-                case (#split(t)) return m.vec_split.create(id, t);
-                case (#exchange_liquidity(t)) return m.vec_exchange_liquidity.create(id, t);
+                case (#throttle(t)) return m.vec_throttle.create(id, creq, t);
+                case (#lend(t)) return m.vec_lend.create(id, creq, t);
+                case (#borrow(t)) return m.vec_borrow.create(id, creq, t);
+                case (#exchange(t)) return m.vec_exchange.create(id, creq, t);
+                case (#escrow(t)) return m.vec_escrow.create(id, creq, t);
+                case (#split(t)) return m.vec_split.create(id, creq, t);
+                case (#exchange_liquidity(t)) return m.vec_exchange_liquidity.create(id, creq, t);
                 //...
             };
             #err("Unknown variant or mismatch");
