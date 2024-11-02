@@ -297,21 +297,9 @@ module {
 
                 let total = pool.total;
 
-                // Proportional minting calculation based on current reserves and total liquidity
-                let minted_tokens = sqrt((input_a * input_b * total) / (reserve_A * reserve_B));
+                let minted_tokens = Nat.min((input_a * total) / reserve_A, (input_b * total) / reserve_B);
 
-                // Calculate fee coefficient with scaling
-                let fee_coef = sqrt((input_a + reserve_A) * (input_b + reserve_B) * scale) / (total + minted_tokens + 1);
-
-                // Set a maximum limit for the fee coefficient, scaled appropriately
-                let max_fee_coef = 10 * scale;
-                if (fee_coef > max_fee_coef) return #err("Fee coefficient too high");
-
-                // Adjust minted tokens based on fee coefficient
-                let adjusted_minted_tokens = (minted_tokens * scale) / fee_coef;
-
-                // Calculate new total liquidity after addition
-                let new_total = total + adjusted_minted_tokens;
+                let new_total = total + minted_tokens;
 
                 #ok{
                     pool_account;
@@ -320,7 +308,7 @@ module {
                     from_a;
                     from_b;
                     new_total;
-                    minted_tokens = adjusted_minted_tokens;
+                    minted_tokens;
                     to_account;
                 };
 
