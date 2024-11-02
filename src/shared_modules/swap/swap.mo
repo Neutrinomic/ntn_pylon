@@ -297,18 +297,22 @@ module {
 
                 let total = pool.total;
 
+                // Proportional minting calculation based on current reserves and total liquidity
+                let minted_tokens = sqrt((input_a * input_b * total) / (reserve_A * reserve_B));
 
-                let minted_liquidity = sqrt(input_a * input_b);
+                // Calculate fee coefficient with scaling
+                let fee_coef = sqrt((input_a + reserve_A) * (input_b + reserve_B) * scale) / (total + minted_tokens + 1);
 
-                let new_total = total + minted_liquidity;
-
-                let fee_coef = sqrt( (input_a + reserve_A) * (input_b + reserve_B) * scale) / (new_total+1);
-                
+                // Set a maximum limit for the fee coefficient, scaled appropriately
                 let max_fee_coef = 10 * scale;
                 if (fee_coef > max_fee_coef) return #err("Fee coefficient too high");
 
-                let minted_tokens = (minted_liquidity * scale) / fee_coef;
-                    
+                // Adjust minted tokens based on fee coefficient
+                let adjusted_minted_tokens = (minted_tokens * scale) / fee_coef;
+
+                // Calculate new total liquidity after addition
+                let new_total = total + adjusted_minted_tokens;
+
                 #ok{
                     pool_account;
                     asset_a;
@@ -316,9 +320,10 @@ module {
                     from_a;
                     from_b;
                     new_total;
-                    minted_tokens;
+                    minted_tokens = adjusted_minted_tokens;
                     to_account;
                 };
+
             };
 
             public func quote(liq: LiquidityIntentAdd) : Nat {
