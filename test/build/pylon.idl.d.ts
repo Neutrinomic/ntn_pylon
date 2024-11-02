@@ -82,12 +82,13 @@ export interface Controller {
 export type CreateNodeRequest = [CommonCreateRequest, CreateRequest];
 export type CreateNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type CreateRequest = { 'lend' : CreateRequest__4 } |
+export type CreateRequest = { 'lend' : CreateRequest__5 } |
   { 'borrow' : CreateRequest__1 } |
-  { 'split' : CreateRequest__5 } |
-  { 'throttle' : CreateRequest__6 } |
+  { 'split' : CreateRequest__6 } |
+  { 'throttle' : CreateRequest__7 } |
   { 'exchange' : CreateRequest__3 } |
-  { 'escrow' : CreateRequest__2 };
+  { 'escrow' : CreateRequest__2 } |
+  { 'exchange_liquidity' : CreateRequest__4 };
 export interface CreateRequest__1 {
   'init' : {},
   'variables' : { 'interest' : bigint },
@@ -102,13 +103,17 @@ export interface CreateRequest__3 {
 }
 export interface CreateRequest__4 {
   'init' : {},
-  'variables' : { 'interest' : bigint },
+  'variables' : { 'flow' : Flow },
 }
 export interface CreateRequest__5 {
   'init' : {},
-  'variables' : { 'split' : Array<bigint> },
+  'variables' : { 'interest' : bigint },
 }
 export interface CreateRequest__6 {
+  'init' : {},
+  'variables' : { 'split' : Array<bigint> },
+}
+export interface CreateRequest__7 {
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
 }
@@ -143,6 +148,10 @@ export interface EndpointOther {
   'account' : Uint8Array | number[],
 }
 export type EndpointsDescription = Array<[LedgerIdx, LedgerLabel]>;
+export type Flow = { 'add' : null } |
+  { 'remove' : null } |
+  { 'hold' : null } |
+  { 'pass_through' : null };
 export interface GetArchivesArgs { 'from' : [] | [Principal] }
 export type GetArchivesResult = Array<GetArchivesResultItem>;
 export interface GetArchivesResultItem {
@@ -230,18 +239,20 @@ export type ModifyNodeRequest = [
 ];
 export type ModifyNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type ModifyRequest = { 'lend' : ModifyRequest__4 } |
+export type ModifyRequest = { 'lend' : ModifyRequest__5 } |
   { 'borrow' : ModifyRequest__1 } |
-  { 'split' : ModifyRequest__5 } |
-  { 'throttle' : ModifyRequest__6 } |
+  { 'split' : ModifyRequest__6 } |
+  { 'throttle' : ModifyRequest__7 } |
   { 'exchange' : ModifyRequest__3 } |
-  { 'escrow' : ModifyRequest__2 };
+  { 'escrow' : ModifyRequest__2 } |
+  { 'exchange_liquidity' : ModifyRequest__4 };
 export interface ModifyRequest__1 { 'interest' : bigint }
 export interface ModifyRequest__2 { 'interest' : bigint }
 export interface ModifyRequest__3 { 'interest' : bigint }
-export interface ModifyRequest__4 { 'interest' : bigint }
-export interface ModifyRequest__5 { 'split' : Array<bigint> }
-export interface ModifyRequest__6 {
+export interface ModifyRequest__4 { 'flow' : Flow }
+export interface ModifyRequest__5 { 'interest' : bigint }
+export interface ModifyRequest__6 { 'split' : Array<bigint> }
+export interface ModifyRequest__7 {
   'interval_sec' : NumVariant,
   'max_amount' : NumVariant,
 }
@@ -292,12 +303,13 @@ export interface PylonMetaResp {
   'temporary_nodes' : { 'allowed' : boolean, 'expire_sec' : bigint },
   'modules' : Array<ModuleMeta>,
 }
-export type Shared = { 'lend' : Shared__4 } |
+export type Shared = { 'lend' : Shared__5 } |
   { 'borrow' : Shared__1 } |
-  { 'split' : Shared__5 } |
-  { 'throttle' : Shared__6 } |
+  { 'split' : Shared__6 } |
+  { 'throttle' : Shared__7 } |
   { 'exchange' : Shared__3 } |
-  { 'escrow' : Shared__2 };
+  { 'escrow' : Shared__2 } |
+  { 'exchange_liquidity' : Shared__4 };
 export interface Shared__1 {
   'internals' : {},
   'init' : {},
@@ -314,16 +326,21 @@ export interface Shared__3 {
   'variables' : { 'interest' : bigint },
 }
 export interface Shared__4 {
-  'internals' : {},
+  'internals' : { 'total' : bigint, 'balance' : bigint },
   'init' : {},
-  'variables' : { 'interest' : bigint },
+  'variables' : { 'flow' : Flow },
 }
 export interface Shared__5 {
   'internals' : {},
   'init' : {},
-  'variables' : { 'split' : Array<bigint> },
+  'variables' : { 'interest' : bigint },
 }
 export interface Shared__6 {
+  'internals' : {},
+  'init' : {},
+  'variables' : { 'split' : Array<bigint> },
+}
+export interface Shared__7 {
   'internals' : { 'wait_until_ts' : bigint },
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
@@ -368,11 +385,12 @@ export interface VirtualBalancesRequest {
   'subaccount' : [] | [Uint8Array | number[]],
 }
 export type VirtualBalancesResponse = Array<[SupportedLedger, bigint]>;
-export interface _anon_class_30_1 {
+export interface _anon_class_32_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
+  'beat' : ActorMethod<[], undefined>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,
   'get_ledgers_info' : ActorMethod<[], Array<LedgerInfo>>,
   'icrc3_get_archives' : ActorMethod<[GetArchivesArgs], GetArchivesResult>,
@@ -393,6 +411,6 @@ export interface _anon_class_30_1 {
   >,
   'start' : ActorMethod<[], undefined>,
 }
-export interface _SERVICE extends _anon_class_30_1 {}
+export interface _SERVICE extends _anon_class_32_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: ({ IDL }: { IDL: IDL }) => IDL.Type[];

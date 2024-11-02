@@ -15,7 +15,7 @@ import {
     VirtualBalancesResponse,
     BatchCommandResponse,
     InputAddress
-} from './build/basic.idl.js';
+} from './build/pylon.idl.js';
 
 import { ICRCLedgerService, ICRCLedger } from "./icrc_ledger/ledgerCanister";
 
@@ -24,7 +24,7 @@ import { Account, Subaccount} from './icrc_ledger/ledger.idl.js';
 import { toState } from "@infu/icblast";
 import {AccountIdentifier, SubAccount} from "@dfinity/ledger-icp"
 import util from 'util';
-const WASM_PYLON_PATH = resolve(__dirname, "./build/basic.wasm");
+const WASM_PYLON_PATH = resolve(__dirname, "./build/pylon.wasm");
 
 
 export async function PylonCan(pic: PocketIc) {
@@ -63,12 +63,14 @@ export function DF() {
             for (let i = 0; i < n; i++) {
                 await this.pic.advanceTime(3 * 1000);
                 await this.pic.tick(6);
+                await this.pylon.beat();
             }
         },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.advanceTime(n * 60 * 1000);
             await this.pic.tick(6);
+            await this.pylon.beat();
             // await this.passTime(5)
         },
 
@@ -125,7 +127,23 @@ export function DF() {
         async afterAll(): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.tearDown();
+        },
+
+        sqrt(x:bigint) : bigint {
+            if (x === 0n) return 0n;
+        
+            let z = (x + 1n) / 2n;
+            let y = x;
+        
+            // Iterate using the Babylonian method until convergence
+            while (z < y) {
+                y = z;
+                z = (x / z + z) / 2n;
+            }
+        
+            return y;
         }
+        
     };
 }
 

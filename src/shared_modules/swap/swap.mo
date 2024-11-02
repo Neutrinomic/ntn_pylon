@@ -12,8 +12,6 @@ import IT "mo:itertools/Iter";
 import Nat32 "mo:base/Nat32";
 import Nat "mo:base/Nat";
 import Vector "mo:vector";
-import Float "mo:base/Float";
-import Debug "mo:base/Debug";
 
 module {
         
@@ -51,23 +49,28 @@ module {
 
         let mem = MU.access(xmem);
 
-  
+        public let scale = 1_0000_0000;
 
         public module Price = {
-            public func get(ledger_a: Principal, ledger_b: Principal) : Nat {
-                let pool_account = getPoolAccount(ledger_a, ledger_b, 0);
+            public func get(ledger_a: Principal, ledger_b: Principal, idx:Nat8) : ?Nat {
+                let pool_account = getPoolAccount(ledger_a, ledger_b, idx);
                 let asset_a = LedgerAccount.get(pool_account, ledger_a);
                 let asset_b = LedgerAccount.get(pool_account, ledger_b);
                 let reserve_A = LedgerAccount.balance(asset_a);
                 let reserve_B = LedgerAccount.balance(asset_b);
-                let rate = reserve_B / reserve_A;
-                rate
+                U.log("Reserve A: " # debug_show(reserve_A));
+                U.log("Reserve B: " # debug_show(reserve_B));
+                if (reserve_A == 0 or reserve_B == 0) {
+                    return null;
+                };
+                let rate = (reserve_B * scale) / reserve_A;
+                ?rate
             };
         };
 
         public module Pool {
             public func get(pool_account: Core.Account) : VM.Pool {
-                let ?subaccount = pool_account.subaccount else Debug.trap("Pool account subaccount is missing");
+                let ?subaccount = pool_account.subaccount else U.trap("Pool account subaccount is missing");
                 switch(Map.get(mem.main, Map.bhash, subaccount)) {
                     case (?pool) pool;
                     case (null) {
@@ -82,13 +85,13 @@ module {
             };
 
             public func getShare(pool: VM.Pool, client: Core.Account) : VM.Share {
-                let ?subaccount = client.subaccount else Debug.trap("Client account subaccount is missing");
+                let ?subaccount = client.subaccount else U.trap("Client account subaccount is missing");
                 let ?share = Map.get(pool.balances, Map.bhash, subaccount) else return 0;
                 share;
             };
 
             public func setShare(pool: VM.Pool, client: Core.Account, share: VM.Share) : () {
-                let ?subaccount = client.subaccount else Debug.trap("Client account subaccount is missing");
+                let ?subaccount = client.subaccount else U.trap("Client account subaccount is missing");
                 ignore Map.put(pool.balances, Map.bhash, subaccount, share);
             };
 
@@ -97,6 +100,16 @@ module {
                     owner = core.getThisCan();
                     subaccount = ?Blob.fromArray(Iter.toArray(IT.pad(IT.flattenArray<Nat8>([ [101], [acc_idx], U.ENat32(vid)]), 32, 0 : Nat8)));
                 };
+            };
+
+            public func balance(l1:Principal, l2:Principal, idx:Nat8, account: Core.Account) : {balance: Nat; total: Nat} {
+                let pool_account = getPoolAccount(l1, l2, idx);
+                let pool = Pool.get(pool_account);
+                
+                {
+                    balance = Pool.getShare(pool, account);
+                    total = pool.total;
+                }
             };
         };
 
@@ -231,9 +244,10 @@ module {
                 let ledger_b_fee = dvf.fee(from_b.ledger);
 
                 // Too Small Additions
-                if (from_a.amount < 100*ledger_a_fee or from_b.amount < 100*ledger_b_fee) {
-                    return #err("Pool addition must be at least 100xledger fee for each token");
-                };
+                if (from_a.amount < 100*ledger_a_fee) return #err("Pool addition must be at least 100xledger fee for token A : " # debug_show({amount= from_a.amount; ledger_a_fee}));
+                if (from_b.amount < 100*ledger_b_fee) return #err("Pool addition must be at least 100xledger fee for token B : " # debug_show({amount= from_b.amount; ledger_b_fee}));
+                
+                 
             
                 // Check if local accounts
                 if (from_a.account.owner != core.getThisCan() or from_b.account.owner != core.getThisCan()) {
@@ -251,7 +265,26 @@ module {
                 let input_a = from_a.amount - ledger_a_fee:Nat;
                 let input_b = from_b.amount - ledger_b_fee:Nat;
 
+                // Check if this is the initial liquidity addition
+                if (reserve_A == 0 or reserve_B == 0) {
+                    // First-time liquidity addition - use inputs directly as initial reserves
+                    let minted_liquidity = sqrt(input_a * input_b);
 
+                    // No need to calculate fee coefficients or deviation
+                    let new_total = minted_liquidity;
+
+                    return #ok{
+                        pool_account;
+                        asset_a;
+                        asset_b;
+                        from_a;
+                        from_b;
+                        new_total;
+                        minted_tokens = minted_liquidity;
+                        to_account;
+                    };
+                };
+                
                 // Disproportionate Liquidity Additions
                 let expected_amount_b = input_a * reserve_B / reserve_A;
                 let deviation = if (expected_amount_b > input_b) {
@@ -264,18 +297,17 @@ module {
 
                 let total = pool.total;
 
-                let scaling_factor : Nat = 100000;  // Precision multiplier (choose a factor based on desired precision)
 
                 let minted_liquidity = sqrt(input_a * input_b);
 
                 let new_total = total + minted_liquidity;
 
-                let fee_coef = sqrt( (input_a + reserve_A) * (input_b + reserve_B) * scaling_factor) / (new_total+1);
+                let fee_coef = sqrt( (input_a + reserve_A) * (input_b + reserve_B) * scale) / (new_total+1);
                 
-                let max_fee_coef = 10 * scaling_factor;
+                let max_fee_coef = 10 * scale;
                 if (fee_coef > max_fee_coef) return #err("Fee coefficient too high");
 
-                let minted_tokens = minted_liquidity * scaling_factor / fee_coef;
+                let minted_tokens = (minted_liquidity * scale) / fee_coef;
                     
                 #ok{
                     pool_account;
@@ -296,23 +328,37 @@ module {
             public func commit(liq: LiquidityIntentAdd) : () {
                 let pool = Pool.get(liq.pool_account);
 
-                ignore dvf.send({
+                switch(dvf.send({
                     ledger = liq.asset_a.ledger;
                     to = liq.pool_account;
                     amount = liq.from_a.amount;
                     memo = null;
                     from_subaccount = liq.from_a.account.subaccount;
-                });
-                ignore dvf.send({
+                })) {
+                    case (#err(e)) U.trap("Error sending token A to pool: " # debug_show(e));
+                    case (#ok(_)) ();
+                };
+                switch(dvf.send({
                     ledger = liq.asset_b.ledger;
                     to = liq.pool_account;
                     amount = liq.from_b.amount;
                     memo = null;
                     from_subaccount = liq.from_b.account.subaccount;
-                });
+                })) {
+                    case (#err(e)) U.trap("Error sending token B to pool: " # debug_show(e));
+                    case (#ok(_)) ();
+                };
+
+                // Print new balances
+                U.log("New balances: " # debug_show({
+                    ledger_a = LedgerAccount.balance(liq.asset_a);
+                    ledger_b = LedgerAccount.balance(liq.asset_b);
+                }));
 
                 // Add liquidity tokens to the user's account
                 Pool.setShare(pool, liq.to_account, Pool.getShare(pool, liq.to_account) + liq.minted_tokens);
+
+                U.log("New pool share: " # debug_show(Pool.getShare(pool, liq.to_account)) # " tokens");
 
                 pool.total := liq.new_total;
             };
@@ -384,11 +430,11 @@ module {
 
                     let request_amount = acc_bal;
 
-                    let rate_fwd = (reserve_A + request_amount) / reserve_B;
+                    let rate_fwd = ((reserve_A + request_amount) * scale) / reserve_B;
 
                     let afterfee_fwd = request_amount - swap_fee_fwd:Nat;
 
-                    let recieve_fwd = afterfee_fwd / rate_fwd;
+                    let recieve_fwd = (afterfee_fwd / rate_fwd) * scale;
                     Vector.add(path, {
                         pool_account = pool_account;
                         asset_in = asset_A;

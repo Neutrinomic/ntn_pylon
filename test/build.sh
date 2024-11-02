@@ -11,12 +11,12 @@ mkdir -p ./build
 mocv use 0.11.3 # Only for the tests
 
 # Extract the base name without the directory and .test.mo extension
-base_name="basic"
+base_name="pylon"
 
 echo "Processing $base_name...";
 
 # Run moc to produce the wasm file. Adjust the moc command as necessary.
-`NODE_OPTIONS="--no-deprecation" npx mocv bin`/moc `mops sources` --idl --hide-warnings -o "./build/${base_name}.wasm" --idl ../example/basic.mo &&
+`NODE_OPTIONS="--no-deprecation" npx mocv bin`/moc `mops sources` --idl --hide-warnings -o "./build/${base_name}.wasm" --idl ../src/pylon.mo &&
 
 # Assuming main.did is produced by the above moc command and matches the base name.
 # Generate JavaScript bindings

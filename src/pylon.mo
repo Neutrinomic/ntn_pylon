@@ -27,6 +27,7 @@ import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import Core "mo:devefi/core";
 import Swap "./shared_modules/swap/swap";
+import Debug "mo:base/Debug";
 
 actor class () = this {
 
@@ -125,8 +126,10 @@ actor class () = this {
 
             let fee = core.Source.fee(source);
             if (bal <= fee * 100) continue vloop;
-
             switch (vec.module_id) {
+                case ("exchange_liquidity") {
+                    vec_exchange_liquidity.run(vid, vec);
+                };
                 case ("exchange") {
                     vec_exchange.run(vid, vec);
                 };
@@ -142,11 +145,13 @@ actor class () = this {
         };
     };
 
-    ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
-        core.heartbeat(proc);
-    });
+    // ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
+    //     core.heartbeat(proc);
+    // });
 
     // ICRC-55
+
+    
 
     public query func icrc55_get_pylon_meta() : async ICRC55.PylonMetaResp {
         sys.icrc55_get_pylon_meta();
@@ -221,5 +226,7 @@ actor class () = this {
         dvf.getLedgersInfo();
     };
 
-
+    public shared func beat() : async () {
+         core.heartbeat(proc);
+    };
 };

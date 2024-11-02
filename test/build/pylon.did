@@ -1,9 +1,10 @@
-type _anon_class_30_1 = 
+type _anon_class_32_1 = 
  service {
    add_supported_ledger: (principal, variant {
                                        icp;
                                        icrc;
                                      }) -> () oneway;
+   beat: () -> ();
    get_ledger_errors: () -> (vec vec text) query;
    get_ledgers_info: () -> (vec LedgerInfo) query;
    icrc3_get_archives: (GetArchivesArgs) -> (GetArchivesResult) query;
@@ -100,7 +101,7 @@ type SourceEndpointResp =
    endpoint: Endpoint;
    name: text;
  };
-type Shared__6 = 
+type Shared__7 = 
  record {
    init: record {};
    internals: record {wait_until_ts: nat64;};
@@ -109,17 +110,26 @@ type Shared__6 =
                 max_amount: NumVariant;
               };
  };
-type Shared__5 = 
+type Shared__6 = 
  record {
    init: record {};
    internals: record {};
    variables: record {split: vec nat;};
  };
-type Shared__4 = 
+type Shared__5 = 
  record {
    init: record {};
    internals: record {};
    variables: record {interest: nat;};
+ };
+type Shared__4 = 
+ record {
+   init: record {};
+   internals: record {
+                balance: nat;
+                total: nat;
+              };
+   variables: record {flow: Flow;};
  };
 type Shared__3 = 
  record {
@@ -144,9 +154,10 @@ type Shared =
    borrow: Shared__1;
    escrow: Shared__2;
    exchange: Shared__3;
-   lend: Shared__4;
-   split: Shared__5;
-   throttle: Shared__6;
+   exchange_liquidity: Shared__4;
+   lend: Shared__5;
+   split: Shared__6;
+   throttle: Shared__7;
  };
 type PylonMetaResp = 
  record {
@@ -208,13 +219,14 @@ type ModuleMeta =
    supported_ledgers: vec SupportedLedger;
    version: Version;
  };
-type ModifyRequest__6 = 
+type ModifyRequest__7 = 
  record {
    interval_sec: NumVariant;
    max_amount: NumVariant;
  };
-type ModifyRequest__5 = record {split: vec nat;};
-type ModifyRequest__4 = record {interest: nat;};
+type ModifyRequest__6 = record {split: vec nat;};
+type ModifyRequest__5 = record {interest: nat;};
+type ModifyRequest__4 = record {flow: Flow;};
 type ModifyRequest__3 = record {interest: nat;};
 type ModifyRequest__2 = record {interest: nat;};
 type ModifyRequest__1 = record {interest: nat;};
@@ -223,9 +235,10 @@ type ModifyRequest =
    borrow: ModifyRequest__1;
    escrow: ModifyRequest__2;
    exchange: ModifyRequest__3;
-   lend: ModifyRequest__4;
-   split: ModifyRequest__5;
-   throttle: ModifyRequest__6;
+   exchange_liquidity: ModifyRequest__4;
+   lend: ModifyRequest__5;
+   split: ModifyRequest__6;
+   throttle: ModifyRequest__7;
  };
 type ModifyNodeResponse = 
  variant {
@@ -342,6 +355,13 @@ type GetArchivesResultItem =
  };
 type GetArchivesResult = vec GetArchivesResultItem;
 type GetArchivesArgs = record {from: opt principal;};
+type Flow = 
+ variant {
+   add;
+   hold;
+   pass_through;
+   remove;
+ };
 type EndpointsDescription = 
  vec record {
        LedgerIdx;
@@ -395,7 +415,7 @@ type DataCertificate =
    certificate: blob;
    hash_tree: blob;
  };
-type CreateRequest__6 = 
+type CreateRequest__7 = 
  record {
    init: record {};
    variables: record {
@@ -403,15 +423,20 @@ type CreateRequest__6 =
                 max_amount: NumVariant;
               };
  };
-type CreateRequest__5 = 
+type CreateRequest__6 = 
  record {
    init: record {};
    variables: record {split: vec nat;};
  };
-type CreateRequest__4 = 
+type CreateRequest__5 = 
  record {
    init: record {};
    variables: record {interest: nat;};
+ };
+type CreateRequest__4 = 
+ record {
+   init: record {};
+   variables: record {flow: Flow;};
  };
 type CreateRequest__3 = 
  record {
@@ -433,9 +458,10 @@ type CreateRequest =
    borrow: CreateRequest__1;
    escrow: CreateRequest__2;
    exchange: CreateRequest__3;
-   lend: CreateRequest__4;
-   split: CreateRequest__5;
-   throttle: CreateRequest__6;
+   exchange_liquidity: CreateRequest__4;
+   lend: CreateRequest__5;
+   split: CreateRequest__6;
+   throttle: CreateRequest__7;
  };
 type CreateNodeResponse = 
  variant {
@@ -551,4 +577,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : () -> _anon_class_30_1
+service : () -> _anon_class_32_1

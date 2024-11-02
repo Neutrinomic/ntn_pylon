@@ -95,7 +95,7 @@ module {
             #ok();
         };
 
-        public func get(id : T.NodeId) : T.Get<I.Shared> {
+        public func get(id : T.NodeId, vec: T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             #ok {

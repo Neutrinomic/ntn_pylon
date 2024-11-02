@@ -22,7 +22,10 @@ module {
         variables : {
             flow : Flow;
         };
-        internals : {};
+        internals : {
+            balance : Nat;
+            total : Nat;
+        };
     };
 
     public type Flow = {

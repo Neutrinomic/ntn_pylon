@@ -58,46 +58,46 @@ module {
         vec_exchange_liquidity : ExchangeLiquidity.Mod;
     }) {
     
-        public func get(mid :Core.ModuleId, id : Core.NodeId) : Result.Result<Shared, Text> {
+        public func get(mid :Core.ModuleId, id : Core.NodeId, vec:Core.NodeMem) : Result.Result<Shared, Text> {
             
             if (mid == ThrottleVector.ID) {
-                switch(m.vec_throttle.get(id)) {
+                switch(m.vec_throttle.get(id, vec)) {
                     case (#ok(x)) return #ok(#throttle(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == Lend.ID) {
-                switch(m.vec_lend.get(id)) {
+                switch(m.vec_lend.get(id, vec)) {
                     case (#ok(x)) return #ok(#lend(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == Borrow.ID) {
-                switch(m.vec_borrow.get(id)) {
+                switch(m.vec_borrow.get(id, vec)) {
                     case (#ok(x)) return #ok(#borrow(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == Exchange.ID) {
-                switch(m.vec_exchange.get(id)) {
+                switch(m.vec_exchange.get(id, vec)) {
                     case (#ok(x)) return #ok(#exchange(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == Escrow.ID) {
-                switch(m.vec_escrow.get(id)) {
+                switch(m.vec_escrow.get(id, vec)) {
                     case (#ok(x)) return #ok(#escrow(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == Split.ID) {
-                switch(m.vec_split.get(id)) {
+                switch(m.vec_split.get(id, vec)) {
                     case (#ok(x)) return #ok(#split(x));
                     case (#err(x)) return #err(x);
                 }
             };
             if (mid == ExchangeLiquidity.ID) {
-                switch(m.vec_exchange_liquidity.get(id)) {
+                switch(m.vec_exchange_liquidity.get(id, vec)) {
                     case (#ok(x)) return #ok(#exchange_liquidity(x));
                     case (#err(x)) return #err(x);
                 }

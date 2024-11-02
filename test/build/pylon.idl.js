@@ -101,26 +101,34 @@ export const idlFactory = ({ IDL }) => {
     'sources' : IDL.Opt(IDL.Vec(IDL.Opt(InputAddress))),
     'refund' : IDL.Opt(Account),
   });
-  const ModifyRequest__4 = IDL.Record({ 'interest' : IDL.Nat });
+  const ModifyRequest__5 = IDL.Record({ 'interest' : IDL.Nat });
   const ModifyRequest__1 = IDL.Record({ 'interest' : IDL.Nat });
-  const ModifyRequest__5 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
+  const ModifyRequest__6 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
   const NumVariant = IDL.Variant({
     'rnd' : IDL.Record({ 'max' : IDL.Nat64, 'min' : IDL.Nat64 }),
     'fixed' : IDL.Nat64,
   });
-  const ModifyRequest__6 = IDL.Record({
+  const ModifyRequest__7 = IDL.Record({
     'interval_sec' : NumVariant,
     'max_amount' : NumVariant,
   });
   const ModifyRequest__3 = IDL.Record({ 'interest' : IDL.Nat });
   const ModifyRequest__2 = IDL.Record({ 'interest' : IDL.Nat });
+  const Flow = IDL.Variant({
+    'add' : IDL.Null,
+    'remove' : IDL.Null,
+    'hold' : IDL.Null,
+    'pass_through' : IDL.Null,
+  });
+  const ModifyRequest__4 = IDL.Record({ 'flow' : Flow });
   const ModifyRequest = IDL.Variant({
-    'lend' : ModifyRequest__4,
+    'lend' : ModifyRequest__5,
     'borrow' : ModifyRequest__1,
-    'split' : ModifyRequest__5,
-    'throttle' : ModifyRequest__6,
+    'split' : ModifyRequest__6,
+    'throttle' : ModifyRequest__7,
     'exchange' : ModifyRequest__3,
     'escrow' : ModifyRequest__2,
+    'exchange_liquidity' : ModifyRequest__4,
   });
   const ModifyNodeRequest = IDL.Tuple(
     LocalNodeId,
@@ -145,7 +153,7 @@ export const idlFactory = ({ IDL }) => {
     'temporary' : IDL.Bool,
     'refund' : Account,
   });
-  const CreateRequest__4 = IDL.Record({
+  const CreateRequest__5 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
   });
@@ -153,11 +161,11 @@ export const idlFactory = ({ IDL }) => {
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
   });
-  const CreateRequest__5 = IDL.Record({
+  const CreateRequest__6 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'split' : IDL.Vec(IDL.Nat) }),
   });
-  const CreateRequest__6 = IDL.Record({
+  const CreateRequest__7 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
       'interval_sec' : NumVariant,
@@ -172,13 +180,18 @@ export const idlFactory = ({ IDL }) => {
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
   });
+  const CreateRequest__4 = IDL.Record({
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({ 'flow' : Flow }),
+  });
   const CreateRequest = IDL.Variant({
-    'lend' : CreateRequest__4,
+    'lend' : CreateRequest__5,
     'borrow' : CreateRequest__1,
-    'split' : CreateRequest__5,
-    'throttle' : CreateRequest__6,
+    'split' : CreateRequest__6,
+    'throttle' : CreateRequest__7,
     'exchange' : CreateRequest__3,
     'escrow' : CreateRequest__2,
+    'exchange_liquidity' : CreateRequest__4,
   });
   const CreateNodeRequest = IDL.Tuple(CommonCreateRequest, CreateRequest);
   const TransferRequest = IDL.Record({
@@ -217,7 +230,7 @@ export const idlFactory = ({ IDL }) => {
     'expire_at' : IDL.Opt(IDL.Nat64),
     'commands' : IDL.Vec(Command),
   });
-  const Shared__4 = IDL.Record({
+  const Shared__5 = IDL.Record({
     'internals' : IDL.Record({}),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
@@ -227,12 +240,12 @@ export const idlFactory = ({ IDL }) => {
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
   });
-  const Shared__5 = IDL.Record({
+  const Shared__6 = IDL.Record({
     'internals' : IDL.Record({}),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'split' : IDL.Vec(IDL.Nat) }),
   });
-  const Shared__6 = IDL.Record({
+  const Shared__7 = IDL.Record({
     'internals' : IDL.Record({ 'wait_until_ts' : IDL.Nat64 }),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
@@ -250,13 +263,19 @@ export const idlFactory = ({ IDL }) => {
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'interest' : IDL.Nat }),
   });
+  const Shared__4 = IDL.Record({
+    'internals' : IDL.Record({ 'total' : IDL.Nat, 'balance' : IDL.Nat }),
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({ 'flow' : Flow }),
+  });
   const Shared = IDL.Variant({
-    'lend' : Shared__4,
+    'lend' : Shared__5,
     'borrow' : Shared__1,
-    'split' : Shared__5,
-    'throttle' : Shared__6,
+    'split' : Shared__6,
+    'throttle' : Shared__7,
     'exchange' : Shared__3,
     'escrow' : Shared__2,
+    'exchange_liquidity' : Shared__4,
   });
   const BillingTransactionFee = IDL.Variant({
     'none' : IDL.Null,
@@ -428,12 +447,13 @@ export const idlFactory = ({ IDL }) => {
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
   const VirtualBalancesResponse = IDL.Vec(IDL.Tuple(SupportedLedger, IDL.Nat));
-  const _anon_class_30_1 = IDL.Service({
+  const _anon_class_32_1 = IDL.Service({
     'add_supported_ledger' : IDL.Func(
         [IDL.Principal, IDL.Variant({ 'icp' : IDL.Null, 'icrc' : IDL.Null })],
         [],
         ['oneway'],
       ),
+    'beat' : IDL.Func([], [], []),
     'get_ledger_errors' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Text))], ['query']),
     'get_ledgers_info' : IDL.Func([], [IDL.Vec(LedgerInfo)], ['query']),
     'icrc3_get_archives' : IDL.Func(
@@ -480,6 +500,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'start' : IDL.Func([], [], ['oneway']),
   });
-  return _anon_class_30_1;
+  return _anon_class_32_1;
 };
 export const init = ({ IDL }) => { return []; };
