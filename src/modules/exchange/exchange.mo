@@ -65,7 +65,7 @@ module {
             let obj : VM.NodeMem = {
                 init = t.init;
                 variables = {
-                    var interest = t.variables.interest;
+                    var max_slippage_e6s = t.variables.max_slippage_e6s;
                 };
                 internals = {};
             };
@@ -79,7 +79,7 @@ module {
 
                 };
                 variables = {
-                    interest = 20;
+                    max_slippage_e6s = 20_000;
                 };
             };
         };
@@ -91,19 +91,25 @@ module {
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
-            t.variables.interest := m.interest;
+            t.variables.max_slippage_e6s := m.max_slippage_e6s;
             #ok();
         };
 
         public func get(id : T.NodeId, vec: T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
+            let ledger_A = U.onlyICLedger(vec.ledgers[0]);
+            let ledger_B = U.onlyICLedger(vec.ledgers[1]);
+
             #ok {
                 init = t.init;
                 variables = {
-                    interest = t.variables.interest;
+                    max_slippage_e6s = t.variables.max_slippage_e6s;
                 };
-                internals = {};
+                internals = {
+                    swap_fee_e4s = swap._swap_fee_e4s;
+                    price_e16s = swap.Price.get(ledger_A, ledger_B, 0);
+                };
             };
         };
 
@@ -123,7 +129,7 @@ module {
             let ?source = core.getSource(vid, vec, 0) else return;
             let ?destination = core.getDestinationAccountIC(vec, 0) else return;
             let ?source_account = core.Source.getAccount(source) else return;
-            
+
             let bal = core.Source.balance(source);
             U.log("Swapping" # debug_show(bal));
             if (bal == 0) return;
@@ -135,6 +141,10 @@ module {
                 
                     case (#ok(intent)) {
                         let quote = swap.Intent.quote(intent);
+                        if (quote.slippage_e6s > th.variables.max_slippage_e6s) {
+                            U.log("Slippage too high");
+                            return;
+                        };
                         swap.Intent.commit(intent);
                         U.log("Intent is ok");
                     }

@@ -5,12 +5,12 @@ module {
 
         };
         variables : {
-            interest : Nat;
+            max_slippage_e6s : Nat;
         };
     };
 
     public type ModifyRequest = {
-        interest : Nat;
+        max_slippage_e6s : Nat;
     };
 
     public type Shared = {
@@ -18,8 +18,11 @@ module {
 
         };
         variables : {
-            interest : Nat;
+            max_slippage_e6s : Nat;
         };
-        internals : {};
+        internals : {
+            swap_fee_e4s : Nat;
+            price_e16s : ?Nat;
+        };
     };
 }

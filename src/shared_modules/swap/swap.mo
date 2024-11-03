@@ -36,30 +36,40 @@ module {
             core : Core.Mod;
             dvf : DeVeFi.DeVeFi;
             primary_ledger : Principal;
-            swap_fee : Nat; // 4 decimals
+            swap_fee_e4s : Nat; // 4 decimals
         }) {
 
         let mem = MU.access(xmem);
 
-        public let scale = 1_0000_0000;
+        public let scale = 1_0000_0000_0000_0000;
         public let _primary_ledger = primary_ledger;
+        public let _swap_fee_e4s = swap_fee_e4s;
 
         public module Price = {
-            public func get(ledger_a: Principal, ledger_b: Principal, idx:Nat8) : ?Nat {
+            public func getDirect(ledger_a: Principal, ledger_b: Principal, idx:Nat8) : ?Nat {
                 let pool_account = getPoolAccount(ledger_a, ledger_b, idx);
                 let asset_a = LedgerAccount.get(pool_account, ledger_a);
                 let asset_b = LedgerAccount.get(pool_account, ledger_b);
                 let reserve_A = LedgerAccount.balance(asset_a);
                 let reserve_B = LedgerAccount.balance(asset_b);
-                U.log("Reserve A: " # debug_show(reserve_A));
-                U.log("Reserve B: " # debug_show(reserve_B));
                 if (reserve_A == 0 or reserve_B == 0) {
                     return null;
                 };
                 let rate = (reserve_B * scale) / reserve_A;
                 ?rate
             };
+
+            public func get(from: Principal, to: Principal, idx:Nat8) : ?Nat {
+                if (to == primary_ledger or from == primary_ledger) {
+                    getDirect(from, to, idx);
+                } else {
+                    let ?p1 = getDirect(from, primary_ledger, idx) else return null;
+                    let ?p2 = getDirect(primary_ledger, to, idx) else return null;
+                    ?((p1 * p2)/scale);
+                };
+            };  
         };
+
 
         public module Pool {
             public func get(pool_account: Core.Account) : VM.Pool {
@@ -217,7 +227,6 @@ module {
             asset_b : LedgerAccount;
             from_a : AccountAmount;
             from_b : AccountAmount;
-            new_total: Nat;
             minted_tokens : Nat;
             to_account: Core.Account;
         };
@@ -226,18 +235,21 @@ module {
             public func get(to_account: Core.Account, from_a: {ledger: Principal; account: Core.Account; amount: Nat}, from_b : {ledger:Principal; account:Core.Account; amount: Nat}) : R<LiquidityIntentAdd, Text> {
 
                 let pool_account = getPoolAccount(from_a.ledger, from_b.ledger, 0);
+                U.log("ADD POOL ACCOUNT: " # debug_show(pool_account.subaccount));
                 let pool = Pool.get(pool_account);
                 let asset_a = LedgerAccount.get(pool_account, from_a.ledger);
                 let asset_b = LedgerAccount.get(pool_account, from_b.ledger);
                 let reserve_A = LedgerAccount.balance(asset_a);
                 let reserve_B = LedgerAccount.balance(asset_b);
-                
+                U.log("ADD POOL RESERVE A: " # debug_show(reserve_A));
+                U.log("ADD POOL RESERVE B: " # debug_show(reserve_B));
+
                 let ledger_a_fee = dvf.fee(from_a.ledger);
                 let ledger_b_fee = dvf.fee(from_b.ledger);
 
                 // Too Small Additions
-                if (from_a.amount < 100*ledger_a_fee) return #err("Pool addition must be at least 100xledger fee for token A : " # debug_show({amount= from_a.amount; ledger_a_fee}));
-                if (from_b.amount < 100*ledger_b_fee) return #err("Pool addition must be at least 100xledger fee for token B : " # debug_show({amount= from_b.amount; ledger_b_fee}));
+                if (from_a.amount < 100*ledger_a_fee) return #err("Pool addition must be at least 100 x ledger fee for token A : " # debug_show({amount= from_a.amount; ledger_a_fee}));
+                if (from_b.amount < 100*ledger_b_fee) return #err("Pool addition must be at least 100 x ledger fee for token B : " # debug_show({amount= from_b.amount; ledger_b_fee}));
                 
                  
             
@@ -250,6 +262,7 @@ module {
                 if (dvf.balance(from_a.ledger, from_a.account.subaccount) < from_a.amount) {
                     return #err("Insufficient balance in account A");
                 };
+
                 if (dvf.balance(from_b.ledger, from_b.account.subaccount) < from_b.amount) {
                     return #err("Insufficient balance in account B");
                 };
@@ -291,7 +304,6 @@ module {
 
                 let minted_tokens = Nat.min((input_a * total) / reserve_A, (input_b * total) / reserve_B);
 
-                let new_total = total + minted_tokens;
 
                 #ok{
                     pool_account;
@@ -299,7 +311,6 @@ module {
                     asset_b;
                     from_a;
                     from_b;
-                    new_total;
                     minted_tokens;
                     to_account;
                 };
@@ -345,7 +356,7 @@ module {
 
                 U.log("New pool share: " # debug_show(Pool.getShare(pool, liq.to_account)) # " tokens");
 
-                pool.total := liq.new_total;
+                pool.total := pool.total + liq.minted_tokens;
             };
 
             public func sqrt(x: Nat) : Nat {
@@ -375,19 +386,23 @@ module {
         amount_in : Nat;
         amount_out : Nat;
         swap_fee : Nat;
+        slippage_e6s : Nat;
     };
+    
     public type IntentPath = [Intent];
 
     public module Intent {
         
-        public func quote(path: IntentPath) : Nat {
+        public func quote(path: IntentPath) : {amount_out :Nat; slippage_e6s : Nat} {
             let last = path[path.size() - 1];
-            last.amount_out;
+            last;
         };
 
         public func commit(path: IntentPath) : () {
             for (intent in path.vals()) {
       
+                let bal = dvf.balance(intent.asset_in.ledger, intent.from.subaccount);
+                U.log("Sending to pool " # debug_show(bal));
                 switch(dvf.send({
                     ledger = intent.asset_in.ledger;
                     to = intent.pool_account;
@@ -396,9 +411,11 @@ module {
                     from_subaccount = intent.from.subaccount;
                 })) {
                     case (#ok(_)) ();
-                    case (#err(e)) U.trap("Error sending token A to pool: " # debug_show(e));
+                    case (#err(e)) U.trap("Error sending token A to pool: " # debug_show(e) # " sending " # debug_show(intent.amount_in));
                 };
 
+                let bal_out = dvf.balance(intent.asset_out.ledger, intent.pool_account.subaccount);
+                U.log("Sending from pool " # debug_show(bal_out));
                 switch(dvf.send({
                     ledger = intent.asset_out.ledger;
                     to = intent.to;
@@ -407,7 +424,7 @@ module {
                     from_subaccount = intent.pool_account.subaccount
                 })) {
                     case (#ok(_)) ();
-                    case (#err(e)) U.trap("Error sending token B to pool: " # debug_show(e));
+                    case (#err(e)) U.trap("Error sending token B to pool: " # debug_show(e) # " sending " # debug_show(intent.amount_out));
                 };
 
                 // Update pool total
@@ -427,7 +444,8 @@ module {
         public func getExact(from_account: Core.Account, to_account: Core.Account, ledgers: [Principal], start_amount: Nat) : R<IntentPath,Text> {
             let path = Vector.new<Intent>();
             var acc_bal = start_amount;
-
+            var inter_from = from_account;
+            var inter_to = from_account;
             for (i in Iter.range(0, ledgers.size() - 2)) {
                 let ledger = ledgers[i];
                 let next_ledger = ledgers[i + 1];
@@ -435,15 +453,15 @@ module {
                 let ledger_fee = dvf.fee(ledger);
 
                 // Ensure sufficient balance to cover ledger fee
-                if (acc_bal <= ledger_fee) return #err("Insufficient balance to cover ledger fee");
+                if (acc_bal <= ledger_fee * 100) return #err("Input balance has to be at least 100x ledger fee");
 
                 let amount_fwd = acc_bal - ledger_fee:Nat;
 
-                let swap_fee_fwd = (amount_fwd * swap_fee) / 1_0000;
+                let swap_fee_fwd = (amount_fwd * swap_fee_e4s) / 1_0000;
 
                 // Ensure amount_fwd is sufficient to cover swap fee
                 if (amount_fwd <= swap_fee_fwd) return #err("Insufficient balance to cover swap fee");
-
+                
                 let pool_account = getPoolAccount(ledger, next_ledger, 0);
 
                 let asset_A = LedgerAccount.get(pool_account, ledger); 
@@ -451,7 +469,6 @@ module {
 
                 let reserve_A = LedgerAccount.balance(asset_A);
                 let reserve_B = LedgerAccount.balance(asset_B);
-
 
                 // Calculate rate_fwd safely and ensure non-zero values
                 if (reserve_B == 0) return #err("Reserve B is zero");
@@ -462,26 +479,40 @@ module {
                 if (afterfee_fwd <= 0) return #err("Amount after fee is zero");
 
                 // Calculate receive_fwd safely
-                let receive_fwd = (afterfee_fwd * scale) / rate_fwd;
+                let receive_fwd = (afterfee_fwd * scale) / rate_fwd - ledger_fee:Nat;
                 if (receive_fwd <= 0) return #err("Receive amount is zero");
 
-                // Add intent with calculated values to path
+                // Calculate expected amount without slippage (ideal conditions)
+                let expected_receive_fwd = (amount_fwd * scale) / rate_fwd - ledger_fee:Nat;
+
+                // Calculate slippage percentage in _e6s (six decimal places)
+                let slippage_e6s = ((expected_receive_fwd - receive_fwd:Nat) * 1_000_000) / expected_receive_fwd;
+
+                // If last step put to_account as destination
+                if (i == ledgers.size() - 2) {
+                    inter_to := to_account;
+                };
+
+                // Add intent with calculated values to path, including slippage in _e6s format
                 Vector.add(path, {
-                    from = from_account;
-                    to = to_account;
+                    from = inter_from;
+                    to = inter_to;
                     pool_account = pool_account;
                     asset_in = asset_A;
                     asset_out = asset_B;
                     amount_in = amount_fwd;
                     amount_out = receive_fwd;
                     swap_fee = swap_fee_fwd;
+                    slippage_e6s = slippage_e6s;
                 });
 
                 acc_bal := receive_fwd;
+                
             };
             
             #ok(Vector.toArray(path));
         };
+
     };
 
 

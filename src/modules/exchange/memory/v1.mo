@@ -16,7 +16,7 @@ module {
 
         };
         variables : {
-            var interest : Nat;
+            var max_slippage_e6s : Nat;
         };
         internals : {};
     };

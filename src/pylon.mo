@@ -70,7 +70,7 @@ actor class () = this {
 
     // Shared modules
     let mem_swap_1 = Swap.Mem.Swap.V1.new();
-    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai"); swap_fee = 300});
+    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai"); swap_fee_e4s = 30});
 
 
     // Vector modules

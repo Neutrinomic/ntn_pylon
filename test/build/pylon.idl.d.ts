@@ -99,7 +99,7 @@ export interface CreateRequest__2 {
 }
 export interface CreateRequest__3 {
   'init' : {},
-  'variables' : { 'interest' : bigint },
+  'variables' : { 'max_slippage_e6s' : bigint },
 }
 export interface CreateRequest__4 {
   'init' : {},
@@ -248,7 +248,7 @@ export type ModifyRequest = { 'lend' : ModifyRequest__5 } |
   { 'exchange_liquidity' : ModifyRequest__4 };
 export interface ModifyRequest__1 { 'interest' : bigint }
 export interface ModifyRequest__2 { 'interest' : bigint }
-export interface ModifyRequest__3 { 'interest' : bigint }
+export interface ModifyRequest__3 { 'max_slippage_e6s' : bigint }
 export interface ModifyRequest__4 { 'flow' : Flow }
 export interface ModifyRequest__5 { 'interest' : bigint }
 export interface ModifyRequest__6 { 'split' : Array<bigint> }
@@ -321,9 +321,9 @@ export interface Shared__2 {
   'variables' : { 'interest' : bigint },
 }
 export interface Shared__3 {
-  'internals' : {},
+  'internals' : { 'swap_fee_e4s' : bigint, 'price_e16s' : [] | [bigint] },
   'init' : {},
-  'variables' : { 'interest' : bigint },
+  'variables' : { 'max_slippage_e6s' : bigint },
 }
 export interface Shared__4 {
   'internals' : { 'total' : bigint, 'balance' : bigint },

@@ -112,7 +112,7 @@ export const idlFactory = ({ IDL }) => {
     'interval_sec' : NumVariant,
     'max_amount' : NumVariant,
   });
-  const ModifyRequest__3 = IDL.Record({ 'interest' : IDL.Nat });
+  const ModifyRequest__3 = IDL.Record({ 'max_slippage_e6s' : IDL.Nat });
   const ModifyRequest__2 = IDL.Record({ 'interest' : IDL.Nat });
   const Flow = IDL.Variant({
     'add' : IDL.Null,
@@ -174,7 +174,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const CreateRequest__3 = IDL.Record({
     'init' : IDL.Record({}),
-    'variables' : IDL.Record({ 'interest' : IDL.Nat }),
+    'variables' : IDL.Record({ 'max_slippage_e6s' : IDL.Nat }),
   });
   const CreateRequest__2 = IDL.Record({
     'init' : IDL.Record({}),
@@ -254,9 +254,12 @@ export const idlFactory = ({ IDL }) => {
     }),
   });
   const Shared__3 = IDL.Record({
-    'internals' : IDL.Record({}),
+    'internals' : IDL.Record({
+      'swap_fee_e4s' : IDL.Nat,
+      'price_e16s' : IDL.Opt(IDL.Nat),
+    }),
     'init' : IDL.Record({}),
-    'variables' : IDL.Record({ 'interest' : IDL.Nat }),
+    'variables' : IDL.Record({ 'max_slippage_e6s' : IDL.Nat }),
   });
   const Shared__2 = IDL.Record({
     'internals' : IDL.Record({}),

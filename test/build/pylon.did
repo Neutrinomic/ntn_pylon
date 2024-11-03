@@ -134,8 +134,11 @@ type Shared__4 =
 type Shared__3 = 
  record {
    init: record {};
-   internals: record {};
-   variables: record {interest: nat;};
+   internals: record {
+                price_e16s: opt nat;
+                swap_fee_e4s: nat;
+              };
+   variables: record {max_slippage_e6s: nat;};
  };
 type Shared__2 = 
  record {
@@ -227,7 +230,7 @@ type ModifyRequest__7 =
 type ModifyRequest__6 = record {split: vec nat;};
 type ModifyRequest__5 = record {interest: nat;};
 type ModifyRequest__4 = record {flow: Flow;};
-type ModifyRequest__3 = record {interest: nat;};
+type ModifyRequest__3 = record {max_slippage_e6s: nat;};
 type ModifyRequest__2 = record {interest: nat;};
 type ModifyRequest__1 = record {interest: nat;};
 type ModifyRequest = 
@@ -441,7 +444,7 @@ type CreateRequest__4 =
 type CreateRequest__3 = 
  record {
    init: record {};
-   variables: record {interest: nat;};
+   variables: record {max_slippage_e6s: nat;};
  };
 type CreateRequest__2 = 
  record {
