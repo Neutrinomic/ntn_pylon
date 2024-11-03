@@ -386,16 +386,15 @@ module {
         amount_in : Nat;
         amount_out : Nat;
         swap_fee : Nat;
-        slippage_e6s : Nat;
     };
     
     public type IntentPath = [Intent];
 
     public module Intent {
         
-        public func quote(path: IntentPath) : {amount_out :Nat; slippage_e6s : Nat} {
+        public func quote(path: IntentPath) : Nat {
             let last = path[path.size() - 1];
-            last;
+            last.amount_out;
         };
 
         public func commit(path: IntentPath) : () {
@@ -427,9 +426,7 @@ module {
                     case (#err(e)) U.trap("Error sending token B to pool: " # debug_show(e) # " sending " # debug_show(intent.amount_out));
                 };
 
-                // Update pool total
-                let pool = Pool.get(intent.pool_account);
-                pool.total := pool.total + intent.amount_in;
+                core.incrementOps(1);
             };
         };
 
@@ -451,6 +448,7 @@ module {
                 let next_ledger = ledgers[i + 1];
                 
                 let ledger_fee = dvf.fee(ledger);
+                let ledger_next_fee = dvf.fee(next_ledger);
 
                 // Ensure sufficient balance to cover ledger fee
                 if (acc_bal <= ledger_fee * 100) return #err("Input balance has to be at least 100x ledger fee");
@@ -479,17 +477,12 @@ module {
                 if (afterfee_fwd <= 0) return #err("Amount after fee is zero");
 
                 // Calculate receive_fwd safely
-                let receive_fwd = (afterfee_fwd * scale) / rate_fwd - ledger_fee:Nat;
+                let receive_fwd = (afterfee_fwd * scale) / rate_fwd - ledger_next_fee:Nat;
                 if (receive_fwd <= 0) return #err("Receive amount is zero");
 
-                // Calculate expected amount without slippage (ideal conditions)
-                let expected_receive_fwd = (amount_fwd * scale) / rate_fwd - ledger_fee:Nat;
-
-                // Calculate slippage percentage in _e6s (six decimal places)
-                let slippage_e6s = ((expected_receive_fwd - receive_fwd:Nat) * 1_000_000) / expected_receive_fwd;
-
+        
                 // If last step put to_account as destination
-                if (i == ledgers.size() - 2) {
+                if (i + 2 == ledgers.size()) {
                     inter_to := to_account;
                 };
 
@@ -503,7 +496,6 @@ module {
                     amount_in = amount_fwd;
                     amount_out = receive_fwd;
                     swap_fee = swap_fee_fwd;
-                    slippage_e6s = slippage_e6s;
                 });
 
                 acc_bal := receive_fwd;

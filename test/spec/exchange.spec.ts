@@ -33,13 +33,6 @@ describe('Exchange', () => {
     return node;
   }
 
-  it(`Create liquidity vector`, async () => {
-
-    await createLPNode(LEDGER_A, LEDGER_B);
-    await d.passTime(1);
-
-  }, 600 * 1000);
-
 
   async function addLiquidity(node_id:number, ledger_one:number, ledger_two:number, a: bigint, b: bigint) : Promise<{ balance: bigint, total: bigint }> {
     
@@ -55,6 +48,12 @@ describe('Exchange', () => {
     return end; 
   }
 
+  it(`Create liquidity vector`, async () => {
+
+    await createLPNode(LEDGER_A, LEDGER_B);
+    await d.passTime(1);
+
+  }, 600 * 1000);
 
   it(`Add initial liquidity A-B`, async () => {
 
@@ -120,8 +119,8 @@ describe('Exchange', () => {
     await d.passTime(5);
 
     
-    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, PORT_0);
-    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, PORT_1);
+    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, LEDGER_A);
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, LEDGER_B);
 
     expect(balance_a).toBe(1999978335n);
     expect(balance_b).toBe(999970000n);
@@ -142,14 +141,13 @@ describe('Exchange', () => {
     await d.passTime(5);
 
     
-    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, PORT_0);
-    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, PORT_1);
+    let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, LEDGER_A);
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] }, LEDGER_B);
 
     expect(balance_a).toBe(3999946667n);
     expect(balance_b).toBe(1999934999n);
 
   });
-
 
   it(`Add same liquidity after removing A-B`, async () => {
 
@@ -198,14 +196,13 @@ describe('Exchange', () => {
     expect(balance_b).toBe(2458_7144n);
   });
 
-
   it(`Make exchange vector B->A`, async () => {
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage_e6s': 20_000n,
+          'max_slippage_e6s': 80_000n,
         },
       },
     },[LEDGER_B,LEDGER_A]);
@@ -226,7 +223,6 @@ describe('Exchange', () => {
     expect(balance_b).toBe(9962_2183n);
   });
 
-
   it(`Add initial liquidity A-C`, async () => {
 
     let node = await createLPNode(LEDGER_A, LEDGER_C);
@@ -245,8 +241,7 @@ describe('Exchange', () => {
     expect(node_after.sources[PORT_0].balance).toBe(0n);
     expect(node_after.sources[PORT_1].balance).toBe(0n);
 
-  }, 600 * 1000);
-
+  });
 
   it(`Add second liquidity A-C`, async () => {
 
@@ -266,7 +261,7 @@ describe('Exchange', () => {
     expect(node_after.sources[PORT_0].balance).toBe(0n);
     expect(node_after.sources[PORT_1].balance).toBe(0n);
 
-  }, 600 * 1000);
+  });
 
   it(`Make exchange vector A->C`, async () => {
 
@@ -305,14 +300,13 @@ describe('Exchange', () => {
     expect(exchange_slippage).toBeLessThan(40_000n);
   });
 
-
   it(`Make exchange vector with indirect pair B->C`, async () => {
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage_e6s': 40_000n,
+          'max_slippage_e6s': 80_000n,
         },
       },
     },[LEDGER_B,LEDGER_C]);
@@ -326,6 +320,7 @@ describe('Exchange', () => {
     //@ts-ignore
     let swap_fee_e4s = node.custom[0].exchange.internals.swap_fee_e4s;
     
+  
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, a, LEDGER_B);
 
@@ -336,12 +331,49 @@ describe('Exchange', () => {
 
     // Check balance of destination
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(53)] }, LEDGER_C);
+    let expected_without_slippage = a * price_e16s / 1_0000_0000_0000_0000n;
     let expected_bal = 86000391n;
-    
     expect(balance_b).toBe(expected_bal);
+
+    let calc_slippage = ((expected_without_slippage - expected_bal)*100_0000n)/expected_without_slippage;
+    expect(calc_slippage).toBe(73_603n);
     let exchange_slippage = ((a - balance_b)*100_0000n)/a;
     expect(exchange_slippage).toBeLessThan(40_000n);
   });
+
+  it(`Make exchange vector with indirect pair B->C with lower than current slippage`, async () => {
+
+    let node = await d.u.createNode({
+      'exchange': {
+        'init': { },
+        'variables': {
+          'max_slippage_e6s': 20_000n,
+        },
+      },
+    },[LEDGER_B,LEDGER_C]);
+
+    let a = 5000_0000n;
+    
+    // Send funds to source 1
+    await d.u.sendToNode(node.id, PORT_0, a, LEDGER_B);
+
+    // Set destination
+    await d.u.setDestination(node.id, PORT_0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(54)] });
+
+    await d.passTime(3);
+
+    // Check balance of destination
+    let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(54)] }, LEDGER_C);
+    
+    
+    expect(balance_b).toBe(0n);
+    
+
+    let node_after = await d.u.getNode(node.id);
+    let source_balance = node_after.sources[PORT_0].balance;
+    expect(source_balance).toBe(a - d.ledgers[LEDGER_B].fee);
+  });
+
 });
 
 

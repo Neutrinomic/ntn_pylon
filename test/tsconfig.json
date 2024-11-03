@@ -64,6 +64,8 @@
       "./src/**/*.ts",
       "./global-setup.ts",
       "./global-teardown.ts",
-      "./types.d.ts"
+      "./types.d.ts",
+      "jest.custom-matchers.d.ts",
+
     ]
   }
