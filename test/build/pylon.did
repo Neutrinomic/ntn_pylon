@@ -220,6 +220,7 @@ type ModuleMeta =
    name: text;
    sources: EndpointsDescription;
    supported_ledgers: vec SupportedLedger;
+   temporary_allowed: bool;
    version: Version;
  };
 type ModifyRequest__7 = 

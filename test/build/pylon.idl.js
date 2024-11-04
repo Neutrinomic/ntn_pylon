@@ -429,6 +429,7 @@ export const idlFactory = ({ IDL }) => {
     'version' : Version,
     'destinations' : EndpointsDescription,
     'sources' : EndpointsDescription,
+    'temporary_allowed' : IDL.Bool,
     'author_account' : Account,
   });
   const PylonMetaResp = IDL.Record({

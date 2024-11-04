@@ -58,6 +58,7 @@ module {
                 sources = sources(0);
                 destinations = destinations(0);
                 author_account = Billing.authorAccount();
+                temporary_allowed = true;
             };
         };
 
@@ -129,40 +130,46 @@ module {
             [(0, "Remove A"), (1, "Remove B")];
         };
 
+        let DEBUG = true;
+
         public func run() : () {
             label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
                 let ?vec = core.getNodeById(vid) else continue vec_loop;
                 if (not vec.active) continue vec_loop;
-                Run.single(vid, vec, parm);
+                switch(Run.single(vid, vec, parm)) {
+                    case (#err(e)) {
+                        if (DEBUG) U.log("Err in exchange_liquidity: " # e);
+                    };
+                    case (#ok) ();
+                }
             };
         };
 
         module Run {
 
-            public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex:VM.NodeMem) : () {
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex:VM.NodeMem) : R<(), Text> {
                 let now = U.now();
 
-                U.log("Running exchange liquidity " # debug_show(ex.variables.flow));
                 switch(ex.variables.flow) {
                     case (#add) Run.add(vid, vec);
                     case (#remove) Run.remove(vid, vec);
-                    case (_) (); // TODO
+                    case (_) return #ok();
                 }
             };
 
-            public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : () {
+            public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : R<(), Text> {
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);
 
                 
-                let ?destination_A = core.getDestinationAccountIC(vec, 0) else U.trap("no destination 0");
-                let ?destination_B = core.getDestinationAccountIC(vec, 1) else U.trap("no destination 1");
+                let ?destination_A = core.getDestinationAccountIC(vec, 0) else return #err("no destination 0");
+                let ?destination_B = core.getDestinationAccountIC(vec, 1) else return #err("no destination 1");
 
                 let from_account = swap.Pool.accountFromVid(vid, 0);
 
                 let {balance; total} = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
-                if (balance == 0) return;
+                if (balance == 0) return #ok;
 
                 let intent = swap.LiquidityIntentRemove.get(
                     from_account,
@@ -172,25 +179,26 @@ module {
 
                 switch(intent) {
                     case (#ok(intent)) {
-                        Debug.print("REMOVING " # debug_show(intent));
+                        
                         let quote = swap.LiquidityIntentRemove.quote(intent);
 
                         swap.LiquidityIntentRemove.commit(intent);
+                        #ok;
                     };
-                    case (#err(e)) U.log("Error getting intent: " # e);
+                    case (#err(e)) #err("Error getting intent: " # e);
                 };
 
     
             };
 
-            public func add(vid : T.NodeId, vec : T.NodeCoreMem) : () {
+            public func add(vid : T.NodeId, vec : T.NodeCoreMem) : R<(), Text> {
 
 
-                let ?source_A = core.getSource(vid, vec, 0) else U.trap("no source 0");
-                let ?source_B = core.getSource(vid, vec, 1) else U.trap("no source 1");
+                let ?source_A = core.getSource(vid, vec, 0) else return #err("no source 0");
+                let ?source_B = core.getSource(vid, vec, 1) else return #err("no source 1");
 
-                let ?sourceAccount_A = core.Source.getAccount(source_A) else U.trap("no source account 0");
-                let ?sourceAccount_B = core.Source.getAccount(source_B) else U.trap("no source account 1");
+                let ?sourceAccount_A = core.Source.getAccount(source_A) else return #err("no source account 0");
+                let ?sourceAccount_B = core.Source.getAccount(source_B) else return #err("no source account 1");
 
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);
@@ -198,7 +206,7 @@ module {
                 let bal_a = core.Source.balance(source_A);
                 let bal_b = core.Source.balance(source_B);
 
-                if (bal_a == 0 or bal_b == 0) return;
+                if (bal_a == 0 or bal_b == 0) return #ok();
 
                 let to_account = swap.Pool.accountFromVid(vid, 0);
 
@@ -207,7 +215,6 @@ module {
 
                 switch(swap.Price.get(ledger_A, ledger_B, 0)) {
                     case (?price) {
-                        // Debug.print("Price found " # debug_show(price));
                         // We will add liquidity only at the rate the pool is currently
                         // If bal_a is more valuable than bal_b, in_a will be limited to the amount of bal_b
                         // and vice versa with in_b
@@ -219,30 +226,22 @@ module {
                         };
 
                     };
-                    case (null) {
-                        // Debug.print("Adding first time" # debug_show({bal_a; bal_b}));
-                        // First time adding liquidity
-                        // We will add liquidity at the incoming rate unless one of the balances is 0
-                        if ((in_a == 0) or (in_b == 0)) U.trap("First time adding liquidity, one of the balances is 0");
-                    };
+                    case (null) (); // First time adding liquidity
                 };
-
-
 
                 let intent = swap.LiquidityIntentAdd.get(
                     to_account,
                     { ledger = ledger_A; account = sourceAccount_A; amount = in_a },
                     { ledger = ledger_B; account = sourceAccount_B; amount = in_b });
 
-
                 switch(intent) {
                     case (#ok(intent)) {
-                    //    Debug.print(debug_show(intent));
                         let quote = swap.LiquidityIntentAdd.quote(intent);
 
                         swap.LiquidityIntentAdd.commit(intent);
+                        #ok;
                     };
-                    case (#err(e)) U.log("Error getting intent: " # e);
+                    case (#err(e)) #err("Error getting intent: " # e);
                 };
             
 

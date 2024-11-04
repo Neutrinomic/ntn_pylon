@@ -235,14 +235,11 @@ module {
             public func get(to_account: Core.Account, from_a: {ledger: Principal; account: Core.Account; amount: Nat}, from_b : {ledger:Principal; account:Core.Account; amount: Nat}) : R<LiquidityIntentAdd, Text> {
 
                 let pool_account = getPoolAccount(from_a.ledger, from_b.ledger, 0);
-                U.log("ADD POOL ACCOUNT: " # debug_show(pool_account.subaccount));
                 let pool = Pool.get(pool_account);
                 let asset_a = LedgerAccount.get(pool_account, from_a.ledger);
                 let asset_b = LedgerAccount.get(pool_account, from_b.ledger);
                 let reserve_A = LedgerAccount.balance(asset_a);
                 let reserve_B = LedgerAccount.balance(asset_b);
-                U.log("ADD POOL RESERVE A: " # debug_show(reserve_A));
-                U.log("ADD POOL RESERVE B: " # debug_show(reserve_B));
 
                 let ledger_a_fee = dvf.fee(from_a.ledger);
                 let ledger_b_fee = dvf.fee(from_b.ledger);
@@ -345,16 +342,10 @@ module {
                     case (#ok(_)) ();
                 };
 
-                // Print new balances
-                U.log("New balances: " # debug_show({
-                    ledger_a = LedgerAccount.balance(liq.asset_a);
-                    ledger_b = LedgerAccount.balance(liq.asset_b);
-                }));
 
                 // Add liquidity tokens to the user's account
                 Pool.setShare(pool, liq.to_account, Pool.getShare(pool, liq.to_account) + liq.minted_tokens);
 
-                U.log("New pool share: " # debug_show(Pool.getShare(pool, liq.to_account)) # " tokens");
 
                 pool.total := pool.total + liq.minted_tokens;
             };
@@ -400,8 +391,6 @@ module {
         public func commit(path: IntentPath) : () {
             for (intent in path.vals()) {
       
-                let bal = dvf.balance(intent.asset_in.ledger, intent.from.subaccount);
-                U.log("Sending to pool " # debug_show(bal));
                 switch(dvf.send({
                     ledger = intent.asset_in.ledger;
                     to = intent.pool_account;
@@ -413,8 +402,6 @@ module {
                     case (#err(e)) U.trap("Error sending token A to pool: " # debug_show(e) # " sending " # debug_show(intent.amount_in));
                 };
 
-                let bal_out = dvf.balance(intent.asset_out.ledger, intent.pool_account.subaccount);
-                U.log("Sending from pool " # debug_show(bal_out));
                 switch(dvf.send({
                     ledger = intent.asset_out.ledger;
                     to = intent.to;

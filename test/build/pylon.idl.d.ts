@@ -268,6 +268,7 @@ export interface ModuleMeta {
   'version' : Version,
   'destinations' : EndpointsDescription,
   'sources' : EndpointsDescription,
+  'temporary_allowed' : boolean,
   'author_account' : Account,
 }
 export interface NodeShared {
