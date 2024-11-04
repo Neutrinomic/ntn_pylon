@@ -87,8 +87,9 @@ module {
             };
         };
 
-        public func delete(id : T.NodeId) : () {
+        public func delete(id : T.NodeId) : T.Delete {
             ignore Map.remove(mem.main, Map.n32hash, id);
+            #ok;
         };
 
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {

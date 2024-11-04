@@ -173,7 +173,7 @@ module {
             #err("Unknown variant or mismatch");
         };
 
-        public func delete(mid :Core.ModuleId, id:Core.NodeId) : () {
+        public func delete(mid :Core.ModuleId, id:Core.NodeId) : Result.Result<(), Text> {
             if (mid == ThrottleVector.ID) return m.vec_throttle.delete(id);
             if (mid == Lend.ID) return m.vec_lend.delete(id);
             if (mid == Borrow.ID) return m.vec_borrow.delete(id);
@@ -181,7 +181,7 @@ module {
             if (mid == Escrow.ID) return m.vec_escrow.delete(id);
             if (mid == Split.ID) return m.vec_split.delete(id);
             if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.delete(id);
-            Debug.trap("Unknown variant");
+            #err("Unknown variant");
         };
 
         public func nodeMeta(mid :Core.ModuleId) : ICRC55.ModuleMeta {
