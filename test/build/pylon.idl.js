@@ -404,6 +404,8 @@ export const idlFactory = ({ IDL }) => {
     'min_create_balance' : IDL.Nat,
     'split' : BillingFeeSplit,
     'ledger' : IDL.Principal,
+    'platform_account' : Account,
+    'pylon_account' : Account,
   });
   const Billing = IDL.Record({
     'transaction_fee' : BillingTransactionFee,
@@ -436,8 +438,6 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'billing' : BillingPylon,
     'supported_ledgers' : IDL.Vec(SupportedLedger),
-    'platform_account' : Account,
-    'pylon_account' : Account,
     'request_max_expire_sec' : IDL.Nat64,
     'governed_by' : IDL.Text,
     'temporary_nodes' : IDL.Record({

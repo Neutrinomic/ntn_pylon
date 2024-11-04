@@ -27,9 +27,9 @@ import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import Core "mo:devefi/core";
 import Swap "./shared_modules/swap/swap";
-import Debug "mo:base/Debug";
+import Option "mo:base/Option";
 
-actor class () = this {
+actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
 
     stable let chain_mem  = Rechain.Mem();
@@ -58,12 +58,29 @@ actor class () = this {
 
     let core = Core.Mod<system>({
         xmem = mem_core_1;
-        settings = {
-            Core.DEFAULT_SETTINGS with
+        settings = Option.get(DFV_SETTINGS, {
             PYLON_NAME = "Transcendence";
-            PYLON_GOVERNED_BY = "Neutrinite DAO";
-            PYLON_FEE_ACCOUNT = ?{ owner = Principal.fromText("eqsml-lyaaa-aaaaq-aacdq-cai"); subaccount = null };
-        };
+            PYLON_GOVERNED_BY = "Test DAO";
+            BILLING = {
+                ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai");
+                min_create_balance = 3000000;
+                operation_cost = 1000;
+                freezing_threshold_days = 10;
+                exempt_daily_cost_balance = null;
+                split = {
+                    platform = 200;
+                    pylon = 200; 
+                    author = 400;
+                    affiliate = 200;
+                };
+                pylon_account = { owner = Principal.fromText("eqsml-lyaaa-aaaaq-aacdq-cai"); subaccount = null };
+                platform_account = { owner = Principal.fromText("eqsml-lyaaa-aaaaq-aacdq-cai"); subaccount = null };
+            };
+            TEMP_NODE_EXPIRATION_SEC = 3600;
+            MAX_INSTRUCTIONS_PER_HEARTBEAT = 300_000_000;
+            REQUEST_MAX_EXPIRE_SEC = 3600;
+            ALLOW_TEMP_NODE_CREATION = true;
+        }:Core.SETTINGS);
         dvf;
         chain;
     });

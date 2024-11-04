@@ -43,6 +43,8 @@ export interface BillingPylon {
   'min_create_balance' : bigint,
   'split' : BillingFeeSplit,
   'ledger' : Principal,
+  'platform_account' : Account,
+  'pylon_account' : Account,
 }
 export type BillingTransactionFee = { 'none' : null } |
   { 'flat_fee_multiplier' : bigint } |
@@ -297,8 +299,6 @@ export interface PylonMetaResp {
   'name' : string,
   'billing' : BillingPylon,
   'supported_ledgers' : Array<SupportedLedger>,
-  'platform_account' : Account,
-  'pylon_account' : Account,
   'request_max_expire_sec' : bigint,
   'governed_by' : string,
   'temporary_nodes' : { 'allowed' : boolean, 'expire_sec' : bigint },

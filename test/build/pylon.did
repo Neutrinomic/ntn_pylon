@@ -168,8 +168,6 @@ type PylonMetaResp =
    governed_by: text;
    modules: vec ModuleMeta;
    name: text;
-   platform_account: Account;
-   pylon_account: Account;
    request_max_expire_sec: nat64;
    supported_ledgers: vec SupportedLedger;
    temporary_nodes: record {
@@ -534,6 +532,8 @@ type BillingPylon =
    ledger: principal;
    min_create_balance: nat;
    operation_cost: nat;
+   platform_account: Account;
+   pylon_account: Account;
    split: BillingFeeSplit;
  };
 type BillingFeeSplit = 
