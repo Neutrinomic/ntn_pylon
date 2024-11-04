@@ -128,21 +128,27 @@ module {
             [(0, "Remove A"), (1, "Remove B")];
         };
 
-
-        public func run(vid : T.NodeId, vec : T.NodeCoreMem) : () {
-            let ?ex = Map.get(mem.main, Map.n32hash, vid) else U.trap("Vector in module not found");
-            let now = U.now();
-
-            U.log("Running exchange liquidity " # debug_show(ex.variables.flow));
-            switch(ex.variables.flow) {
-                case (#add) Run.add(vid, vec);
-                case (#remove) Run.remove(vid, vec);
-                case (_) (); // TODO
-            }
+        public func run() : () {
+            label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
+                let ?vec = core.getNodeById(vid) else continue vec_loop;
+                if (not vec.active) continue vec_loop;
+                Run.single(vid, vec, parm);
+            };
         };
 
+        module Run {
 
-        public module Run {
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex:VM.NodeMem) : () {
+                let now = U.now();
+
+                U.log("Running exchange liquidity " # debug_show(ex.variables.flow));
+                switch(ex.variables.flow) {
+                    case (#add) Run.add(vid, vec);
+                    case (#remove) Run.remove(vid, vec);
+                    case (_) (); // TODO
+                }
+            };
+
             public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : () {
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);

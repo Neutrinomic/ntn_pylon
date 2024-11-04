@@ -116,30 +116,10 @@ actor class () = this {
 
 
     private func proc() {
-        let now = Nat64.fromNat(Int.abs(Time.now()));
-        label vloop for ((vid, vec) in core.entries()) {
-            if (not vec.active) continue vloop;
-            if (not core.hasDestination(vec, 0)) continue vloop;
-
-            let ?source = core.getSource(vid, vec, 0) else continue vloop;
-    
-            switch (vec.module_id) {
-                case ("exchange_liquidity") {
-                    vec_exchange_liquidity.run(vid, vec);
-                };
-                case ("exchange") {
-                    vec_exchange.run(vid, vec);
-                };
-                case ("throttle") {
-                    vec_throttle.run(vid, vec);
-                };
-                case ("split") {
-                    vec_split.run(vid, vec);
-                };
-                case (_) ();
-            };
-
-        };
+        vec_exchange_liquidity.run();
+        vec_exchange.run();
+        vec_throttle.run();
+        vec_split.run();
     };
 
     // ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {

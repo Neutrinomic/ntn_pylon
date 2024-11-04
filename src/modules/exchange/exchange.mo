@@ -121,43 +121,47 @@ module {
             [(1, "To")];
         };
 
-        // Calculate slippage percentage in _e6s (six decimal places)
-                // let slippage_e6s = ((expected_receive_fwd - receive_fwd:Nat) * 1_000_000) / expected_receive_fwd;
+        public func run() : () {
+            label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
+                let ?vec = core.getNodeById(vid) else continue vec_loop;
+                if (not vec.active) continue vec_loop;
+                Run.single(vid, vec, parm);
+            };
+        };
 
-        public func run(vid : T.NodeId, vec : T.NodeCoreMem) : () {
-            let ?th = Map.get(mem.main, Map.n32hash, vid) else return;
-            let now = U.now();
+        module Run {
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, th:VM.NodeMem) : () {
+                let now = U.now();
 
-            let ?source = core.getSource(vid, vec, 0) else return;
-            let ?destination = core.getDestinationAccountIC(vec, 0) else return;
-            let ?source_account = core.Source.getAccount(source) else return;
+                let ?source = core.getSource(vid, vec, 0) else return;
+                let ?destination = core.getDestinationAccountIC(vec, 0) else return;
+                let ?source_account = core.Source.getAccount(source) else return;
 
-            let bal = core.Source.balance(source);
-            U.log("Swapping" # debug_show(bal));
-            if (bal == 0) return;
-            let ?price_e16s = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return;
+                let bal = core.Source.balance(source);
+                U.log("Swapping" # debug_show(bal));
+                if (bal == 0) return;
+                let ?price_e16s = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return;
 
-            let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
-            U.log(debug_show(intent));
-                switch(intent) {
-                    case (#err(e)) U.log("Error in intent " # debug_show(e));
-                
-                    case (#ok(intent)) {
-                        let out = swap.Intent.quote(intent);
-                        
-                        let expected_receive_fwd = (bal * price_e16s) / 1_0000_0000_0000_0000;
-                        if (expected_receive_fwd < out) U.trap("Internal error, shouldn't get more than expected " # debug_show(expected_receive_fwd) # " " # debug_show(out));
-                        let slippage_e6s = ((expected_receive_fwd - out:Nat) * 1_000_000) / expected_receive_fwd;
-                        if (slippage_e6s > th.variables.max_slippage_e6s) {
-                            U.log("Slippage too high. slippage_e6s = " # debug_show(slippage_e6s));
-                            return;
-                        };
-                        swap.Intent.commit(intent);
-                        U.log("Intent is ok");
+                let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
+                U.log(debug_show(intent));
+                    switch(intent) {
+                        case (#err(e)) U.log("Error in intent " # debug_show(e));
+                    
+                        case (#ok(intent)) {
+                            let out = swap.Intent.quote(intent);
+                            
+                            let expected_receive_fwd = (bal * price_e16s) / 1_0000_0000_0000_0000;
+                            if (expected_receive_fwd < out) U.trap("Internal error, shouldn't get more than expected " # debug_show(expected_receive_fwd) # " " # debug_show(out));
+                            let slippage_e6s = ((expected_receive_fwd - out:Nat) * 1_000_000) / expected_receive_fwd;
+                            if (slippage_e6s > th.variables.max_slippage_e6s) {
+                                U.log("Slippage too high. slippage_e6s = " # debug_show(slippage_e6s));
+                                return;
+                            };
+                            swap.Intent.commit(intent);
+                            U.log("Intent is ok");
+                        }
                     }
-                }
-           
-        
+            };
         };
 
        

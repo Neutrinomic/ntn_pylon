@@ -94,58 +94,67 @@ module {
             };
         };
 
-        public func run(vid : T.NodeId, vec : T.NodeCoreMem) {
-            let ?n = Map.get(mem.main, Map.n32hash, vid) else return;
+        public func run() : () {
+            label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
+                let ?vec = core.getNodeById(vid) else continue vec_loop;
+                if (not vec.active) continue vec_loop;
+                Run.single(vid, vec, parm);
+            };
+        };
 
-            let ?source = core.getSource(vid, vec, 0) else return;
-            let bal = core.Source.balance(source);
-            let fee = core.Source.fee(source);
+        module Run {
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, n:VM.NodeMem) : () {
 
-            // First loop: Calculate totalSplit and find the largest share destination
-            var totalSplit = 0;
-            var largestPort : ?Nat = null;
-            var largestAmount = 0;
+                let ?source = core.getSource(vid, vec, 0) else return;
+                let bal = core.Source.balance(source);
+                let fee = core.Source.fee(source);
 
-            label iniloop for (port_id in n.variables.split.keys()) {
-                if (not core.hasDestination(vec, port_id)) continue iniloop;
+                // First loop: Calculate totalSplit and find the largest share destination
+                var totalSplit = 0;
+                var largestPort : ?Nat = null;
+                var largestAmount = 0;
 
-                let splitShare = n.variables.split[port_id];
-                totalSplit += splitShare;
+                label iniloop for (port_id in n.variables.split.keys()) {
+                    if (not core.hasDestination(vec, port_id)) continue iniloop;
 
-                if (splitShare > largestAmount) {
-                    largestPort := ?port_id;
-                    largestAmount := splitShare;
+                    let splitShare = n.variables.split[port_id];
+                    totalSplit += splitShare;
+
+                    if (splitShare > largestAmount) {
+                        largestPort := ?port_id;
+                        largestAmount := splitShare;
+                    };
                 };
-            };
 
-            // If no valid destinations, skip the rest of the loop
-            if (totalSplit == 0) return;
+                // If no valid destinations, skip the rest of the loop
+                if (totalSplit == 0) return;
 
-            var remainingBalance = bal;
+                var remainingBalance = bal;
 
-            // Second loop: Send to each valid destination
-            label port_send for (port_id in n.variables.split.keys()) {
-                if (not core.hasDestination(vec, port_id)) continue port_send;
+                // Second loop: Send to each valid destination
+                label port_send for (port_id in n.variables.split.keys()) {
+                    if (not core.hasDestination(vec, port_id)) continue port_send;
 
-                let splitShare = n.variables.split[port_id];
+                    let splitShare = n.variables.split[port_id];
 
-                // Skip the largestPort for now, as we will handle it last
-                if (?port_id == largestPort) continue port_send;
+                    // Skip the largestPort for now, as we will handle it last
+                    if (?port_id == largestPort) continue port_send;
 
-                let amount = bal * splitShare / totalSplit;
-                if (amount <= fee * 100) continue port_send; // Skip if below fee threshold
+                    let amount = bal * splitShare / totalSplit;
+                    if (amount <= fee * 100) continue port_send; // Skip if below fee threshold
 
-                ignore core.Source.send(source, #destination({ port = port_id }), amount);
-                remainingBalance -= amount;
-            };
-
-            // Send the remaining balance to the largest share destination
-            if (remainingBalance > 0) {
-                ignore do ? {
-                    core.Source.send(source, #destination({ port = largestPort! }), remainingBalance);
+                    ignore core.Source.send(source, #destination({ port = port_id }), amount);
+                    remainingBalance -= amount;
                 };
-            };
 
+                // Send the remaining balance to the largest share destination
+                if (remainingBalance > 0) {
+                    ignore do ? {
+                        core.Source.send(source, #destination({ port = largestPort! }), remainingBalance);
+                    };
+                };
+
+            };
         };
 
         public func sources(_id : T.NodeId) : T.Endpoints {

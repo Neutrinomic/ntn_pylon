@@ -1,11 +1,12 @@
-
 import { DF } from "../utils";
+import { EUtil } from "../utils_exchange";
 
 describe('Exchange', () => {
 
   let d: ReturnType<typeof DF>
 
-  beforeAll(async () => { d = DF(); await d.beforeAll(); });
+  let EU: ReturnType<typeof EUtil>;
+  beforeAll(async () => { d = DF(); EU=EUtil(d); await d.beforeAll(); });
 
   afterAll(async () => { await d.afterAll(); });
 
@@ -16,41 +17,10 @@ describe('Exchange', () => {
   const PORT_0 = 0;
   const PORT_1 = 1;
 
-  async function createLPNode(ledger_one_id: number, ledger_two_id: number ) : ReturnType<typeof d.u.createNode> {
-    
-    let node = await d.u.createNode({
-      'exchange_liquidity': {
-        'init': { },
-        'variables': {
-          'flow': { 'add': null },
-        },
-      },
-    },[ledger_one_id,ledger_two_id]);
-
-
-    await d.u.setDestination(node.id, PORT_0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] });
-    await d.u.setDestination(node.id, PORT_1, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] });
-    return node;
-  }
-
-
-  async function addLiquidity(node_id:number, ledger_one:number, ledger_two:number, a: bigint, b: bigint) : Promise<{ balance: bigint, total: bigint }> {
-    
-
-    await d.u.sendToNode(node_id, PORT_0, a, ledger_one);
-    await d.u.sendToNode(node_id, PORT_1, b, ledger_two);
-
-    await d.passTime(3);
-
-    let node_after = await d.u.getNode(node_id);
-
-    let end = getInternals(node_after);
-    return end; 
-  }
 
   it(`Create liquidity vector`, async () => {
 
-    await createLPNode(LEDGER_A, LEDGER_B);
+    await EU.createLPNode(LEDGER_A, LEDGER_B);
     await d.passTime(1);
 
   }, 600 * 1000);
@@ -59,7 +29,7 @@ describe('Exchange', () => {
 
     let a = 20_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(0, LEDGER_A, LEDGER_B, a, b);
+    let n1 = await EU.addLiquidity(0, LEDGER_A, LEDGER_B, a, b);
 
     let expected_lp_balance = d.sqrt((a - 2n*d.ledgers[LEDGER_A].fee) * (b - 2n*d.ledgers[LEDGER_B].fee));  
 
@@ -75,11 +45,11 @@ describe('Exchange', () => {
   
   it(`Add same liquidity second time A-B`, async () => {
 
-    let node = await createLPNode(LEDGER_A, LEDGER_B);
+    let node = await EU.createLPNode(LEDGER_A, LEDGER_B);
 
     let a = 20_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
+    let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
 
     let expected_lp_balance = 1414185276n;
     let lp_perc = n1.balance * 100000n / n1.total;
@@ -91,11 +61,11 @@ describe('Exchange', () => {
   
   it(`Add same liquidity third time A-B`, async () => {
 
-    let node = await createLPNode(LEDGER_A, LEDGER_B);
+    let node = await EU.createLPNode(LEDGER_A, LEDGER_B);
 
     let a = 20_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
+    let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
 
     let expected_lp_balance = 1414181740n;
     let lp_perc = n1.balance * 100000n / n1.total;
@@ -159,7 +129,7 @@ describe('Exchange', () => {
 
     let a = 20_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(1, LEDGER_A, LEDGER_B, a, b);
+    let n1 = await EU.addLiquidity(1, LEDGER_A, LEDGER_B, a, b);
 
     let expected_lp_balance = 1414179382n;
     let lp_perc = n1.balance * 100000n / n1.total;
@@ -225,11 +195,11 @@ describe('Exchange', () => {
 
   it(`Add initial liquidity A-C`, async () => {
 
-    let node = await createLPNode(LEDGER_A, LEDGER_C);
+    let node = await EU.createLPNode(LEDGER_A, LEDGER_C);
 
     let a = 10_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(node.id, LEDGER_A, LEDGER_C, a, b);
+    let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_C, a, b);
 
     let expected_lp_balance = d.sqrt((a - 2n*d.ledgers[LEDGER_A].fee) * (b - 2n*d.ledgers[LEDGER_B].fee));  
 
@@ -245,11 +215,11 @@ describe('Exchange', () => {
 
   it(`Add second liquidity A-C`, async () => {
 
-    let node = await createLPNode(LEDGER_A, LEDGER_C);
+    let node = await EU.createLPNode(LEDGER_A, LEDGER_C);
 
     let a = 10_0000_0000n;
     let b = 10_0000_0000n;
-    let n1 = await addLiquidity(node.id, LEDGER_A, LEDGER_C, a, b);
+    let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_C, a, b);
 
     let expected_lp_balance = d.sqrt((a - 2n*d.ledgers[LEDGER_A].fee) * (b - 2n*d.ledgers[LEDGER_C].fee));  
 
@@ -376,9 +346,3 @@ describe('Exchange', () => {
 
 });
 
-
-
-function getInternals(node: any) : { balance: bigint, total: bigint } {
-  let inter = node.custom[0].exchange_liquidity.internals;
-  return { balance: inter.balance, total: inter.total };
-}

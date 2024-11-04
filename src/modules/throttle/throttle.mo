@@ -50,35 +50,44 @@ module {
             };
         };
 
-        public func run(id : T.NodeId, vec : T.NodeCoreMem) {
-            let ?th = Map.get(mem.main, Map.n32hash, id) else return;
-            let ?source = core.getSource(id, vec, 0) else return;
-            
-            let bal = core.Source.balance(source);
-            let fee = core.Source.fee(source);
+        public func run() : () {
+            label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
+                let ?vec = core.getNodeById(vid) else continue vec_loop;
+                if (not vec.active) continue vec_loop;
+                Run.single(vid, vec, parm);
+            };
+        };
 
-            let now = U.now();
+        module Run {
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, th:M.NodeMem) : () {
+                let ?source = core.getSource(vid, vec, 0) else return;
+                
+                let bal = core.Source.balance(source);
+                let fee = core.Source.fee(source);
 
-            if (now > th.internals.wait_until_ts) {
-                switch (th.variables.interval_sec) {
-                    case (#fixed(fixed)) {
-                        th.internals.wait_until_ts := now + fixed * 1_000_000_000;
+                let now = U.now();
+
+                if (now > th.internals.wait_until_ts) {
+                    switch (th.variables.interval_sec) {
+                        case (#fixed(fixed)) {
+                            th.internals.wait_until_ts := now + fixed * 1_000_000_000;
+                        };
+                        case (#rnd({ min; max })) {
+                            let dur : Nat64 = if (min >= max) 0 else rng.next() % (max - min);
+                            th.internals.wait_until_ts := now + (min + dur) * 1_000_000_000;
+                        };
                     };
-                    case (#rnd({ min; max })) {
-                        let dur : Nat64 = if (min >= max) 0 else rng.next() % (max - min);
-                        th.internals.wait_until_ts := now + (min + dur) * 1_000_000_000;
+
+                    let max_amount : Nat64 = switch (th.variables.max_amount) {
+                        case (#fixed(fixed)) fixed;
+                        case (#rnd({ min; max })) if (min >= max) 0 else min + rng.next() % (max - min);
                     };
+
+                    var amount = Nat.min(bal, Nat64.toNat(max_amount));
+                    if (bal - amount : Nat <= fee * 100) amount := bal; // Don't leave dust
+
+                    ignore core.Source.send(source, #destination({ port = 0 }), amount);
                 };
-
-                let max_amount : Nat64 = switch (th.variables.max_amount) {
-                    case (#fixed(fixed)) fixed;
-                    case (#rnd({ min; max })) if (min >= max) 0 else min + rng.next() % (max - min);
-                };
-
-                var amount = Nat.min(bal, Nat64.toNat(max_amount));
-                if (bal - amount : Nat <= fee * 100) amount := bal; // Don't leave dust
-
-                ignore core.Source.send(source, #destination({ port = 0 }), amount);
             };
         };
 
