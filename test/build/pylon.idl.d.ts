@@ -47,8 +47,8 @@ export interface BillingPylon {
   'pylon_account' : Account,
 }
 export type BillingTransactionFee = { 'none' : null } |
-  { 'flat_fee_multiplier' : bigint } |
-  { 'transaction_percentage_fee' : bigint };
+  { 'transaction_percentage_fee_e8s' : bigint } |
+  { 'flat_fee_multiplier' : bigint };
 export interface BlockType { 'url' : string, 'block_type' : string }
 export type Command = { 'modify_node' : ModifyNodeRequest } |
   { 'create_node' : CreateNodeRequest } |
@@ -303,6 +303,15 @@ export interface PylonMetaResp {
   'governed_by' : string,
   'temporary_nodes' : { 'allowed' : boolean, 'expire_sec' : bigint },
   'modules' : Array<ModuleMeta>,
+}
+export interface SETTINGS {
+  'PYLON_NAME' : string,
+  'TEMP_NODE_EXPIRATION_SEC' : bigint,
+  'ALLOW_TEMP_NODE_CREATION' : boolean,
+  'MAX_INSTRUCTIONS_PER_HEARTBEAT' : bigint,
+  'BILLING' : BillingPylon,
+  'PYLON_GOVERNED_BY' : string,
+  'REQUEST_MAX_EXPIRE_SEC' : bigint,
 }
 export type Shared = { 'lend' : Shared__5 } |
   { 'borrow' : Shared__1 } |

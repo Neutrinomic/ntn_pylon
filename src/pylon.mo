@@ -68,10 +68,10 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
                 freezing_threshold_days = 10;
                 exempt_daily_cost_balance = null;
                 split = {
-                    platform = 200;
-                    pylon = 200; 
-                    author = 400;
-                    affiliate = 200;
+                    platform = 20;
+                    pylon = 20; 
+                    author = 40;
+                    affiliate = 20;
                 };
                 pylon_account = { owner = Principal.fromText("eqsml-lyaaa-aaaaq-aacdq-cai"); subaccount = null };
                 platform_account = { owner = Principal.fromText("eqsml-lyaaa-aaaaq-aacdq-cai"); subaccount = null };

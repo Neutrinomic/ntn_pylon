@@ -162,6 +162,16 @@ type Shared =
    split: Shared__6;
    throttle: Shared__7;
  };
+type SETTINGS = 
+ record {
+   ALLOW_TEMP_NODE_CREATION: bool;
+   BILLING: BillingPylon;
+   MAX_INSTRUCTIONS_PER_HEARTBEAT: nat64;
+   PYLON_GOVERNED_BY: text;
+   PYLON_NAME: text;
+   REQUEST_MAX_EXPIRE_SEC: nat64;
+   TEMP_NODE_EXPIRATION_SEC: nat64;
+ };
 type PylonMetaResp = 
  record {
    billing: BillingPylon;
@@ -524,7 +534,7 @@ type BillingTransactionFee =
  variant {
    flat_fee_multiplier: nat;
    none;
-   transaction_percentage_fee: nat;
+   transaction_percentage_fee_e8s: nat;
  };
 type BillingPylon = 
  record {
@@ -581,4 +591,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : () -> _anon_class_32_1
+service : (opt SETTINGS) -> _anon_class_32_1

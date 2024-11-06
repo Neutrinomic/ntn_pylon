@@ -33,7 +33,7 @@ export async function PylonCan(pic: PocketIc) {
     const fixture = await pic.setupCanister<PylonService>({
         idlFactory: PylonIdlFactory,
         wasm: WASM_PYLON_PATH,
-        arg: IDL.encode(PylonInit({ IDL }), []),
+        arg: IDL.encode(PylonInit({ IDL }), [[]]),
     });
 
     return fixture;

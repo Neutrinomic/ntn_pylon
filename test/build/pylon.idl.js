@@ -1,6 +1,34 @@
 export const idlFactory = ({ IDL }) => {
   const ArchivedTransactionResponse = IDL.Rec();
   const Value = IDL.Rec();
+  const BillingFeeSplit = IDL.Record({
+    'platform' : IDL.Nat,
+    'author' : IDL.Nat,
+    'affiliate' : IDL.Nat,
+    'pylon' : IDL.Nat,
+  });
+  const Account = IDL.Record({
+    'owner' : IDL.Principal,
+    'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
+  const BillingPylon = IDL.Record({
+    'operation_cost' : IDL.Nat,
+    'freezing_threshold_days' : IDL.Nat,
+    'min_create_balance' : IDL.Nat,
+    'split' : BillingFeeSplit,
+    'ledger' : IDL.Principal,
+    'platform_account' : Account,
+    'pylon_account' : Account,
+  });
+  const SETTINGS = IDL.Record({
+    'PYLON_NAME' : IDL.Text,
+    'TEMP_NODE_EXPIRATION_SEC' : IDL.Nat64,
+    'ALLOW_TEMP_NODE_CREATION' : IDL.Bool,
+    'MAX_INSTRUCTIONS_PER_HEARTBEAT' : IDL.Nat64,
+    'BILLING' : BillingPylon,
+    'PYLON_GOVERNED_BY' : IDL.Text,
+    'REQUEST_MAX_EXPIRE_SEC' : IDL.Nat64,
+  });
   const Info = IDL.Record({
     'pending' : IDL.Nat,
     'last_indexed_tx' : IDL.Nat,
@@ -83,10 +111,6 @@ export const idlFactory = ({ IDL }) => {
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
   const LocalNodeId = IDL.Nat32;
-  const Account = IDL.Record({
-    'owner' : IDL.Principal,
-    'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
-  });
   const EndpointIdx = IDL.Nat8;
   const InputAddress = IDL.Variant({
     'ic' : Account,
@@ -282,8 +306,8 @@ export const idlFactory = ({ IDL }) => {
   });
   const BillingTransactionFee = IDL.Variant({
     'none' : IDL.Null,
+    'transaction_percentage_fee_e8s' : IDL.Nat,
     'flat_fee_multiplier' : IDL.Nat,
-    'transaction_percentage_fee' : IDL.Nat,
   });
   const EndpointOptIC = IDL.Record({
     'ledger' : IDL.Principal,
@@ -392,21 +416,6 @@ export const idlFactory = ({ IDL }) => {
     'refund' : Account,
   });
   const GetNode = IDL.Variant({ 'id' : LocalNodeId, 'endpoint' : Endpoint });
-  const BillingFeeSplit = IDL.Record({
-    'platform' : IDL.Nat,
-    'author' : IDL.Nat,
-    'affiliate' : IDL.Nat,
-    'pylon' : IDL.Nat,
-  });
-  const BillingPylon = IDL.Record({
-    'operation_cost' : IDL.Nat,
-    'freezing_threshold_days' : IDL.Nat,
-    'min_create_balance' : IDL.Nat,
-    'split' : BillingFeeSplit,
-    'ledger' : IDL.Principal,
-    'platform_account' : Account,
-    'pylon_account' : Account,
-  });
   const Billing = IDL.Record({
     'transaction_fee' : BillingTransactionFee,
     'cost_per_day' : IDL.Nat,
@@ -506,4 +515,34 @@ export const idlFactory = ({ IDL }) => {
   });
   return _anon_class_32_1;
 };
-export const init = ({ IDL }) => { return []; };
+export const init = ({ IDL }) => {
+  const BillingFeeSplit = IDL.Record({
+    'platform' : IDL.Nat,
+    'author' : IDL.Nat,
+    'affiliate' : IDL.Nat,
+    'pylon' : IDL.Nat,
+  });
+  const Account = IDL.Record({
+    'owner' : IDL.Principal,
+    'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
+  const BillingPylon = IDL.Record({
+    'operation_cost' : IDL.Nat,
+    'freezing_threshold_days' : IDL.Nat,
+    'min_create_balance' : IDL.Nat,
+    'split' : BillingFeeSplit,
+    'ledger' : IDL.Principal,
+    'platform_account' : Account,
+    'pylon_account' : Account,
+  });
+  const SETTINGS = IDL.Record({
+    'PYLON_NAME' : IDL.Text,
+    'TEMP_NODE_EXPIRATION_SEC' : IDL.Nat64,
+    'ALLOW_TEMP_NODE_CREATION' : IDL.Bool,
+    'MAX_INSTRUCTIONS_PER_HEARTBEAT' : IDL.Nat64,
+    'BILLING' : BillingPylon,
+    'PYLON_GOVERNED_BY' : IDL.Text,
+    'REQUEST_MAX_EXPIRE_SEC' : IDL.Nat64,
+  });
+  return [IDL.Opt(SETTINGS)];
+};
