@@ -6,7 +6,6 @@ import Core "mo:devefi/core";
 import I "./interface";
 import U "mo:devefi/utils";
 import Result "mo:base/Result";
-import DeVeFi "mo:devefi/lib";
 import Array "mo:base/Array";
 import Blob "mo:base/Blob";
 import Iter "mo:base/Iter";

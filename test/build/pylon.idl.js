@@ -45,7 +45,7 @@ export const idlFactory = ({ IDL }) => {
     'errors' : IDL.Nat,
     'lastTxTime' : IDL.Nat64,
     'accounts' : IDL.Nat,
-    'actor_principal' : IDL.Opt(IDL.Principal),
+    'actor_principal' : IDL.Principal,
     'reader_instructions_cost' : IDL.Nat64,
     'sender_instructions_cost' : IDL.Nat64,
   });

@@ -2,7 +2,7 @@ import Principal "mo:base/Principal";
 import Nat64 "mo:base/Nat64";
 import Int "mo:base/Int";
 import Time "mo:base/Time";
-import DeVeFi "mo:devefi";
+import Ledgers "mo:devefi/ledgers";
 import Nat "mo:base/Nat";
 import ICRC55 "mo:devefi/ICRC55";
 import Rechain "mo:rechain";
@@ -31,28 +31,22 @@ import Option "mo:base/Option";
 
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
+    let me_can = Principal.fromActor(this);
+    stable let chain_mem  = Rechain.Mem.Rechain.V1.new();
 
-    stable let chain_mem  = Rechain.Mem();
-
-    var chain = Rechain.Chain<RT.DispatchAction, RT.DispatchActionError>({
+    var chain = Rechain.Chain<system, RT.DispatchAction, RT.DispatchActionError>({
         settings = ?{Rechain.DEFAULT_SETTINGS with supportedBlocks = [{block_type = "55vec"; url = "https://github.com/dfinity/ICRC/issues/55"}];};
-        mem = chain_mem;
+        xmem = chain_mem;
         encodeBlock = RT.encodeBlock;
         reducers = [];
-    });
-    
-    ignore Timer.setTimer<system>(#seconds 0, func () : async () {
-        await chain.start_timers<system>();
-    });
-    
-    ignore Timer.setTimer<system>(#seconds 1, func () : async () {
-        await chain.upgrade_archives();
+        me_can;
     });
 
-    stable let dvf_mem = DeVeFi.Mem();
+
+    stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
 
 
-    let dvf = DeVeFi.DeVeFi<system>({ mem = dvf_mem });
+    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_1 ; me_can});
 
     stable let mem_core_1 = Core.Mem.Core.V1.new();
 
@@ -83,6 +77,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         }:Core.SETTINGS);
         dvf;
         chain;
+        me_can;
     });
 
     // Shared modules
@@ -128,9 +123,8 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf;
         core;
         vmod;
+        me_can;
     });
-
-
 
     private func proc() {
         vec_exchange_liquidity.run();
@@ -200,8 +194,6 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     // Sending tokens before starting the canister for the first time wont get processed
     public shared ({ caller }) func start() {
         assert (Principal.isController(caller));
-        dvf.start<system>(Principal.fromActor(this));
-        core.start<system>(Principal.fromActor(this));
         chain_mem.canister := ?Principal.fromActor(this);
 
     };
@@ -216,11 +208,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getErrors();
     };
 
-    public query func get_ledgers_info() : async [DeVeFi.LedgerInfo] {
+    public query func get_ledgers_info() : async [Ledgers.LedgerInfo] {
         dvf.getLedgersInfo();
     };
 
     public shared func beat() : async () {
-         core.heartbeat(proc);
+        core.heartbeat(proc);
     };
 };

@@ -4,7 +4,7 @@ import Map "mo:map/Map";
 import Core "mo:devefi/core";
 import U "mo:devefi/utils";
 import Result "mo:base/Result";
-import DeVeFi "mo:devefi/lib";
+import Ledgers "mo:devefi/ledgers";
 import Array "mo:base/Array";
 import Blob "mo:base/Blob";
 import Iter "mo:base/Iter";
@@ -34,7 +34,7 @@ module {
         public class Mod({
             xmem : MU.MemShell<VM.Mem>;
             core : Core.Mod;
-            dvf : DeVeFi.DeVeFi;
+            dvf : Ledgers.Ledgers;
             primary_ledger : Principal;
             swap_fee_e4s : Nat; // 4 decimals
         }) {

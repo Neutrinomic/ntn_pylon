@@ -76,6 +76,27 @@ describe('Billing', () => {
     
   });
 
+  it(`Check distribution of cost per day fee`, async () => {
+    let my_nodes = await d.u.listNodes();
+    let node = my_nodes[0];
+    let pmeta = await d.u.getPylonMeta();
+
+    let pylon_bal = await d.u.getLedgerBalance(pmeta.billing.pylon_account, 0);
+    let platform_bal = await d.u.getLedgerBalance(pmeta.billing.platform_account, 0);
+    let author_bal = await d.u.getLedgerBalance(pmeta.modules.find(x => x.id =="throttle").author_account, 0);
+
+    await d.passTimeMinute(60*24*30);
+
+    let node_after = await d.u.getNode(node.id);
+    d.inspect(pmeta.billing.pylon_account);
+    let pylon_bal_after = await d.u.getLedgerBalance(pmeta.billing.pylon_account, 0);
+    let platform_bal_after = await d.u.getLedgerBalance(pmeta.billing.platform_account, 0);
+    let author_bal_after = await d.u.getLedgerBalance(pmeta.modules.find(x => x.id =="throttle").author_account, 0);
+
+    d.inspect({pylon_bal, platform_bal, author_bal, pylon_bal_after, platform_bal_after, author_bal_after});
+
+  });
+
   it(`Create paid vector`, async () => {
 
     // Send funds to dedicated user subaccount

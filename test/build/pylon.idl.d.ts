@@ -219,7 +219,7 @@ export interface Info__1 {
   'errors' : bigint,
   'lastTxTime' : bigint,
   'accounts' : bigint,
-  'actor_principal' : [] | [Principal],
+  'actor_principal' : Principal,
   'reader_instructions_cost' : bigint,
   'sender_instructions_cost' : bigint,
 }
