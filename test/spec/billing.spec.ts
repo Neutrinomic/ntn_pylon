@@ -91,7 +91,7 @@ describe('Billing', () => {
           'max_amount': { 'fixed': 10000000n }
         },
       },
-    });
+    },[0],{temporary:false});
 
     let pmeta = await d.u.getPylonMeta();
     expect(node.billing.expires[0]).not.toBeDefined();

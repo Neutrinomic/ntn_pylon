@@ -274,7 +274,7 @@ export function createNodeUtils({
         async virtualBalances(acc: Account) : Promise<VirtualBalancesResponse> {
             return await pylon.icrc55_virtual_balances(acc);
         },
-        async createNode(creq: CreateRequest, ledgers_idx:number[] = [0]): Promise<GetNodeResponse> {
+        async createNode(creq: CreateRequest, ledgers_idx:number[] = [0], {temporary} : {temporary:boolean} = {temporary:true} ): Promise<GetNodeResponse> {
             
             let req: CommonCreateRequest = {
                 controllers: [{owner:user, subaccount:[]}],
@@ -284,7 +284,7 @@ export function createNodeUtils({
                 sources: [],
                 extractors: [],
                 affiliate: [this.getAffiliateAccount()],
-                temporary: true,
+                temporary,
                 temp_id: 0
             };
 

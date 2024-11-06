@@ -86,7 +86,7 @@ describe('Delete', () => {
           'max_amount': { 'fixed': 10000000n }
         },
       },
-    });
+    },[0],{temporary:false});
 
     await d.u.sendToNode(node.id, 0, 1_0000_0000n);
     await d.passTime(5);
