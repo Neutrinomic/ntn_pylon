@@ -189,15 +189,6 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         return chain.icrc3_get_tip_certificate();
     };
 
-    // We need to start the vector manually once when canister is installed, because we can't init dvf from the body
-    // https://github.com/dfinity/motoko/issues/4384
-    // Sending tokens before starting the canister for the first time wont get processed
-    public shared ({ caller }) func start() {
-        assert (Principal.isController(caller));
-        chain_mem.canister := ?Principal.fromActor(this);
-
-    };
-
     // ---------- Debug functions -----------
 
     public func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {

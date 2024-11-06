@@ -19,7 +19,6 @@ type _anon_class_32_1 =
    icrc55_get_pylon_meta: () -> (PylonMetaResp) query;
    icrc55_virtual_balances: (VirtualBalancesRequest) ->
     (VirtualBalancesResponse) query;
-   start: () -> () oneway;
  };
 type VirtualBalancesResponse = 
  vec record {

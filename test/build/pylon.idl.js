@@ -511,7 +511,6 @@ export const idlFactory = ({ IDL }) => {
         [VirtualBalancesResponse],
         ['query'],
       ),
-    'start' : IDL.Func([], [], ['oneway']),
   });
   return _anon_class_32_1;
 };

@@ -106,7 +106,6 @@ export function DF() {
                 lg.can.setIdentity(this.jo);
             };
 
-            await this.pylon.start();
 
             // Set the identity for ledger and pylon
             

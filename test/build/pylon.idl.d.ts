@@ -419,7 +419,6 @@ export interface _anon_class_32_1 {
     [VirtualBalancesRequest],
     VirtualBalancesResponse
   >,
-  'start' : ActorMethod<[], undefined>,
 }
 export interface _SERVICE extends _anon_class_32_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
