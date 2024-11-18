@@ -87,7 +87,8 @@ module {
                     var amount = Nat.min(bal, Nat64.toNat(max_amount));
                     if (bal - amount : Nat <= fee * 100) amount := bal; // Don't leave dust
 
-                    ignore core.Source.send(source, #destination({ port = 0 }), amount);
+                    let #ok(intent) = core.Source.Send.intent(source, #destination({ port = 0 }), amount) else return;
+                    ignore core.Source.Send.commit(intent);
                 };
             };
         };

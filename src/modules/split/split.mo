@@ -145,14 +145,16 @@ module {
                     let amount = bal * splitShare / totalSplit;
                     if (amount <= fee * 100) continue port_send; // Skip if below fee threshold
 
-                    ignore core.Source.send(source, #destination({ port = port_id }), amount);
+                    let #ok(intent) = core.Source.Send.intent(source, #destination({ port = port_id }), amount) else return;
+                    ignore core.Source.Send.commit(intent);
                     remainingBalance -= amount;
                 };
 
                 // Send the remaining balance to the largest share destination
                 if (remainingBalance > 0) {
                     ignore do ? {
-                        core.Source.send(source, #destination({ port = largestPort! }), remainingBalance);
+                        let #ok(intent) = core.Source.Send.intent(source, #destination({ port = largestPort! }), remainingBalance) else return;
+                        ignore core.Source.Send.commit(intent);
                     };
                 };
 

@@ -62,6 +62,7 @@ export interface CommonCreateRequest {
   'controllers' : Array<Controller>,
   'extractors' : Uint32Array | number[],
   'temp_id' : number,
+  'billing_option' : bigint,
   'destinations' : Array<[] | [InputAddress]>,
   'sources' : Array<[] | [InputAddress]>,
   'affiliate' : [] | [Account],
@@ -101,11 +102,11 @@ export interface CreateRequest__2 {
 }
 export interface CreateRequest__3 {
   'init' : {},
-  'variables' : { 'max_slippage_e6s' : bigint },
+  'variables' : { 'max_slippage' : number },
 }
 export interface CreateRequest__4 {
   'init' : {},
-  'variables' : { 'flow' : Flow },
+  'variables' : { 'flow' : Flow, 'range' : Range },
 }
 export interface CreateRequest__5 {
   'init' : {},
@@ -186,6 +187,7 @@ export interface GetNodeResponse {
     'transaction_fee' : BillingTransactionFee,
     'expires' : [] | [bigint],
     'current_balance' : bigint,
+    'billing_option' : bigint,
     'account' : Account,
     'frozen' : boolean,
     'cost_per_day' : bigint,
@@ -250,8 +252,8 @@ export type ModifyRequest = { 'lend' : ModifyRequest__5 } |
   { 'exchange_liquidity' : ModifyRequest__4 };
 export interface ModifyRequest__1 { 'interest' : bigint }
 export interface ModifyRequest__2 { 'interest' : bigint }
-export interface ModifyRequest__3 { 'max_slippage_e6s' : bigint }
-export interface ModifyRequest__4 { 'flow' : Flow }
+export interface ModifyRequest__3 { 'max_slippage' : number }
+export interface ModifyRequest__4 { 'flow' : Flow, 'range' : Range }
 export interface ModifyRequest__5 { 'interest' : bigint }
 export interface ModifyRequest__6 { 'split' : Array<bigint> }
 export interface ModifyRequest__7 {
@@ -263,7 +265,7 @@ export interface ModuleMeta {
   'create_allowed' : boolean,
   'ledger_slots' : Array<string>,
   'name' : string,
-  'billing' : Billing,
+  'billing' : Array<Billing>,
   'description' : string,
   'supported_ledgers' : Array<SupportedLedger>,
   'author' : string,
@@ -285,6 +287,7 @@ export interface NodeShared {
     'transaction_fee' : BillingTransactionFee,
     'expires' : [] | [bigint],
     'current_balance' : bigint,
+    'billing_option' : bigint,
     'account' : Account,
     'frozen' : boolean,
     'cost_per_day' : bigint,
@@ -304,6 +307,8 @@ export interface PylonMetaResp {
   'temporary_nodes' : { 'allowed' : boolean, 'expire_sec' : bigint },
   'modules' : Array<ModuleMeta>,
 }
+export type Range = { 'full' : null } |
+  { 'partial' : { 'to_price' : number, 'from_price' : number } };
 export interface SETTINGS {
   'PYLON_NAME' : string,
   'TEMP_NODE_EXPIRATION_SEC' : bigint,
@@ -331,14 +336,14 @@ export interface Shared__2 {
   'variables' : { 'interest' : bigint },
 }
 export interface Shared__3 {
-  'internals' : { 'swap_fee_e4s' : bigint, 'price_e16s' : [] | [bigint] },
+  'internals' : { 'swap_fee_e4s' : bigint, 'price' : [] | [number] },
   'init' : {},
-  'variables' : { 'max_slippage_e6s' : bigint },
+  'variables' : { 'max_slippage' : number },
 }
 export interface Shared__4 {
-  'internals' : { 'total' : bigint, 'balance' : bigint },
+  'internals' : { 'tokenA' : bigint, 'tokenB' : bigint },
   'init' : {},
-  'variables' : { 'flow' : Flow },
+  'variables' : { 'flow' : Flow, 'range' : Range },
 }
 export interface Shared__5 {
   'internals' : {},

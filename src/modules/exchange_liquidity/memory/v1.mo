@@ -16,9 +16,12 @@ module {
 
         };
         variables : {
+            var range : Range;
             var flow : Flow;
         };
-        internals : {};
+        internals : {
+            var empty: Bool;
+        };
     };
 
     public type Flow = {
@@ -28,5 +31,9 @@ module {
         #pass_through; // Pass from source to destination
     };
 
+    public type Range = {
+        #full;
+        #partial : { from_price : Float; to_price : Float };
+    };
  
 }

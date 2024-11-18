@@ -1,18 +1,19 @@
 module {
     
 
-
     public type CreateRequest = {
         init : {
 
         };
         variables : {
             flow : Flow;
+            range : Range;
         };
     };
 
     public type ModifyRequest = {
         flow : Flow;
+        range: Range;
     };
 
     public type Shared = {
@@ -20,14 +21,20 @@ module {
 
         };
         variables : {
+            range : Range;
             flow : Flow;
         };
         internals : {
-            balance : Nat;
-            total : Nat;
+            tokenA : Nat;
+            tokenB : Nat;
         };
     };
 
+    public type Range = {
+        #full;
+        #partial : { from_price : Float; to_price : Float };
+    };
+    
     public type Flow = {
         #hold; // Hold at source
         #add; // Add from source

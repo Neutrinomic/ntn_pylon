@@ -13,7 +13,8 @@ import IT "mo:itertools/Iter";
 import Nat32 "mo:base/Nat32";
 import Nat "mo:base/Nat";
 import Vector "mo:vector";
-import Swap "../../shared_modules/swap/swap";
+import Swap "mo:devefi_swap";
+import Float "mo:base/Float";
 
 module {
     let T = Core.VectorModule;
@@ -59,11 +60,11 @@ module {
         };
 
         public func create(id : T.NodeId, req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
-
+            if (req.ledgers[0] == req.ledgers[1]) return #err("Requred different ledgers");
             let obj : VM.NodeMem = {
                 init = t.init;
                 variables = {
-                    var max_slippage_e6s = t.variables.max_slippage_e6s;
+                    var max_slippage = t.variables.max_slippage;
                 };
                 internals = {};
             };
@@ -77,7 +78,7 @@ module {
 
                 };
                 variables = {
-                    max_slippage_e6s = 20_000;
+                    max_slippage = 20_000;
                 };
             };
         };
@@ -90,7 +91,7 @@ module {
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
-            t.variables.max_slippage_e6s := m.max_slippage_e6s;
+            t.variables.max_slippage := m.max_slippage;
             #ok();
         };
 
@@ -103,11 +104,11 @@ module {
             #ok {
                 init = t.init;
                 variables = {
-                    max_slippage_e6s = t.variables.max_slippage_e6s;
+                    max_slippage = t.variables.max_slippage;
                 };
                 internals = {
                     swap_fee_e4s = swap._swap_fee_e4s;
-                    price_e16s = swap.Price.get(ledger_A, ledger_B, 0);
+                    price = swap.Price.get(ledger_A, ledger_B, 0);
                 };
             };
         };
@@ -126,12 +127,15 @@ module {
             label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
                 let ?vec = core.getNodeById(vid) else continue vec_loop;
                 if (not vec.active) continue vec_loop;
+
                 switch (Run.single(vid, vec, parm)) {
                     case (#err(e)) {
                         if (DEBUG) U.log("Err in exchange: " # e);
                     };
                     case (#ok) ();
                 };
+                
+                
             };
         };
 
@@ -145,24 +149,31 @@ module {
 
                 let bal = core.Source.balance(source);
                 if (bal == 0) return #ok;
-                let ?price_e16s = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return #err("No price");
-
+                
+                let ?price = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return #err("No price for exchange " # debug_show(vec.ledgers[0]) # " -> " # debug_show(vec.ledgers[1]));
+                // U.log("\n\n Swapping " # debug_show(bal) # "\n\n");
                 let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
                 // U.log(debug_show(intent));
+                U.performance("Exchange SWAP", func() : R<(), Text> { 
+
                 switch (intent) {
                     case (#err(e)) #err(e);
 
                     case (#ok(intent)) {
                         let out = swap.Intent.quote(intent);
 
-                        let expected_receive_fwd = (bal * price_e16s) / 1_0000_0000_0000_0000;
-                        if (expected_receive_fwd < out) return #err("Internal error, shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (out));
-                        let slippage_e6s = ((expected_receive_fwd - out : Nat) * 1_000_000) / expected_receive_fwd;
-                        if (slippage_e6s > th.variables.max_slippage_e6s) return #err("Slippage too high. slippage_e6s = " # debug_show (slippage_e6s));
+                        let expected_receive_fwd = (swap.Price.multiply(bal, price));
+                        
+                        if (expected_receive_fwd < out) return #err("Internal error, " # debug_show(bal) # " shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (out));
+                        let slippage = (Float.fromInt(expected_receive_fwd) - Float.fromInt(out)) / Float.fromInt(expected_receive_fwd);
+                        U.log(debug_show({expected_receive_fwd; out; slippage}));
+                        if (slippage > th.variables.max_slippage) return #err("Slippage too high. slippage_e6s = " # debug_show (slippage));
                         swap.Intent.commit(intent);
                         #ok;
                     };
                 };
+
+                });
             };
         };
 

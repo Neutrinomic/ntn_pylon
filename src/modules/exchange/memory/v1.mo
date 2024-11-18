@@ -16,7 +16,7 @@ module {
 
         };
         variables : {
-            var max_slippage_e6s : Nat;
+            var max_slippage : Float;
         };
         internals : {};
     };

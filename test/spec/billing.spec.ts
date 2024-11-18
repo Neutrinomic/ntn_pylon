@@ -30,6 +30,7 @@ describe('Billing', () => {
 
   it(`Expire temporary vector`, async () => {
     await d.passTimeMinute(60*3);
+    await d.passTime(3);
 
     let my_nodes = await d.u.listNodes();
 
@@ -64,13 +65,14 @@ describe('Billing', () => {
     expect(node.billing.current_balance).toBe(99990000n);
 
     await d.passTimeMinute(60*25);
+    await d.passTime(3);
     let node_after = await d.u.getNode(node.id);
     const cost_per_day = node.billing.cost_per_day;
     
     expect(node_after.billing.current_balance).toBeLessThan(node.billing.current_balance);
     let actual_cost = node.billing.current_balance - node_after.billing.current_balance;
-    expect(cost_per_day).toBeLessThan(actual_cost);
-    expect(cost_per_day*2n).toBeGreaterThan(actual_cost);
+    expect(cost_per_day).toBe(500000n);
+    
     expect(node.billing.expires[0]).not.toBeDefined();
     expect(node.billing.frozen).toBe(false);
     
@@ -86,15 +88,21 @@ describe('Billing', () => {
     let author_bal = await d.u.getLedgerBalance(pmeta.modules.find(x => x.id =="throttle").author_account, 0);
 
     await d.passTimeMinute(60*24*30);
+    await d.passTime(3);
 
     let node_after = await d.u.getNode(node.id);
-    d.inspect(pmeta.billing.pylon_account);
+
+    let actual_cost = node.billing.current_balance - node_after.billing.current_balance;
+    expect(actual_cost).toBe(15000034n);
+
+
     let pylon_bal_after = await d.u.getLedgerBalance(pmeta.billing.pylon_account, 0);
     let platform_bal_after = await d.u.getLedgerBalance(pmeta.billing.platform_account, 0);
     let author_bal_after = await d.u.getLedgerBalance(pmeta.modules.find(x => x.id =="throttle").author_account, 0);
-
-    d.inspect({pylon_bal, platform_bal, author_bal, pylon_bal_after, platform_bal_after, author_bal_after});
-
+    
+    expect(pylon_bal_after).toBe(6180360n);
+    expect(platform_bal_after).toBe(6180360n);
+    expect(author_bal_after).toBe(6190360n);
   });
 
   it(`Create paid vector`, async () => {
@@ -135,12 +143,16 @@ describe('Billing', () => {
 
     // Wait for freeze
     await d.passTimeMinute(60*24*Number(days_to_freeze));
+    await d.passTime(3);
+
     let node_frozen = await d.u.getNode(2);
     expect(node_frozen.billing.frozen).toBe(true);
     expect(node_frozen.billing.expires[0]).not.toBeDefined();
 
     // Wait for expiration
     await d.passTimeMinute(60*24*Number(days_to_exp - days_to_freeze + 1n));
+    await d.passTime(3);
+
     let node_expiring = await d.u.getNode(2);
 
     expect(node_expiring.billing.expires[0]).toBeDefined();
@@ -150,6 +162,8 @@ describe('Billing', () => {
     let meta = await d.u.getPylonMeta();
     
     await d.passTimeMinute(Number(meta.temporary_nodes.expire_sec) / 60 + 1);
+    await d.passTime(3);
+
 
     await expect(d.u.getNode(2)).rejects.toThrow('Node not found');
     

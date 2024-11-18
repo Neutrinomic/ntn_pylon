@@ -69,8 +69,8 @@ export function DF() {
         },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
-            await this.pic.advanceTime(n * 60 * 1000);
-            await this.pic.tick(6);
+            await this.pic.advanceTime( n * 60 * 1000);
+            await this.pic.tick(3);
             await this.pylon.beat();
             // await this.passTime(5)
         },
@@ -82,10 +82,24 @@ export function DF() {
             this.pic = await PocketIc.create(process.env.PIC_URL);
 
             // Ledger initialization
-            let TOTAL_LEDGERS = 3;
-            let LEDGER_NAMES = ['tAAA', 'tBBB', 'tCCC', 'tDDD', 'tEEE'];
+            let TOTAL_LEDGERS = 5;
+
+            type Token = {
+                name: string;
+                fee: bigint;
+                decimals: number;
+            };
+            
+            const tokens: Token[] = [
+                { name: 'tAAA', fee: 10_000n, decimals: 8 },
+                { name: 'tBBB', fee: 2_000n, decimals: 12 },
+                { name: 'tCCC', fee: 4_500n, decimals: 6 },
+                { name: 'tDDD', fee: 15_000n, decimals: 16 },
+                { name: 'tEEE', fee: 20_000n, decimals: 7 }
+            ];
+
             for (let i=0 ; i < TOTAL_LEDGERS; i++) {
-                const ledgerFixture = await ICRCLedger(this.pic, this.jo.getPrincipal(), undefined, LEDGER_NAMES[i]); // , this.pic.getSnsSubnet()?.id
+                const ledgerFixture = await ICRCLedger(this.pic, this.jo.getPrincipal(), undefined, tokens[i].name, tokens[i].fee, tokens[i].decimals); // , this.pic.getSnsSubnet()?.id
                 
                 this.ledgers.push({
                     can: ledgerFixture.actor, 
@@ -282,6 +296,7 @@ export function createNodeUtils({
                 ledgers: ledgers_idx.map(idx => ({ic : ledgers[idx].id})),
                 sources: [],
                 extractors: [],
+                billing_option: 0n,
                 affiliate: [this.getAffiliateAccount()],
                 temporary,
                 temp_id: 0

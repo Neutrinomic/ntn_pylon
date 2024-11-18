@@ -125,19 +125,22 @@ type Shared__4 =
  record {
    init: record {};
    internals: record {
-                balance: nat;
-                total: nat;
+                tokenA: nat;
+                tokenB: nat;
               };
-   variables: record {flow: Flow;};
+   variables: record {
+                flow: Flow;
+                range: Range;
+              };
  };
 type Shared__3 = 
  record {
    init: record {};
    internals: record {
-                price_e16s: opt nat;
+                price: opt float64;
                 swap_fee_e4s: nat;
               };
-   variables: record {max_slippage_e6s: nat;};
+   variables: record {max_slippage: float64;};
  };
 type Shared__2 = 
  record {
@@ -171,6 +174,14 @@ type SETTINGS =
    REQUEST_MAX_EXPIRE_SEC: nat64;
    TEMP_NODE_EXPIRATION_SEC: nat64;
  };
+type Range = 
+ variant {
+   full;
+   partial: record {
+              from_price: float64;
+              to_price: float64;
+            };
+ };
 type PylonMetaResp = 
  record {
    billing: BillingPylon;
@@ -198,6 +209,7 @@ type NodeShared =
    billing:
     record {
       account: Account;
+      billing_option: nat;
       cost_per_day: nat;
       current_balance: nat;
       expires: opt nat64;
@@ -218,7 +230,7 @@ type ModuleMeta =
  record {
    author: text;
    author_account: Account;
-   billing: Billing;
+   billing: vec Billing;
    create_allowed: bool;
    description: text;
    destinations: EndpointsDescription;
@@ -237,8 +249,12 @@ type ModifyRequest__7 =
  };
 type ModifyRequest__6 = record {split: vec nat;};
 type ModifyRequest__5 = record {interest: nat;};
-type ModifyRequest__4 = record {flow: Flow;};
-type ModifyRequest__3 = record {max_slippage_e6s: nat;};
+type ModifyRequest__4 = 
+ record {
+   flow: Flow;
+   range: Range;
+ };
+type ModifyRequest__3 = record {max_slippage: float64;};
 type ModifyRequest__2 = record {interest: nat;};
 type ModifyRequest__1 = record {interest: nat;};
 type ModifyRequest = 
@@ -321,6 +337,7 @@ type GetNodeResponse =
    billing:
     record {
       account: Account;
+      billing_option: nat;
       cost_per_day: nat;
       current_balance: nat;
       expires: opt nat64;
@@ -447,12 +464,15 @@ type CreateRequest__5 =
 type CreateRequest__4 = 
  record {
    init: record {};
-   variables: record {flow: Flow;};
+   variables: record {
+                flow: Flow;
+                range: Range;
+              };
  };
 type CreateRequest__3 = 
  record {
    init: record {};
-   variables: record {max_slippage_e6s: nat;};
+   variables: record {max_slippage: float64;};
  };
 type CreateRequest__2 = 
  record {
@@ -501,6 +521,7 @@ type CommonModifyRequest =
 type CommonCreateRequest = 
  record {
    affiliate: opt Account;
+   billing_option: nat;
    controllers: vec Controller;
    destinations: vec opt InputAddress;
    extractors: vec LocalNodeId;

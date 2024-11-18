@@ -26,7 +26,7 @@ import VecExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
 import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import Core "mo:devefi/core";
-import Swap "./shared_modules/swap/swap";
+import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
 
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
