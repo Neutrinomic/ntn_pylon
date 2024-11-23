@@ -393,4 +393,4 @@ export interface _anon_class_22_1 {
 }
 export interface _SERVICE extends _anon_class_22_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
-export declare const init: ({ IDL }: { IDL: IDL }) => IDL.Type[];
+export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

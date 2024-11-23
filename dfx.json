@@ -1,8 +1,8 @@
 {
   "canisters": {
-    "test": {
+    "transcendence": {
       "type": "motoko",
-      "main": "./example/basic.mo"
+      "main": "./src/pylon.mo"
     }
    },
   "defaults": {
@@ -10,5 +10,6 @@
       "packtool": "cat mops.sources"
     }
   },
-  "dfx": "0.24.0"
+  "dfx": "0.24.2"
 }
+

@@ -33,8 +33,8 @@ describe('Extractors', () => {
       },
     });
 
-    await d.u.connectNodeSource(node2.id, 0, node.id, 0);
     await d.u.addExtractor(node.id, node2.id);
+    await d.u.connectNodeSource(node2.id, 0, node.id, 0);
 
     await d.u.setDestination(node.id, 0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] });
     await d.u.setDestination(node2.id, 0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(2)] });

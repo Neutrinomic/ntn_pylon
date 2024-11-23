@@ -1,29 +1,19 @@
 import Principal "mo:base/Principal";
-import Nat64 "mo:base/Nat64";
-import Int "mo:base/Int";
-import Time "mo:base/Time";
 import Ledgers "mo:devefi/ledgers";
-import Nat "mo:base/Nat";
 import ICRC55 "mo:devefi/ICRC55";
 import Rechain "mo:rechain";
 import RT "./rechain";
 import Timer "mo:base/Timer";
 import U "mo:devefi/utils";
-import Array "mo:base/Array";
-import Nat32 "mo:base/Nat32";
-import I "mo:itertools/Iter";
-import Iter "mo:base/Iter";
-import Blob "mo:base/Blob";
 import T "./vector_modules";
-import MU "mo:mosup";
 import MU_sys "mo:devefi/sys";
 
 import VecThrottle "./modules/throttle/throttle";
-import VecBorrow "./modules/borrow/borrow";
-import VecLend "./modules/lend/lend";
+// import VecBorrow "./modules/borrow/borrow";
+// import VecLend "./modules/lend/lend";
 import VecExchange "./modules/exchange/exchange";
 import VecExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
-import VecEscrow "./modules/escrow/escrow";
+// import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import Core "mo:devefi/core";
 import Swap "mo:devefi_swap";
@@ -54,7 +44,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         xmem = mem_core_1;
         settings = Option.get(DFV_SETTINGS, {
             PYLON_NAME = "Transcendence";
-            PYLON_GOVERNED_BY = "Test DAO";
+            PYLON_GOVERNED_BY = "Neutrinite";
             BILLING = {
                 ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai");
                 min_create_balance = 3000000;
@@ -82,24 +72,24 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     // Shared modules
     let mem_swap_1 = Swap.Mem.Swap.V1.new();
-    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai"); swap_fee_e4s = 30});
+    let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("f54if-eqaaa-aaaaq-aacea-cai"); swap_fee_e4s = 30});
 
 
     // Vector modules
     let mem_vec_throttle_1 = VecThrottle.Mem.Vector.V1.new();
     let vec_throttle = VecThrottle.Mod({xmem=mem_vec_throttle_1; core});
 
-    let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
-    let vec_lend = VecLend.Mod({xmem=mem_vec_lend_1; core});
+    // let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
+    // let vec_lend = VecLend.Mod({xmem=mem_vec_lend_1; core});
 
-    let mem_vec_borrow_1 = VecBorrow.Mem.Vector.V1.new();
-    let vec_borrow = VecBorrow.Mod({xmem=mem_vec_borrow_1; core});
+    // let mem_vec_borrow_1 = VecBorrow.Mem.Vector.V1.new();
+    // let vec_borrow = VecBorrow.Mod({xmem=mem_vec_borrow_1; core});
 
     let mem_vec_exchange_1 = VecExchange.Mem.Vector.V1.new();
     let vec_exchange = VecExchange.Mod({xmem=mem_vec_exchange_1; core; swap});
 
-    let mem_vec_escrow_1 = VecEscrow.Mem.Vector.V1.new();
-    let vec_escrow = VecEscrow.Mod({xmem=mem_vec_escrow_1; core});
+    // let mem_vec_escrow_1 = VecEscrow.Mem.Vector.V1.new();
+    // let vec_escrow = VecEscrow.Mod({xmem=mem_vec_escrow_1; core});
 
     let mem_vec_split_1 = VecSplit.Mem.Vector.V1.new();
     let vec_split = VecSplit.Mod({xmem=mem_vec_split_1; core});
@@ -109,10 +99,10 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     let vmod = T.VectorModules({
         vec_throttle;
-        vec_lend;
-        vec_borrow;
+        // vec_lend;
+        // vec_borrow;
         vec_exchange;
-        vec_escrow;
+        // vec_escrow;
         vec_split;
         vec_exchange_liquidity;
     });
@@ -133,13 +123,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_split.run();
     };
 
-    // ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
-    //     core.heartbeat(proc);
-    // });
+    ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
+        core.heartbeat(proc);
+    });
 
     // ICRC-55
-
-    
 
     public query func icrc55_get_pylon_meta() : async ICRC55.PylonMetaResp {
         sys.icrc55_get_pylon_meta();
@@ -167,8 +155,12 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         sys.icrc55_get_defaults(id);
     };
 
-    public query ({caller}) func icrc55_virtual_balances(req : ICRC55.VirtualBalancesRequest) : async ICRC55.VirtualBalancesResponse {
-        sys.icrc55_virtual_balances(caller, req);
+    public shared ({caller}) func icrc55_account_register(acc : ICRC55.Account) : async () {
+        sys.icrc55_account_register(caller, acc);
+    };
+
+    public query ({caller}) func icrc55_accounts(req : ICRC55.AccountsRequest) : async ICRC55.AccountsResponse {
+        sys.icrc55_accounts(caller, req);
     };
 
     // ICRC-3 
@@ -189,9 +181,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         return chain.icrc3_get_tip_certificate();
     };
 
+
     // ---------- Debug functions -----------
 
-    public func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {
+    public shared ({caller}) func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {
+        assert Principal.isController(caller);
         dvf.add_ledger<system>(id, ltype);
     };
 
@@ -203,7 +197,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
-    public shared func beat() : async () {
-        core.heartbeat(proc);
-    };
+    
+
+    // public shared func beat() : async () {
+    //     core.heartbeat(proc);
+    // };
 };

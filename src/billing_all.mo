@@ -18,7 +18,7 @@ module {
 
     public func authorAccount() : ICRC55.Account {
         {
-            owner = Principal.fromText("rrkah-fqaaa-aaaaa-aaaaq-cai");
+            owner = Principal.fromText("w5lsv-wwgbv-k3xoh-k7htd-s4nqy-eswyt-hjphb-rnhvv-zx2rm-st2h3-zae");
             subaccount = null;
         }
     }

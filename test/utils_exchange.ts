@@ -8,7 +8,7 @@ import {
     NodeShared,
     ModifyRequest,
     PylonMetaResp,
-    VirtualBalancesResponse,
+    AccountsResponse,
     BatchCommandResponse,
     InputAddress,
     Range,

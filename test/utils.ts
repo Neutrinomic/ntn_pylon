@@ -13,7 +13,7 @@ import {
     NodeShared,
     ModifyRequest,
     PylonMetaResp,
-    VirtualBalancesResponse,
+    AccountsResponse,
     BatchCommandResponse,
     InputAddress
 } from './build/pylon.idl.js';
@@ -64,14 +64,14 @@ export function DF() {
             for (let i = 0; i < n; i++) {
                 await this.pic.advanceTime(3 * 1000);
                 await this.pic.tick(6);
-                await this.pylon.beat();
+                // await this.pylon.beat();
             }
         },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.advanceTime( n * 60 * 1000);
             await this.pic.tick(3);
-            await this.pylon.beat();
+            // await this.pylon.beat();
             // await this.passTime(5)
         },
 
@@ -100,7 +100,7 @@ export function DF() {
 
             for (let i=0 ; i < TOTAL_LEDGERS; i++) {
                 const ledgerFixture = await ICRCLedger(this.pic, this.jo.getPrincipal(), undefined, tokens[i].name, tokens[i].fee, tokens[i].decimals); // , this.pic.getSnsSubnet()?.id
-                
+      
                 this.ledgers.push({
                     can: ledgerFixture.actor, 
                     id: ledgerFixture.canisterId, 
@@ -266,10 +266,11 @@ export function createNodeUtils({
         },
         async virtualTransfer(from: Account, to:Account, amount: bigint, from_ledger:number = 0): Promise<BatchCommandResponse> {
             let ledgerCanisterId = ledgers[from_ledger].id
+            let controller : Account = {owner:user, subaccount:[]};
             return await pylon.icrc55_command({
                 expire_at : [],
                 request_id : [],
-                controller : from,
+                controller,
                 signature : [],
                 commands:[{transfer: {
                     ledger: {ic:ledgers[0].id},
@@ -284,8 +285,8 @@ export function createNodeUtils({
                     amount
                 }}]});
             },
-        async virtualBalances(acc: Account) : Promise<VirtualBalancesResponse> {
-            return await pylon.icrc55_virtual_balances(acc);
+        async virtualBalances(acc: Account) : Promise<AccountsResponse> {
+            return await pylon.icrc55_accounts(acc);
         },
         async createNode(creq: CreateRequest, ledgers_idx:number[] = [0], {temporary} : {temporary:boolean} = {temporary:true} ): Promise<GetNodeResponse> {
             
