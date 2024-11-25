@@ -71,30 +71,30 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     });
 
     // Shared modules
-    let mem_swap_1 = Swap.Mem.Swap.V1.new();
+    stable let mem_swap_1 = Swap.Mem.Swap.V1.new();
     let swap = Swap.Mod({xmem=mem_swap_1; core; dvf; primary_ledger = Principal.fromText("f54if-eqaaa-aaaaq-aacea-cai"); swap_fee_e4s = 30});
 
 
     // Vector modules
-    let mem_vec_throttle_1 = VecThrottle.Mem.Vector.V1.new();
+    stable let mem_vec_throttle_1 = VecThrottle.Mem.Vector.V1.new();
     let vec_throttle = VecThrottle.Mod({xmem=mem_vec_throttle_1; core});
 
-    // let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
+    // stable let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
     // let vec_lend = VecLend.Mod({xmem=mem_vec_lend_1; core});
 
-    // let mem_vec_borrow_1 = VecBorrow.Mem.Vector.V1.new();
+    // stable let mem_vec_borrow_1 = VecBorrow.Mem.Vector.V1.new();
     // let vec_borrow = VecBorrow.Mod({xmem=mem_vec_borrow_1; core});
 
-    let mem_vec_exchange_1 = VecExchange.Mem.Vector.V1.new();
+    stable let mem_vec_exchange_1 = VecExchange.Mem.Vector.V1.new();
     let vec_exchange = VecExchange.Mod({xmem=mem_vec_exchange_1; core; swap});
 
-    // let mem_vec_escrow_1 = VecEscrow.Mem.Vector.V1.new();
+    // stable let mem_vec_escrow_1 = VecEscrow.Mem.Vector.V1.new();
     // let vec_escrow = VecEscrow.Mod({xmem=mem_vec_escrow_1; core});
 
-    let mem_vec_split_1 = VecSplit.Mem.Vector.V1.new();
+    stable let mem_vec_split_1 = VecSplit.Mem.Vector.V1.new();
     let vec_split = VecSplit.Mod({xmem=mem_vec_split_1; core});
 
-    let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
+    stable let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
     let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap});
 
     let vmod = T.VectorModules({
@@ -181,6 +181,15 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         return chain.icrc3_get_tip_certificate();
     };
 
+    // DEX
+
+    public query({caller}) func dex_quote(req : swap.Canister.QuoteRequest) : async swap.Canister.QuoteResponse {
+        swap.Canister.dex_quote(caller, req);
+    };
+
+    public shared({caller}) func dex_swap(req : swap.Canister.SwapRequest) : async swap.Canister.SwapResponse {
+        swap.Canister.dex_swap(caller, req);
+    };
 
     // ---------- Debug functions -----------
 

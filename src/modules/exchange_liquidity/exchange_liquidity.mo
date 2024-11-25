@@ -91,6 +91,11 @@ module {
         };
 
         public func delete(id : T.NodeId) : T.Delete {
+            let ?vec = core.getNodeById(id) else return #err("Not found");
+            switch(Run.remove(id, vec)) {
+                case (#ok()) ();
+                case (#err(x)) return #err(x);
+            };
             ignore Map.remove(mem.main, Map.n32hash, id);
             #ok;
         };

@@ -299,6 +299,21 @@ export interface PylonMetaResp {
   'temporary_nodes' : { 'allowed' : boolean, 'expire_sec' : bigint },
   'modules' : Array<ModuleMeta>,
 }
+export interface QuoteRequest {
+  'ledger_to' : SupportedLedger,
+  'ledger_from' : SupportedLedger,
+  'amount' : bigint,
+}
+export type QuoteResponse = {
+    'ok' : {
+      'fees' : Array<[string, SupportedLedger, bigint]>,
+      'amount_out' : bigint,
+      'before_price' : number,
+      'amount_in_max' : bigint,
+      'after_price' : number,
+    }
+  } |
+  { 'err' : string };
 export type Range = { 'full' : null } |
   { 'partial' : { 'to_price' : number, 'from_price' : number } };
 export interface SETTINGS {
@@ -341,6 +356,15 @@ export interface SourceEndpointResp {
 }
 export type SupportedLedger = { 'ic' : Principal } |
   { 'other' : { 'platform' : bigint, 'ledger' : Uint8Array | number[] } };
+export interface SwapRequest {
+  'min_amount_out' : bigint,
+  'ledger_to' : SupportedLedger,
+  'ledger_from' : SupportedLedger,
+  'account' : Account,
+  'amount' : bigint,
+}
+export type SwapResponse = { 'ok' : null } |
+  { 'err' : string };
 export interface TransactionRange { 'start' : bigint, 'length' : bigint }
 export interface TransferRequest {
   'to' : { 'node_billing' : LocalNodeId } |
@@ -374,6 +398,8 @@ export interface _anon_class_22_1 {
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
+  'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
+  'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,
   'get_ledgers_info' : ActorMethod<[], Array<LedgerInfo__1>>,
   'icrc3_get_archives' : ActorMethod<[GetArchivesArgs], GetArchivesResult>,

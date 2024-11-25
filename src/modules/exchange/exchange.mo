@@ -15,6 +15,7 @@ import Nat "mo:base/Nat";
 import Vector "mo:vector";
 import Swap "mo:devefi_swap";
 import Float "mo:base/Float";
+import ICRC55 "mo:devefi/ICRC55";
 
 module {
     let T = Core.VectorModule;
@@ -139,6 +140,7 @@ module {
             };
         };
 
+        
         module Run {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, th : VM.NodeMem) : R<(), Text> {
                 let now = U.now();
@@ -152,7 +154,7 @@ module {
                 
                 let ?price = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return #err("No price for exchange " # debug_show(vec.ledgers[0]) # " -> " # debug_show(vec.ledgers[1]));
                 // U.log("\n\n Swapping " # debug_show(bal) # "\n\n");
-                let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal);
+                let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal, false);
                 // U.log(debug_show(intent));
                 U.performance("Exchange SWAP", func() : R<(), Text> { 
 
@@ -160,13 +162,13 @@ module {
                     case (#err(e)) #err(e);
 
                     case (#ok(intent)) {
-                        let out = swap.Intent.quote(intent);
+                        let {amount_in; amount_out} = swap.Intent.quote(intent);
 
                         let expected_receive_fwd = (swap.Price.multiply(bal, price));
                         
-                        if (expected_receive_fwd < out) return #err("Internal error, " # debug_show(bal) # " shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (out));
-                        let slippage = (Float.fromInt(expected_receive_fwd) - Float.fromInt(out)) / Float.fromInt(expected_receive_fwd);
-                        U.log(debug_show({expected_receive_fwd; out; slippage}));
+                        if (expected_receive_fwd < amount_out) return #err("Internal error, " # debug_show(bal) # " shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (amount_out));
+                        let slippage = (Float.fromInt(expected_receive_fwd) - Float.fromInt(amount_out)) / Float.fromInt(expected_receive_fwd);
+                        U.log(debug_show({expected_receive_fwd; amount_out; slippage}));
                         if (slippage > th.variables.max_slippage) return #err("Slippage too high. slippage_e6s = " # debug_show (slippage));
                         swap.Intent.commit(intent);
                         #ok;
