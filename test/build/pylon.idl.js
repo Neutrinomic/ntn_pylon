@@ -29,6 +29,62 @@ export const idlFactory = ({ IDL }) => {
     'PYLON_GOVERNED_BY' : IDL.Text,
     'REQUEST_MAX_EXPIRE_SEC' : IDL.Nat64,
   });
+  const SupportedLedger = IDL.Variant({
+    'ic' : IDL.Principal,
+    'other' : IDL.Record({
+      'platform' : IDL.Nat64,
+      'ledger' : IDL.Vec(IDL.Nat8),
+    }),
+  });
+  const OHLCVRequest = IDL.Record({
+    'l1' : SupportedLedger,
+    'l2' : SupportedLedger,
+    'period' : IDL.Variant({
+      't1d' : IDL.Null,
+      't1h' : IDL.Null,
+      't1m' : IDL.Null,
+      't1s' : IDL.Null,
+    }),
+  });
+  const MarketTickInner = IDL.Tuple(
+    IDL.Nat32,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Nat,
+  );
+  const OHLCVResponse = IDL.Variant({
+    'ok' : IDL.Record({
+      'l1' : SupportedLedger,
+      'l2' : SupportedLedger,
+      'data' : IDL.Vec(MarketTickInner),
+    }),
+    'err' : IDL.Text,
+  });
+  const QuoteRequest = IDL.Record({
+    'ledger_to' : SupportedLedger,
+    'ledger_from' : SupportedLedger,
+    'amount' : IDL.Nat,
+  });
+  const QuoteResponse = IDL.Variant({
+    'ok' : IDL.Record({
+      'fees' : IDL.Vec(IDL.Tuple(IDL.Text, SupportedLedger, IDL.Nat)),
+      'amount_out' : IDL.Nat,
+      'before_price' : IDL.Float64,
+      'amount_in_max' : IDL.Nat,
+      'after_price' : IDL.Float64,
+    }),
+    'err' : IDL.Text,
+  });
+  const SwapRequest = IDL.Record({
+    'min_amount_out' : IDL.Nat,
+    'ledger_to' : SupportedLedger,
+    'ledger_from' : SupportedLedger,
+    'account' : Account,
+    'amount' : IDL.Nat,
+  });
+  const SwapResponse = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   const Info = IDL.Record({
     'pending' : IDL.Nat,
     'last_indexed_tx' : IDL.Nat,
@@ -179,13 +235,6 @@ export const idlFactory = ({ IDL }) => {
     IDL.Opt(CommonModifyRequest),
     IDL.Opt(ModifyRequest),
   );
-  const SupportedLedger = IDL.Variant({
-    'ic' : IDL.Principal,
-    'other' : IDL.Record({
-      'platform' : IDL.Nat64,
-      'ledger' : IDL.Vec(IDL.Nat8),
-    }),
-  });
   const CommonCreateRequest = IDL.Record({
     'controllers' : IDL.Vec(Controller),
     'extractors' : IDL.Vec(LocalNodeId),
@@ -448,6 +497,9 @@ export const idlFactory = ({ IDL }) => {
         [],
         ['oneway'],
       ),
+    'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
+    'dex_quote' : IDL.Func([QuoteRequest], [QuoteResponse], ['query']),
+    'dex_swap' : IDL.Func([SwapRequest], [SwapResponse], []),
     'get_ledger_errors' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Text))], ['query']),
     'get_ledgers_info' : IDL.Func([], [IDL.Vec(LedgerInfo__1)], ['query']),
     'icrc3_get_archives' : IDL.Func(

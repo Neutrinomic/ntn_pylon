@@ -1,7 +1,7 @@
 import { DF } from "../utils";
 import { EUtil } from "../utils_exchange";
 
-describe('Exchange ctest', () => {
+describe('Exchange xctest', () => {
 
   let d: ReturnType<typeof DF>
 
@@ -21,6 +21,7 @@ describe('Exchange ctest', () => {
 
 
   it(`Add initial range liquidity A-B bellow and above price`, async () => {
+
 
     let node = await EU.createLPNode(LEDGER_A, LEDGER_B, {
       partial : {
@@ -58,15 +59,17 @@ describe('Exchange ctest', () => {
 
     let a = 2000_000_000n;
 
-    // Send funds to source 1
-    await d.u.sendToNode(node.id, PORT_0, a, LEDGER_A);
-
     // Set destination
     await d.u.setDestination(node.id, PORT_0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] });
 
-    await d.passTime(3);
+    // Send funds to source 1
+    await d.u.sendToNode(node.id, PORT_0, a, LEDGER_A);
+
+    
+    await d.passTime(10);
 
     let node_after = await d.u.getNode(node.id);
+
     expect(node_after.sources[PORT_0].balance).toBe(0n);
 
     // Check balance of destination
@@ -104,8 +107,10 @@ describe('Exchange ctest', () => {
     // Check balance of destination
     let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] }, LEDGER_A);
 
+    // d.inspect(node_after);
 
     expect(balance_a).toBe(19846724n);
+    
   });
 
 

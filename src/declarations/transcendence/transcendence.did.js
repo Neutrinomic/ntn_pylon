@@ -36,6 +36,32 @@ export const idlFactory = ({ IDL }) => {
       'ledger' : IDL.Vec(IDL.Nat8),
     }),
   });
+  const OHLCVRequest = IDL.Record({
+    'l1' : SupportedLedger,
+    'l2' : SupportedLedger,
+    'period' : IDL.Variant({
+      't1d' : IDL.Null,
+      't1h' : IDL.Null,
+      't1m' : IDL.Null,
+      't1s' : IDL.Null,
+    }),
+  });
+  const MarketTickInner = IDL.Tuple(
+    IDL.Nat32,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Float64,
+    IDL.Nat,
+  );
+  const OHLCVResponse = IDL.Variant({
+    'ok' : IDL.Record({
+      'l1' : SupportedLedger,
+      'l2' : SupportedLedger,
+      'data' : IDL.Vec(MarketTickInner),
+    }),
+    'err' : IDL.Text,
+  });
   const QuoteRequest = IDL.Record({
     'ledger_to' : SupportedLedger,
     'ledger_from' : SupportedLedger,
@@ -471,6 +497,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         ['oneway'],
       ),
+    'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
     'dex_quote' : IDL.Func([QuoteRequest], [QuoteResponse], ['query']),
     'dex_swap' : IDL.Func([SwapRequest], [SwapResponse], []),
     'get_ledger_errors' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Text))], ['query']),

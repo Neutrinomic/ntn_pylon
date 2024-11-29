@@ -1,13 +1,13 @@
 #!/bin/sh
 dfx canister --network ic stop transcendence
-dfx deploy --network ic transcendence --argument "(opt 
+dfx deploy --network ic transcendence  --argument "(opt 
 record {
      PYLON_NAME = \"Transcendence\";
      PYLON_GOVERNED_BY = \"Neutrinite DAO\";
      BILLING = record {
          ledger = principal \"f54if-eqaaa-aaaaq-aacea-cai\";
          min_create_balance = 50000000;
-         operation_cost = 1000;
+         operation_cost = 10000;
          freezing_threshold_days = 10;
          exempt_daily_cost_balance = null;
          split = record {

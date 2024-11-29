@@ -144,7 +144,7 @@ module {
         module Run {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, th : VM.NodeMem) : R<(), Text> {
                 let now = U.now();
-
+                
                 let ?source = core.getSource(vid, vec, 0) else return #err("No source");
                 let ?destination = core.getDestinationAccountIC(vec, 0) else return #err("No destination");
                 let ?source_account = core.Source.getAccount(source) else return #err("No source account");

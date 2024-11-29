@@ -1,5 +1,5 @@
 [dependencies]
-vector = "0.2.0"
+vector = "0.4.1"
 map = "9.0.1"
 base = "0.12.1"
 prng = "0.0.5"

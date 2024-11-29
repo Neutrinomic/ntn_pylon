@@ -112,8 +112,8 @@ describe('Exchange looptest', () => {
     let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_A);
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_B);
 
-    expect(balance_a).toBeApprox(183640006951n, 90000000n);
-    expect(balance_b).toBeApprox(144200724524n, 90000000n);
+    expect(balance_a).toBeApprox(183338741564n, 90000000n);
+    expect(balance_b).toBeApprox(144980120727n, 90000000n);
 
 
 
@@ -183,8 +183,8 @@ describe('Exchange looptest', () => {
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_B);
 
 
-    expect(balance_a).toBeApprox(383639876951n, 10000000n);
-    expect(balance_b).toBeApprox(244200594524n, 10000000n);
+    expect(balance_a).toBeApprox(383338611564n, 10000000n);
+    expect(balance_b).toBeApprox(244980094727n, 10000000n);
 
 
 

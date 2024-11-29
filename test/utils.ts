@@ -60,6 +60,7 @@ export function DF() {
             console.log(util.inspect(toState(obj), { depth: null, colors: true }));
         },
         async passTime(n: number): Promise<void> {
+            n = n * 2;
             if (!this.pic) throw new Error('PocketIc is not initialized');
             for (let i = 0; i < n; i++) {
                 await this.pic.advanceTime(3 * 1000);

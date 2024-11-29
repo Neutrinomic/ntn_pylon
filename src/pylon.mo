@@ -191,6 +191,10 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         swap.Canister.dex_swap(caller, req);
     };
 
+    public query func dex_ohlcv(req : swap.Canister.OHLCVRequest) : async swap.Canister.OHLCVResponse {
+        swap.Canister.dex_ohlcv(req);
+    };
+
     // ---------- Debug functions -----------
 
     public shared ({caller}) func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {

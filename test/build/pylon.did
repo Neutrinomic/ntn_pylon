@@ -4,6 +4,9 @@ type _anon_class_22_1 =
                                        icp;
                                        icrc;
                                      }) -> () oneway;
+   dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
+   dex_quote: (QuoteRequest) -> (QuoteResponse) query;
+   dex_swap: (SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
    get_ledgers_info: () -> (vec LedgerInfo__1) query;
    icrc3_get_archives: (GetArchivesArgs) -> (GetArchivesResult) query;
@@ -74,6 +77,19 @@ type TransactionRange =
  record {
    length: nat;
    start: nat;
+ };
+type SwapResponse = 
+ variant {
+   err: text;
+   ok;
+ };
+type SwapRequest = 
+ record {
+   account: Account;
+   amount: nat;
+   ledger_from: SupportedLedger;
+   ledger_to: SupportedLedger;
+   min_amount_out: nat;
  };
 type SupportedLedger = 
  variant {
@@ -150,6 +166,28 @@ type Range =
               to_price: float64;
             };
  };
+type QuoteResponse = 
+ variant {
+   err: text;
+   ok:
+    record {
+      after_price: float64;
+      amount_in_max: nat;
+      amount_out: nat;
+      before_price: float64;
+      fees: vec record {
+                  text;
+                  SupportedLedger;
+                  nat;
+                };
+    };
+ };
+type QuoteRequest = 
+ record {
+   amount: nat;
+   ledger_from: SupportedLedger;
+   ledger_to: SupportedLedger;
+ };
 type PylonMetaResp = 
  record {
    billing: BillingPylon;
@@ -162,6 +200,27 @@ type PylonMetaResp =
                       allowed: bool;
                       expire_sec: nat64;
                     };
+ };
+type OHLCVResponse = 
+ variant {
+   err: text;
+   ok:
+    record {
+      data: vec MarketTickInner;
+      l1: SupportedLedger;
+      l2: SupportedLedger;
+    };
+ };
+type OHLCVRequest = 
+ record {
+   l1: SupportedLedger;
+   l2: SupportedLedger;
+   period: variant {
+             t1d;
+             t1h;
+             t1m;
+             t1s;
+           };
  };
 type NumVariant = 
  variant {
@@ -239,6 +298,15 @@ type ModifyNodeRequest =
    LocalNodeId;
    opt CommonModifyRequest;
    opt ModifyRequest;
+ };
+type MarketTickInner = 
+ record {
+   nat32;
+   float64;
+   float64;
+   float64;
+   float64;
+   nat;
  };
 type LocalNodeId = nat32;
 type LedgerLabel = text;

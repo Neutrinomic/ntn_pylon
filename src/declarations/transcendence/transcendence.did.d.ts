@@ -234,6 +234,7 @@ export interface LedgerInfo__1 {
 }
 export type LedgerLabel = string;
 export type LocalNodeId = number;
+export type MarketTickInner = [number, number, number, number, number, bigint];
 export type ModifyNodeRequest = [
   LocalNodeId,
   [] | [CommonModifyRequest],
@@ -290,6 +291,22 @@ export interface NodeShared {
 }
 export type NumVariant = { 'rnd' : { 'max' : bigint, 'min' : bigint } } |
   { 'fixed' : bigint };
+export interface OHLCVRequest {
+  'l1' : SupportedLedger,
+  'l2' : SupportedLedger,
+  'period' : { 't1d' : null } |
+    { 't1h' : null } |
+    { 't1m' : null } |
+    { 't1s' : null },
+}
+export type OHLCVResponse = {
+    'ok' : {
+      'l1' : SupportedLedger,
+      'l2' : SupportedLedger,
+      'data' : Array<MarketTickInner>,
+    }
+  } |
+  { 'err' : string };
 export interface PylonMetaResp {
   'name' : string,
   'billing' : BillingPylon,
@@ -398,6 +415,7 @@ export interface _anon_class_22_1 {
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
+  'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
   'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
   'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,

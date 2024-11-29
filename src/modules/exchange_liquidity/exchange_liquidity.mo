@@ -159,11 +159,11 @@ module {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex:VM.NodeMem) : R<(), Text> {
                 let now = U.now();
 
-                    switch(ex.variables.flow) {
-                        case (#add) Run.add(vid, vec);
-                        case (#remove) Run.remove(vid, vec);
-                        case (_) return #ok();
-                    }
+                switch(ex.variables.flow) {
+                    case (#add) Run.add(vid, vec);
+                    case (#remove) Run.remove(vid, vec);
+                    case (_) return #ok();
+                }
             };
 
             public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : R<(), Text> {
@@ -171,7 +171,6 @@ module {
                 if (cvid.internals.empty) return #ok();
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);
-
                 
                 let ?destination_A = core.getDestinationAccountIC(vec, 0) else return #err("no destination 0");
                 let ?destination_B = core.getDestinationAccountIC(vec, 1) else return #err("no destination 1");
@@ -180,7 +179,7 @@ module {
 
                 let {tokenA; tokenB} = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
-                if (tokenA == 0 or tokenB == 0) return #ok();
+                if (tokenA == 0 and tokenB == 0) return #ok();
                 U.performance("Exchange remove liquidity", func() : R<(), Text> { 
 
                 // U.log("\n\nRemoving liquidity \n\n");

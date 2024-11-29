@@ -4,6 +4,7 @@ type _anon_class_22_1 =
                                        icp;
                                        icrc;
                                      }) -> () oneway;
+   dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
    dex_quote: (QuoteRequest) -> (QuoteResponse) query;
    dex_swap: (SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
@@ -200,6 +201,27 @@ type PylonMetaResp =
                       expire_sec: nat64;
                     };
  };
+type OHLCVResponse = 
+ variant {
+   err: text;
+   ok:
+    record {
+      data: vec MarketTickInner;
+      l1: SupportedLedger;
+      l2: SupportedLedger;
+    };
+ };
+type OHLCVRequest = 
+ record {
+   l1: SupportedLedger;
+   l2: SupportedLedger;
+   period: variant {
+             t1d;
+             t1h;
+             t1m;
+             t1s;
+           };
+ };
 type NumVariant = 
  variant {
    fixed: nat64;
@@ -276,6 +298,15 @@ type ModifyNodeRequest =
    LocalNodeId;
    opt CommonModifyRequest;
    opt ModifyRequest;
+ };
+type MarketTickInner = 
+ record {
+   nat32;
+   float64;
+   float64;
+   float64;
+   float64;
+   nat;
  };
 type LocalNodeId = nat32;
 type LedgerLabel = text;
