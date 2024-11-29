@@ -176,6 +176,7 @@ export function createNodeUtils({
     user: Principal
 }) {
     return {
+        pylon : pylon,
         async listNodes(): Promise<NodeShared[]> {
             return await pylon.icrc55_get_controller_nodes({ id: {owner:user, subaccount:[]}, start:0, length: 500 });
         },

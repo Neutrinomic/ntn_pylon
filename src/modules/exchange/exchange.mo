@@ -49,8 +49,8 @@ module {
                 version = #alpha([0, 0, 1]);
                 create_allowed = true;
                 ledger_slots = [
-                    "From",
-                    "To",
+                    "Sell",
+                    "Buy",
                 ];
                 billing = Billing.get();
                 sources = sources(0);

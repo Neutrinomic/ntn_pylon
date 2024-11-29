@@ -43,9 +43,9 @@ module {
         public func meta() : T.Meta {
             {
                 id = ID; // This has to be same as the variant in vec.custom
-                name = "Exchange";
+                name = "Exchange Liquidity";
                 author = "Neutrinite";
-                description = "Exchange X tokens for Y";
+                description = "Add liquidity to pool";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
                 create_allowed = true;
