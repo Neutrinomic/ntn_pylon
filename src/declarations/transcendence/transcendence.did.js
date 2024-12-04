@@ -162,6 +162,50 @@ export const idlFactory = ({ IDL }) => {
     'hash_tree' : IDL.Vec(IDL.Nat8),
   });
   const BlockType = IDL.Record({ 'url' : IDL.Text, 'block_type' : IDL.Text });
+  const PlatformPath = IDL.Vec(IDL.Nat8);
+  const PlatformId = IDL.Nat64;
+  const TokenId = IDL.Record({
+    'path' : PlatformPath,
+    'platform' : PlatformId,
+  });
+  const PairId = IDL.Record({ 'base' : TokenId, 'quote' : TokenId });
+  const Level = IDL.Nat8;
+  const DepthRequest = IDL.Record({ 'level' : Level, 'limit' : IDL.Nat32 });
+  const PairRequest = IDL.Record({
+    'pairs' : IDL.Vec(PairId),
+    'depth' : IDL.Opt(DepthRequest),
+  });
+  const Amount = IDL.Nat;
+  const Rate = IDL.Float64;
+  const TokenData = IDL.Record({
+    'volume24' : Amount,
+    'volume_total' : Amount,
+  });
+  const PairData = IDL.Record({
+    'id' : PairId,
+    'volume_total_USD' : IDL.Opt(Amount),
+    'asks' : IDL.Vec(IDL.Tuple(Rate, Amount)),
+    'base' : TokenData,
+    'bids' : IDL.Vec(IDL.Tuple(Rate, Amount)),
+    'last' : Rate,
+    'quote' : TokenData,
+    'last_timestamp' : IDL.Nat64,
+    'volume24_USD' : IDL.Opt(Amount),
+    'updated_timestamp' : IDL.Nat64,
+  });
+  const PairResponseOk = IDL.Vec(PairData);
+  const PairResponseErr = IDL.Variant({
+    'NotFound' : PairId,
+    'InvalidDepthLevel' : Level,
+    'InvalidDepthLimit' : IDL.Nat32,
+  });
+  const PairResponse = IDL.Variant({
+    'Ok' : PairResponseOk,
+    'Err' : PairResponseErr,
+  });
+  const DataSource = IDL.Principal;
+  const PairInfo = IDL.Record({ 'id' : PairId, 'data' : DataSource });
+  const ListPairsResponse = IDL.Vec(PairInfo);
   const AccountsRequest = IDL.Record({
     'owner' : IDL.Principal,
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
@@ -522,6 +566,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(BlockType)],
         ['query'],
       ),
+    'icrc45_get_pairs' : IDL.Func([PairRequest], [PairResponse], ['query']),
+    'icrc45_list_pairs' : IDL.Func([], [ListPairsResponse], ['query']),
     'icrc55_account_register' : IDL.Func([Account], [], []),
     'icrc55_accounts' : IDL.Func(
         [AccountsRequest],

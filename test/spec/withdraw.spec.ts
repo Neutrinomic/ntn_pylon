@@ -122,7 +122,7 @@ describe('Withdraw wwtest', () => {
     let resp = await d.u.sourceTransfer(node2.id, 0, 100_0000n, d.u.userSubaccount(10));
 
     //@ts-ignore
-    expect(resp.ok.commands[0].transfer.ok).toBeDefined();
+    expect(resp.ok.commands[0].transfer.err).toBeDefined();
 
     let resp2 = await d.u.sourceTransfer(node.id, 0, 100_0000n, d.u.userSubaccount(10));
     

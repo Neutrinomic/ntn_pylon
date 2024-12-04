@@ -13,9 +13,12 @@ type _anon_class_22_1 =
    icrc3_get_blocks: (GetBlocksArgs) -> (GetBlocksResult) query;
    icrc3_get_tip_certificate: () -> (opt DataCertificate) query;
    icrc3_supported_block_types: () -> (vec BlockType) query;
+   icrc45_get_pairs: (PairRequest) -> (PairResponse) query;
+   icrc45_list_pairs: () -> (ListPairsResponse) query;
    icrc55_account_register: (Account) -> ();
    icrc55_accounts: (AccountsRequest) -> (AccountsResponse) query;
    icrc55_command: (BatchCommandRequest) -> (BatchCommandResponse);
+   icrc55_command_validate: (BatchCommandRequest) -> (ValidationResult) query;
    icrc55_get_controller_nodes: (GetControllerNodesRequest) ->
     (vec NodeShared) query;
    icrc55_get_defaults: (text) -> (CreateRequest) query;
@@ -41,6 +44,11 @@ type Value =
    Map: vec ValueMap;
    Nat: nat;
    Text: text;
+ };
+type ValidationResult = 
+ variant {
+   Err: text;
+   Ok: text;
  };
 type TransferResponse = 
  variant {
@@ -71,12 +79,26 @@ type TransferRequest =
               node_id: LocalNodeId;
             };
       node_billing: LocalNodeId;
+      temp: record {
+              id: nat32;
+              source_idx: EndpointIdx;
+            };
     };
  };
 type TransactionRange = 
  record {
    length: nat;
    start: nat;
+ };
+type TokenId = 
+ record {
+   path: PlatformPath;
+   platform: PlatformId;
+ };
+type TokenData = 
+ record {
+   volume24: Amount;
+   volume_total: Amount;
  };
 type SwapResponse = 
  variant {
@@ -158,6 +180,7 @@ type SETTINGS =
    REQUEST_MAX_EXPIRE_SEC: nat64;
    TEMP_NODE_EXPIRATION_SEC: nat64;
  };
+type Rate = float64;
 type Range = 
  variant {
    full;
@@ -200,6 +223,54 @@ type PylonMetaResp =
                       allowed: bool;
                       expire_sec: nat64;
                     };
+ };
+type PlatformPath = blob;
+type PlatformId = nat64;
+type PairResponseOk = vec PairData;
+type PairResponseErr = 
+ variant {
+   InvalidDepthLevel: Level;
+   InvalidDepthLimit: nat32;
+   NotFound: PairId;
+ };
+type PairResponse = 
+ variant {
+   Err: PairResponseErr;
+   Ok: PairResponseOk;
+ };
+type PairRequest = 
+ record {
+   depth: opt DepthRequest;
+   pairs: vec PairId;
+ };
+type PairInfo = 
+ record {
+   data: DataSource;
+   id: PairId;
+ };
+type PairId = 
+ record {
+   base: TokenId;
+   quote: TokenId;
+ };
+type PairData = 
+ record {
+   asks: vec record {
+               Rate;
+               Amount;
+             };
+   base: TokenData;
+   bids: vec record {
+               Rate;
+               Amount;
+             };
+   id: PairId;
+   last: Rate;
+   last_timestamp: nat64;
+   quote: TokenData;
+   updated_timestamp: nat64;
+   volume24_USD: opt Amount;
+   volume_total_USD: opt Amount;
  };
 type OHLCVResponse = 
  variant {
@@ -309,6 +380,8 @@ type MarketTickInner =
    nat;
  };
 type LocalNodeId = nat32;
+type ListPairsResponse = vec PairInfo;
+type Level = nat8;
 type LedgerLabel = text;
 type LedgerInfo__1 = 
  record {
@@ -471,11 +544,17 @@ type DestinationEndpointResp =
    endpoint: EndpointOpt;
    name: text;
  };
+type DepthRequest = 
+ record {
+   level: Level;
+   limit: nat32;
+ };
 type DeleteNodeResp = 
  variant {
    err: text;
    ok;
  };
+type DataSource = principal;
 type DataCertificate = 
  record {
    certificate: blob;
@@ -545,6 +624,7 @@ type CommonCreateRequest =
    controllers: vec Controller;
    destinations: vec opt InputAddress;
    extractors: vec LocalNodeId;
+   initial_billing_amount: opt nat;
    ledgers: vec SupportedLedger;
    refund: Account;
    sources: vec opt InputAddress;
@@ -626,6 +706,7 @@ type ArchivedTransactionResponse =
    args: vec TransactionRange;
    callback: GetTransactionsFn;
  };
+type Amount = nat;
 type AccountsResponse = vec AccountEndpoint;
 type AccountsRequest = 
  record {

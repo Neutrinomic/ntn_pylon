@@ -223,7 +223,7 @@ module {
                 let bal_a = core.Source.balance(source_A);
                 let bal_b = core.Source.balance(source_B);
 
-                if (bal_a == 0 or bal_b == 0) return #ok();
+                if (bal_a == 0 and bal_b == 0) return #ok();
 
                 let to_account = swap.Pool.accountFromVid(vid, 0);
 

@@ -1,6 +1,7 @@
 
 import { Account } from "../build/pylon.idl";
 import { DF } from "../utils";
+import {match, P } from 'ts-pattern';
 
 describe('Virtual virtest', () => {
 
@@ -52,7 +53,18 @@ describe('Virtual virtest', () => {
     let resp = await d.u.virtualTransfer(d.u.virtual(d.u.mainAccount()), jo_acc, 5000_0000n);
 
     //@ts-ignore
-    expect(resp.ok.commands[0].transfer.ok).toBeDefined();
+    // expect(resp.ok.commands[0].transfer.ok).toBeDefined();
+
+    match(resp).with({
+      ok: P.any, commands: [{transfer: {ok: P.any}}]
+    }, (x) => {
+      expect(x.commands[0].transfer.ok).toBeDefined();
+    }).otherwise(() => {
+      fail("Should have been ok");
+    });
+
+
+
     await d.passTime(5);
 
     let virtual = await d.u.virtualBalances( d.u.mainAccount() );

@@ -12,6 +12,7 @@ export interface AccountsRequest {
   'subaccount' : [] | [Uint8Array | number[]],
 }
 export type AccountsResponse = Array<AccountEndpoint>;
+export type Amount = bigint;
 export interface ArchivedTransactionResponse {
   'args' : Array<TransactionRange>,
   'callback' : GetTransactionsFn,
@@ -115,8 +116,10 @@ export interface DataCertificate {
   'certificate' : Uint8Array | number[],
   'hash_tree' : Uint8Array | number[],
 }
+export type DataSource = Principal;
 export type DeleteNodeResp = { 'ok' : null } |
   { 'err' : string };
+export interface DepthRequest { 'level' : Level, 'limit' : number }
 export interface DestinationEndpointResp {
   'endpoint' : EndpointOpt,
   'name' : string,
@@ -233,6 +236,8 @@ export interface LedgerInfo__1 {
     { 'icrc' : Info__1 },
 }
 export type LedgerLabel = string;
+export type Level = number;
+export type ListPairsResponse = Array<PairInfo>;
 export type LocalNodeId = number;
 export type MarketTickInner = [number, number, number, number, number, bigint];
 export type ModifyNodeRequest = [
@@ -307,6 +312,32 @@ export type OHLCVResponse = {
     }
   } |
   { 'err' : string };
+export interface PairData {
+  'id' : PairId,
+  'volume_total_USD' : [] | [Amount],
+  'asks' : Array<[Rate, Amount]>,
+  'base' : TokenData,
+  'bids' : Array<[Rate, Amount]>,
+  'last' : Rate,
+  'quote' : TokenData,
+  'last_timestamp' : bigint,
+  'volume24_USD' : [] | [Amount],
+  'updated_timestamp' : bigint,
+}
+export interface PairId { 'base' : TokenId, 'quote' : TokenId }
+export interface PairInfo { 'id' : PairId, 'data' : DataSource }
+export interface PairRequest {
+  'pairs' : Array<PairId>,
+  'depth' : [] | [DepthRequest],
+}
+export type PairResponse = { 'Ok' : PairResponseOk } |
+  { 'Err' : PairResponseErr };
+export type PairResponseErr = { 'NotFound' : PairId } |
+  { 'InvalidDepthLevel' : Level } |
+  { 'InvalidDepthLimit' : number };
+export type PairResponseOk = Array<PairData>;
+export type PlatformId = bigint;
+export type PlatformPath = Uint8Array | number[];
 export interface PylonMetaResp {
   'name' : string,
   'billing' : BillingPylon,
@@ -333,6 +364,7 @@ export type QuoteResponse = {
   { 'err' : string };
 export type Range = { 'full' : null } |
   { 'partial' : { 'to_price' : number, 'from_price' : number } };
+export type Rate = number;
 export interface SETTINGS {
   'PYLON_NAME' : string,
   'TEMP_NODE_EXPIRATION_SEC' : bigint,
@@ -382,6 +414,8 @@ export interface SwapRequest {
 }
 export type SwapResponse = { 'ok' : null } |
   { 'err' : string };
+export interface TokenData { 'volume24' : Amount, 'volume_total' : Amount }
+export interface TokenId { 'path' : PlatformPath, 'platform' : PlatformId }
 export interface TransactionRange { 'start' : bigint, 'length' : bigint }
 export interface TransferRequest {
   'to' : { 'node_billing' : LocalNodeId } |
@@ -424,6 +458,8 @@ export interface _anon_class_22_1 {
   'icrc3_get_blocks' : ActorMethod<[GetBlocksArgs], GetBlocksResult>,
   'icrc3_get_tip_certificate' : ActorMethod<[], [] | [DataCertificate]>,
   'icrc3_supported_block_types' : ActorMethod<[], Array<BlockType>>,
+  'icrc45_get_pairs' : ActorMethod<[PairRequest], PairResponse>,
+  'icrc45_list_pairs' : ActorMethod<[], ListPairsResponse>,
   'icrc55_account_register' : ActorMethod<[Account], undefined>,
   'icrc55_accounts' : ActorMethod<[AccountsRequest], AccountsResponse>,
   'icrc55_command' : ActorMethod<[BatchCommandRequest], BatchCommandResponse>,

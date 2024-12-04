@@ -302,7 +302,8 @@ export function createNodeUtils({
                 billing_option: 0n,
                 affiliate: [this.getAffiliateAccount()],
                 temporary,
-                temp_id: 0
+                temp_id: 0,
+                initial_billing_amount: []
             };
 
             let resp = await pylon.icrc55_command({

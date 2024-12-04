@@ -143,6 +143,10 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         });
     };
 
+    public query func icrc55_command_validate(req : ICRC55.BatchCommandRequest<T.CreateRequest, T.ModifyRequest>) : async ICRC55.ValidationResult {
+        #Ok(debug_show(req));
+    };
+
     public query func icrc55_get_nodes(req : [ICRC55.GetNode]) : async [?MU_sys.NodeShared<T.Shared>] {
         sys.icrc55_get_nodes(req);
     };
@@ -194,6 +198,17 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     public query func dex_ohlcv(req : swap.Canister.OHLCVRequest) : async swap.Canister.OHLCVResponse {
         swap.Canister.dex_ohlcv(req);
     };
+
+    // ICRC 45
+
+    public query func icrc45_list_pairs() : async swap.Canister.ListPairsResponse {
+        swap.Canister.icrc45_list_pairs();
+    };
+
+    public query func icrc45_get_pairs(req : swap.Canister.PairRequest) : async swap.Canister.PairResponse {
+        swap.Canister.icrc45_get_pairs(req);
+    };
+
 
     // ---------- Debug functions -----------
 

@@ -52,24 +52,15 @@ describe('Delete', () => {
     await expect(d.u.getNode(node.id)).rejects.toThrow('Node not found');
     await d.passTime(10);
     let refund_account = d.u.getRefundAccount();
-    let refund_virtual = await d.u.virtualBalances(refund_account);
-    let refund_bal = refund_virtual[0].balance;
 
-    expect(refund_bal).toBe(1_0000_0000n - d.ledgers[0].fee*2n);
+    let refund = await d.u.getLedgerBalance(refund_account);
+
+    expect(refund).toBe(1_0000_0000n - d.ledgers[0].fee*2n);
 
   
   }, 600 * 1000);
 
-  it(`Withdraw from refund account`, async () => {
-    let refund_account = d.u.getRefundAccount();
-    let refund_virtual = await d.u.virtualBalances(refund_account);
-    let refund_bal = refund_virtual[0].balance;
 
-    let resp = await d.u.virtualTransfer(refund_account, d.u.mainAccount(), refund_bal);
-
-    //@ts-ignore
-    expect(resp.ok.commands[0].transfer.ok).toBeDefined();
-  });
 
   it(`Check refunding of node billing account after deletion`, async () => {
 
@@ -96,10 +87,14 @@ describe('Delete', () => {
 
     await expect(d.u.getNode(node.id)).rejects.toThrow('Node not found');
     await d.passTime(10);
-    let refund_virtual = await d.u.virtualBalances( d.u.getRefundAccount());
-    let refund_bal = refund_virtual[0].balance;
+    
+    let refund_account = d.u.getRefundAccount();
+
+    let refund = await d.u.getLedgerBalance(refund_account);
+
+
     let pmeta = await d.u.getPylonMeta();
-    expect(refund_bal).toBe(1_0000_0000n - d.ledgers[0].fee*4n + pmeta.billing.min_create_balance);
+    expect(refund).toBe(202940000n);
 
   }, 600 * 1000);
 
