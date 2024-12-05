@@ -385,7 +385,12 @@ export interface Shared__1 {
   'variables' : { 'max_slippage' : number },
 }
 export interface Shared__2 {
-  'internals' : { 'tokenA' : bigint, 'tokenB' : bigint },
+  'internals' : {
+    'last_error' : [] | [string],
+    'tokenA' : bigint,
+    'tokenB' : bigint,
+    'last_run' : bigint,
+  },
   'init' : {},
   'variables' : { 'flow' : Flow, 'range' : Range },
 }
@@ -453,6 +458,7 @@ export interface _anon_class_22_1 {
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
+  'beat' : ActorMethod<[], undefined>,
   'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
   'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
   'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,

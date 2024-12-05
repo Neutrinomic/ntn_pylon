@@ -117,9 +117,32 @@ describe('Exchange btest', () => {
     let b = 1000_0000_0000n;
     let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
 
+    await d.passTime(30);
+
+    // create exchange vector
+    let nodex = await d.u.createNode({
+      'exchange': {
+        'init': { },
+        'variables': {
+          'max_slippage': 8.0,
+        },
+      },
+    },[LEDGER_A, LEDGER_B]);
+
+    //@ts-ignore
+    expect(nodex.custom[0].exchange.internals.price[0]).toBe(0.5);
+
+
+  
 
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
+
+    d.inspect(n1);
+
+    let nafter = await d.u.getNode(node.id);
+
+    d.inspect(nafter.custom[0]);
 
     expect(n1.tokenA).toBeApprox(a - 11n*d.ledgers[LEDGER_A].fee, 10000n);
     expect(n1.tokenB).toBeApprox(0n, 300n);

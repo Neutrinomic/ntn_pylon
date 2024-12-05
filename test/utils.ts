@@ -65,14 +65,14 @@ export function DF() {
             for (let i = 0; i < n; i++) {
                 await this.pic.advanceTime(3 * 1000);
                 await this.pic.tick(6);
-                // await this.pylon.beat();
+                 await this.pylon.beat();
             }
         },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.advanceTime( n * 60 * 1000);
             await this.pic.tick(3);
-            // await this.pylon.beat();
+            await this.pylon.beat();
             // await this.passTime(5)
         },
 

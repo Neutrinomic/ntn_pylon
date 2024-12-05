@@ -123,9 +123,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_split.run();
     };
 
-    ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
-        core.heartbeat(proc);
-    });
+    // ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
+    //     core.heartbeat(proc);
+    // });
 
     // ICRC-55
 
@@ -227,7 +227,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     
 
-    // public shared func beat() : async () {
-    //     core.heartbeat(proc);
-    // };
+    public shared func beat() : async () {
+        core.heartbeat(proc);
+    };
 };

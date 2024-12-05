@@ -21,6 +21,8 @@ module {
         };
         internals : {
             var empty: Bool;
+            var last_run: Nat64;
+            var last_error : ?Text;
         };
     };
 

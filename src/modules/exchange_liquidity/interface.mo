@@ -27,6 +27,8 @@ module {
         internals : {
             tokenA : Nat;
             tokenB : Nat;
+            last_run : Nat64;
+            last_error : ?Text;
         };
     };
 

@@ -4,6 +4,7 @@ type _anon_class_22_1 =
                                        icp;
                                        icrc;
                                      }) -> () oneway;
+   beat: () -> ();
    dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
    dex_quote: (QuoteRequest) -> (QuoteResponse) query;
    dex_swap: (SwapRequest) -> (SwapResponse);
@@ -145,10 +146,13 @@ type Shared__3 =
 type Shared__2 = 
  record {
    init: record {};
-   internals: record {
-                tokenA: nat;
-                tokenB: nat;
-              };
+   internals:
+    record {
+      last_error: opt text;
+      last_run: nat64;
+      tokenA: nat;
+      tokenB: nat;
+    };
    variables: record {
                 flow: Flow;
                 range: Range;

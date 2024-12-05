@@ -377,7 +377,12 @@ export const idlFactory = ({ IDL }) => {
     'variables' : IDL.Record({ 'max_slippage' : IDL.Float64 }),
   });
   const Shared__2 = IDL.Record({
-    'internals' : IDL.Record({ 'tokenA' : IDL.Nat, 'tokenB' : IDL.Nat }),
+    'internals' : IDL.Record({
+      'last_error' : IDL.Opt(IDL.Text),
+      'tokenA' : IDL.Nat,
+      'tokenB' : IDL.Nat,
+      'last_run' : IDL.Nat64,
+    }),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'flow' : Flow, 'range' : Range }),
   });
@@ -544,6 +549,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         ['oneway'],
       ),
+    'beat' : IDL.Func([], [], []),
     'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
     'dex_quote' : IDL.Func([QuoteRequest], [QuoteResponse], ['query']),
     'dex_swap' : IDL.Func([SwapRequest], [SwapResponse], []),

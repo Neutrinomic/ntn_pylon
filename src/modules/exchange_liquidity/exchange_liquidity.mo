@@ -15,6 +15,7 @@ import Nat "mo:base/Nat";
 import Vector "mo:vector";
 import Swap "mo:devefi_swap";
 import Debug "mo:base/Debug";
+import Option "mo:base/Option";
 
 module {
     let T = Core.VectorModule;
@@ -72,6 +73,8 @@ module {
                 };
                 internals = {
                     var empty = true;
+                    var last_run = 0;
+                    var last_error = null;
                 };
             };
             ignore Map.put(mem.main, Map.n32hash, id, obj);
@@ -127,6 +130,8 @@ module {
                 internals = {
                     tokenA;
                     tokenB;
+                    last_run = t.internals.last_run;
+                    last_error = t.internals.last_error;
                 };
             };
         };
@@ -140,13 +145,19 @@ module {
         };
 
         let DEBUG = true;
+        
+        let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000; 
 
         public func run() : () {
+            let now = U.now();
             label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
                 let ?vec = core.getNodeById(vid) else continue vec_loop;
-                if (not vec.active) continue vec_loop;
+                if (not vec.active or vec.billing.frozen) continue vec_loop;
+                if (not Option.isNull(parm.internals.last_error) and (parm.internals.last_run + RUN_ONCE_EVERY) > now) continue vec_loop;
+                parm.internals.last_run := now;
                 switch(Run.single(vid, vec, parm)) {
                     case (#err(e)) {
+                        parm.internals.last_error := ?e;
                         if (DEBUG) U.log("Err in exchange_liquidity: " # e);
                     };
                     case (#ok) ();
