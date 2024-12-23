@@ -25,6 +25,8 @@ module {
             flow : Flow;
         };
         internals : {
+            addedTokenA : Nat;
+            addedTokenB : Nat;
             tokenA : Nat;
             tokenB : Nat;
             last_run : Nat64;
@@ -33,14 +35,11 @@ module {
     };
 
     public type Range = {
-        #full;
         #partial : { from_price : Float; to_price : Float };
     };
     
     public type Flow = {
-        #hold; // Hold at source
-        #add; // Add from source
-        #remove; // Remove from source
-        #pass_through; // Pass from source to destination
+        #add;
+        #remove;
     };
 }

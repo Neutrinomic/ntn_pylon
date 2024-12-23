@@ -1,10 +1,13 @@
-type _anon_class_22_1 = 
+type _anon_class_24_1 = 
  service {
    add_supported_ledger: (principal, variant {
                                        icp;
                                        icrc;
                                      }) -> () oneway;
+   beat: () -> ();
+   chrono_records: () -> (opt ChronoRecord) query;
    dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
+   dex_pool_create: (PoolRequest) -> (PoolResponse);
    dex_quote: (QuoteRequest) -> (QuoteResponse) query;
    dex_swap: (SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
@@ -18,6 +21,7 @@ type _anon_class_22_1 =
    icrc55_account_register: (Account) -> ();
    icrc55_accounts: (AccountsRequest) -> (AccountsResponse) query;
    icrc55_command: (BatchCommandRequest) -> (BatchCommandResponse);
+   icrc55_command_validate: (BatchCommandRequest) -> (ValidationResult) query;
    icrc55_get_controller_nodes: (GetControllerNodesRequest) ->
     (vec NodeShared) query;
    icrc55_get_defaults: (text) -> (CreateRequest) query;
@@ -43,6 +47,11 @@ type Value =
    Map: vec ValueMap;
    Nat: nat;
    Text: text;
+ };
+type ValidationResult = 
+ variant {
+   Err: text;
+   Ok: text;
  };
 type TransferResponse = 
  variant {
@@ -73,6 +82,10 @@ type TransferRequest =
               node_id: LocalNodeId;
             };
       node_billing: LocalNodeId;
+      temp: record {
+              id: nat32;
+              source_idx: EndpointIdx;
+            };
     };
  };
 type TransactionRange = 
@@ -135,10 +148,15 @@ type Shared__3 =
 type Shared__2 = 
  record {
    init: record {};
-   internals: record {
-                tokenA: nat;
-                tokenB: nat;
-              };
+   internals:
+    record {
+      addedTokenA: nat;
+      addedTokenB: nat;
+      last_error: opt text;
+      last_run: nat64;
+      tokenA: nat;
+      tokenB: nat;
+    };
    variables: record {
                 flow: Flow;
                 range: Range;
@@ -160,6 +178,15 @@ type Shared =
    split: Shared__3;
    throttle: Shared__4;
  };
+type Sent = 
+ record {
+   amount: nat;
+   ledger: principal;
+   to: variant {
+         icp: blob;
+         icrc: Account;
+       };
+ };
 type SETTINGS = 
  record {
    ALLOW_TEMP_NODE_CREATION: bool;
@@ -170,15 +197,21 @@ type SETTINGS =
    REQUEST_MAX_EXPIRE_SEC: nat64;
    TEMP_NODE_EXPIRATION_SEC: nat64;
  };
-type Rate = float64;
-type Range = 
- variant {
-   full;
-   partial: record {
-              from_price: float64;
-              to_price: float64;
-            };
+type Received = 
+ record {
+   amount: nat;
+   from: variant {
+           icp: blob;
+           icrc: Account;
+         };
+   ledger: principal;
  };
+type Rate = float64;
+type Range = variant {
+               partial: record {
+                          from_price: float64;
+                          to_price: float64;
+                        };};
 type QuoteResponse = 
  variant {
    err: text;
@@ -192,6 +225,10 @@ type QuoteResponse =
                   text;
                   SupportedLedger;
                   nat;
+                };
+      path: vec record {
+                  SupportedLedger;
+                  float64;
                 };
     };
  };
@@ -213,6 +250,16 @@ type PylonMetaResp =
                       allowed: bool;
                       expire_sec: nat64;
                     };
+ };
+type PoolResponse = 
+ variant {
+   err: text;
+   ok;
+ };
+type PoolRequest = 
+ record {
+   base: principal;
+   quote: principal;
  };
 type PlatformPath = blob;
 type PlatformId = nat64;
@@ -487,8 +534,6 @@ type GetArchivesArgs = record {from: opt principal;};
 type Flow = 
  variant {
    add;
-   hold;
-   pass_through;
    remove;
  };
 type EndpointsDescription = 
@@ -614,6 +659,7 @@ type CommonCreateRequest =
    controllers: vec Controller;
    destinations: vec opt InputAddress;
    extractors: vec LocalNodeId;
+   initial_billing_amount: opt nat;
    ledgers: vec SupportedLedger;
    refund: Account;
    sources: vec opt InputAddress;
@@ -633,6 +679,12 @@ type Command =
    delete_node: LocalNodeId;
    modify_node: ModifyNodeRequest;
    transfer: TransferRequest;
+ };
+type ChronoRecord = variant {account: C100_Account;};
+type C100_Account = 
+ variant {
+   received: Received;
+   sent: Sent;
  };
 type BlockType = 
  record {
@@ -712,4 +764,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (opt SETTINGS) -> _anon_class_22_1
+service : (opt SETTINGS) -> _anon_class_24_1

@@ -339,6 +339,13 @@ export type PairResponseErr = { 'NotFound' : PairId } |
 export type PairResponseOk = Array<PairData>;
 export type PlatformId = bigint;
 export type PlatformPath = Uint8Array | number[];
+export interface PoolRequest {
+  'base' : Principal,
+  'quote' : Principal,
+  'centerPrice' : number,
+}
+export type PoolResponse = { 'ok' : null } |
+  { 'err' : string };
 export interface PylonMetaResp {
   'name' : string,
   'billing' : BillingPylon,
@@ -460,6 +467,7 @@ export interface _anon_class_22_1 {
   >,
   'beat' : ActorMethod<[], undefined>,
   'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
+  'dex_pool_create' : ActorMethod<[PoolRequest], PoolResponse>,
   'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
   'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,

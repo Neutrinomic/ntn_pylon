@@ -39,7 +39,7 @@ module {
                 description = "Send X tokens every Y seconds";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
-                create_allowed = true;
+                create_allowed = false;
                 ledger_slots = [
                     "Throttle"
                 ];

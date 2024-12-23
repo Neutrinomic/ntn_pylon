@@ -57,6 +57,9 @@ export type BillingTransactionFee = { 'none' : null } |
   { 'transaction_percentage_fee_e8s' : bigint } |
   { 'flat_fee_multiplier' : bigint };
 export interface BlockType { 'url' : string, 'block_type' : string }
+export type C100_Account = { 'sent' : Sent } |
+  { 'received' : Received };
+export type ChronoRecord = { 'account' : C100_Account };
 export type Command = { 'modify_node' : ModifyNodeRequest } |
   { 'create_node' : CreateNodeRequest } |
   { 'transfer' : TransferRequest } |
@@ -67,6 +70,7 @@ export type CommandResponse = { 'modify_node' : ModifyNodeResponse } |
   { 'delete_node' : DeleteNodeResp };
 export interface CommonCreateRequest {
   'controllers' : Array<Controller>,
+  'initial_billing_amount' : [] | [bigint],
   'extractors' : Uint32Array | number[],
   'temp_id' : number,
   'billing_option' : bigint,
@@ -146,9 +150,7 @@ export interface EndpointOther {
 }
 export type EndpointsDescription = Array<[LedgerIdx, LedgerLabel]>;
 export type Flow = { 'add' : null } |
-  { 'remove' : null } |
-  { 'hold' : null } |
-  { 'pass_through' : null };
+  { 'remove' : null };
 export interface GetArchivesArgs { 'from' : [] | [Principal] }
 export type GetArchivesResult = Array<GetArchivesResultItem>;
 export interface GetArchivesResultItem {
@@ -338,6 +340,9 @@ export type PairResponseErr = { 'NotFound' : PairId } |
 export type PairResponseOk = Array<PairData>;
 export type PlatformId = bigint;
 export type PlatformPath = Uint8Array | number[];
+export interface PoolRequest { 'base' : Principal, 'quote' : Principal }
+export type PoolResponse = { 'ok' : null } |
+  { 'err' : string };
 export interface PylonMetaResp {
   'name' : string,
   'billing' : BillingPylon,
@@ -355,6 +360,7 @@ export interface QuoteRequest {
 export type QuoteResponse = {
     'ok' : {
       'fees' : Array<[string, SupportedLedger, bigint]>,
+      'path' : Array<[SupportedLedger, number]>,
       'amount_out' : bigint,
       'before_price' : number,
       'amount_in_max' : bigint,
@@ -362,9 +368,16 @@ export type QuoteResponse = {
     }
   } |
   { 'err' : string };
-export type Range = { 'full' : null } |
-  { 'partial' : { 'to_price' : number, 'from_price' : number } };
+export type Range = {
+    'partial' : { 'to_price' : number, 'from_price' : number }
+  };
 export type Rate = number;
+export interface Received {
+  'from' : { 'icp' : Uint8Array | number[] } |
+    { 'icrc' : Account },
+  'ledger' : Principal,
+  'amount' : bigint,
+}
 export interface SETTINGS {
   'PYLON_NAME' : string,
   'TEMP_NODE_EXPIRATION_SEC' : bigint,
@@ -373,6 +386,12 @@ export interface SETTINGS {
   'BILLING' : BillingPylon,
   'PYLON_GOVERNED_BY' : string,
   'REQUEST_MAX_EXPIRE_SEC' : bigint,
+}
+export interface Sent {
+  'to' : { 'icp' : Uint8Array | number[] } |
+    { 'icrc' : Account },
+  'ledger' : Principal,
+  'amount' : bigint,
 }
 export type Shared = { 'split' : Shared__3 } |
   { 'throttle' : Shared__4 } |
@@ -384,7 +403,14 @@ export interface Shared__1 {
   'variables' : { 'max_slippage' : number },
 }
 export interface Shared__2 {
-  'internals' : { 'tokenA' : bigint, 'tokenB' : bigint },
+  'internals' : {
+    'last_error' : [] | [string],
+    'tokenA' : bigint,
+    'tokenB' : bigint,
+    'last_run' : bigint,
+    'addedTokenA' : bigint,
+    'addedTokenB' : bigint,
+  },
   'init' : {},
   'variables' : { 'flow' : Flow, 'range' : Range },
 }
@@ -420,6 +446,7 @@ export interface TransactionRange { 'start' : bigint, 'length' : bigint }
 export interface TransferRequest {
   'to' : { 'node_billing' : LocalNodeId } |
     { 'node' : { 'node_id' : LocalNodeId, 'endpoint_idx' : EndpointIdx } } |
+    { 'temp' : { 'id' : number, 'source_idx' : EndpointIdx } } |
     {
       'external_account' : { 'ic' : Account } |
         { 'other' : Uint8Array | number[] }
@@ -434,6 +461,8 @@ export interface TransferRequest {
 }
 export type TransferResponse = { 'ok' : bigint } |
   { 'err' : string };
+export type ValidationResult = { 'Ok' : string } |
+  { 'Err' : string };
 export type Value = { 'Int' : bigint } |
   { 'Map' : Array<ValueMap> } |
   { 'Nat' : bigint } |
@@ -444,12 +473,15 @@ export type ValueMap = [string, Value];
 export type Version = { 'alpha' : Uint16Array | number[] } |
   { 'beta' : Uint16Array | number[] } |
   { 'release' : Uint16Array | number[] };
-export interface _anon_class_22_1 {
+export interface _anon_class_24_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
+  'beat' : ActorMethod<[], undefined>,
+  'chrono_records' : ActorMethod<[], [] | [ChronoRecord]>,
   'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
+  'dex_pool_create' : ActorMethod<[PoolRequest], PoolResponse>,
   'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
   'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,
@@ -463,6 +495,10 @@ export interface _anon_class_22_1 {
   'icrc55_account_register' : ActorMethod<[Account], undefined>,
   'icrc55_accounts' : ActorMethod<[AccountsRequest], AccountsResponse>,
   'icrc55_command' : ActorMethod<[BatchCommandRequest], BatchCommandResponse>,
+  'icrc55_command_validate' : ActorMethod<
+    [BatchCommandRequest],
+    ValidationResult
+  >,
   'icrc55_get_controller_nodes' : ActorMethod<
     [GetControllerNodesRequest],
     Array<NodeShared>
@@ -471,6 +507,6 @@ export interface _anon_class_22_1 {
   'icrc55_get_nodes' : ActorMethod<[Array<GetNode>], Array<[] | [NodeShared]>>,
   'icrc55_get_pylon_meta' : ActorMethod<[], PylonMetaResp>,
 }
-export interface _SERVICE extends _anon_class_22_1 {}
+export interface _SERVICE extends _anon_class_24_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

@@ -62,6 +62,12 @@ export const idlFactory = ({ IDL }) => {
     }),
     'err' : IDL.Text,
   });
+  const PoolRequest = IDL.Record({
+    'base' : IDL.Principal,
+    'quote' : IDL.Principal,
+    'centerPrice' : IDL.Float64,
+  });
+  const PoolResponse = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   const QuoteRequest = IDL.Record({
     'ledger_to' : SupportedLedger,
     'ledger_from' : SupportedLedger,
@@ -551,6 +557,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'beat' : IDL.Func([], [], []),
     'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
+    'dex_pool_create' : IDL.Func([PoolRequest], [PoolResponse], []),
     'dex_quote' : IDL.Func([QuoteRequest], [QuoteResponse], ['query']),
     'dex_swap' : IDL.Func([SwapRequest], [SwapResponse], []),
     'get_ledger_errors' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Text))], ['query']),

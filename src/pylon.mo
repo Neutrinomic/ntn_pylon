@@ -18,6 +18,8 @@ import VecSplit "./modules/split/split";
 import Core "mo:devefi/core";
 import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
+import Chrono "mo:chronotrinite/client";
+import ChronoIF "mo:devefi/chrono";
 
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
@@ -32,15 +34,18 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         me_can;
     });
 
+    stable let chrono_mem_v1 = Chrono.Mem.ChronoClient.V1.new({router = Principal.fromText("hik73-dyaaa-aaaal-qsaqa-cai")});
+    let chrono = Chrono.ChronoClient<system>({ xmem = chrono_mem_v1 });
 
     stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
 
 
-    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_1 ; me_can});
+    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_1 ; me_can; chrono;});
 
     stable let mem_core_1 = Core.Mem.Core.V1.new();
 
     let core = Core.Mod<system>({
+        _chrono = chrono;
         xmem = mem_core_1;
         settings = Option.get(DFV_SETTINGS, {
             PYLON_NAME = "Transcendence";
@@ -123,9 +128,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_split.run();
     };
 
-    // ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
-    //     core.heartbeat(proc);
-    // });
+    ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
+        core.heartbeat(proc);
+    });
 
     // ICRC-55
 
@@ -199,6 +204,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         swap.Canister.dex_ohlcv(req);
     };
 
+    public shared({caller}) func dex_pool_create(req : swap.Pool.PoolRequest) : async swap.Pool.PoolResponse {
+        // assert(Principal.isController(caller));
+        swap.Canister.dex_pool_create(req);
+    };
+
     // ICRC 45
 
     public query func icrc45_list_pairs() : async swap.Canister.ListPairsResponse {
@@ -225,7 +235,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
-    
+    public query func chrono_records() : async ?ChronoIF.ChronoRecord {
+        null
+    };
 
     public shared func beat() : async () {
         core.heartbeat(proc);

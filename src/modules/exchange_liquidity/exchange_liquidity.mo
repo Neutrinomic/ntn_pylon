@@ -20,7 +20,7 @@ import Option "mo:base/Option";
 module {
     let T = Core.VectorModule;
     public let Interface = I;
-    type R<A,B> = Result.Result<A,B>;
+    type R<A, B> = Result.Result<A, B>;
 
     public module Mem {
         public module Vector {
@@ -29,9 +29,7 @@ module {
     };
     let VM = Mem.Vector.V1;
 
-
     public let ID = "exchange_liquidity";
-
 
     public class Mod({
         xmem : MU.MemShell<VM.Mem>;
@@ -62,9 +60,13 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             if (req.ledgers[0] == req.ledgers[1]) return #err("Requred different ledgers");
-            
+            // Check if there is a pool
+            let #ic(l1) = req.ledgers[0] else return #err("Ledger 1 not supported");
+            let #ic(l2) = req.ledgers[1] else return #err("Ledger 2 not supported");
+            if (Option.isNull(swap.Pool.get(swap.getPoolAccount(l1, l2, 0)))) return #err("No pool found");
+
             let obj : VM.NodeMem = {
                 init = t.init;
                 variables = {
@@ -75,6 +77,14 @@ module {
                     var empty = true;
                     var last_run = 0;
                     var last_error = null;
+                    var total_added = {
+                        tokenA = 0;
+                        tokenB = 0;
+                    };
+                    var last_inputs = {
+                        tokenA = 0;
+                        tokenB = 0;
+                    };
                 };
             };
             ignore Map.put(mem.main, Map.n32hash, id, obj);
@@ -87,7 +97,10 @@ module {
 
                 };
                 variables = {
-                    range = #full;
+                    range = #partial({
+                        from_price = 0.0;
+                        to_price = 0.0;
+                    });
                     flow = #add;
                 };
             };
@@ -95,9 +108,10 @@ module {
 
         public func delete(id : T.NodeId) : T.Delete {
             let ?vec = core.getNodeById(id) else return #err("Not found");
-            switch(Run.remove(id, vec)) {
+            switch (Run.remove(id, vec)) {
                 case (#ok()) ();
                 case (#err(x)) return #err(x);
+                case (#skip) return #err("Cound't delete")
             };
             ignore Map.remove(mem.main, Map.n32hash, id);
             #ok;
@@ -111,15 +125,14 @@ module {
             #ok();
         };
 
-        public func get(vid : T.NodeId, vec: T.NodeCoreMem) : T.Get<I.Shared> {
+        public func get(vid : T.NodeId, vec : T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, vid) else return #err("Not found");
-            
+
             let from_account = swap.Pool.accountFromVid(vid, 0);
 
             let ledger_A = U.onlyICLedger(vec.ledgers[0]);
             let ledger_B = U.onlyICLedger(vec.ledgers[1]);
-            let {tokenA; tokenB} = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
-
+            let { tokenA; tokenB } = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
             #ok {
                 init = t.init;
@@ -128,6 +141,8 @@ module {
                     range = t.variables.range;
                 };
                 internals = {
+                    addedTokenA = t.internals.total_added.tokenA;
+                    addedTokenB = t.internals.total_added.tokenB;
                     tokenA;
                     tokenB;
                     last_run = t.internals.last_run;
@@ -145,8 +160,29 @@ module {
         };
 
         let DEBUG = true;
-        
-        let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000; 
+
+        let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000;
+        let RUN_ONCE_UNLESS_INPUTS_CHANGED : Nat64 = 30 * 1_000_000_000;
+
+        private func has_input_changed(vid : T.NodeId, vec : T.NodeCoreMem, vmem : VM.NodeMem) : Bool {
+            let ?sourceA = core.getSource(vid, vec, 0) else return false;
+            let ?sourceB = core.getSource(vid, vec, 1) else return false;
+            let { tokenA; tokenB } = vmem.internals.last_inputs;
+            let new_tokenA = core.Source.balance(sourceA);
+            let new_tokenB = core.Source.balance(sourceB);
+
+            (tokenA != new_tokenA or tokenB != new_tokenB);
+        };
+
+        private func refresh_last_inputs(vid : T.NodeId, vec : T.NodeCoreMem, vmem : VM.NodeMem) {
+            let ?sourceA = core.getSource(vid, vec, 0) else return;
+            let ?sourceB = core.getSource(vid, vec, 1) else return;
+
+            vmem.internals.last_inputs := {
+                tokenA = core.Source.balance(sourceA);
+                tokenB = core.Source.balance(sourceB);
+            };
+        };
 
         public func run() : () {
             let now = U.now();
@@ -155,70 +191,87 @@ module {
                 if (not vec.active or vec.billing.frozen) continue vec_loop;
                 if (not Option.isNull(parm.internals.last_error) and (parm.internals.last_run + RUN_ONCE_EVERY) > now) continue vec_loop;
                 parm.internals.last_run := now;
-                switch(Run.single(vid, vec, parm)) {
+                switch (Run.single(vid, vec, parm)) {
                     case (#err(e)) {
                         parm.internals.last_error := ?e;
                         if (DEBUG) U.log("Err in exchange_liquidity: " # e);
                     };
-                    case (#ok) ();
-                }
+                    case (#ok) {
+                        if (not Option.isNull(parm.internals.last_error)) parm.internals.last_error := null;
+                    };
+                    case (#skip) continue vec_loop;
+                };
+                refresh_last_inputs(vid, vec, parm);
             };
         };
 
         module Run {
-
-            public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex:VM.NodeMem) : R<(), Text> {
+            type RunResult = {
+                #ok;
+                #skip;
+                #err : Text;
+            };
+            public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex : VM.NodeMem) : RunResult {
                 let now = U.now();
 
-                switch(ex.variables.flow) {
-                    case (#add) Run.add(vid, vec);
+                switch (ex.variables.flow) {
+                    case (#add) {
+
+                        let force_refresh = (ex.internals.last_run + RUN_ONCE_UNLESS_INPUTS_CHANGED > now);
+
+                        if (not has_input_changed(vid, vec, ex) and (not force_refresh)) return #skip;
+
+                        Run.add(vid, vec);
+                    };
                     case (#remove) Run.remove(vid, vec);
                     case (_) return #ok();
-                }
+                };
             };
 
-            public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : R<(), Text> {
+            public func remove(vid : T.NodeId, vec : T.NodeCoreMem) : RunResult {
                 let ?cvid = Map.get(mem.main, Map.n32hash, vid) else return #err("Not found");
                 if (cvid.internals.empty) return #ok();
                 let ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 let ledger_B = U.onlyICLedger(vec.ledgers[1]);
-                
+
                 let ?destination_A = core.getDestinationAccountIC(vec, 0) else return #err("no destination 0");
                 let ?destination_B = core.getDestinationAccountIC(vec, 1) else return #err("no destination 1");
 
                 let from_account = swap.Pool.accountFromVid(vid, 0);
 
-                let {tokenA; tokenB} = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
+                let { tokenA; tokenB } = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
                 if (tokenA == 0 and tokenB == 0) return #ok();
-                U.performance("Exchange remove liquidity", func() : R<(), Text> { 
+                U.performance(
+                    "Exchange remove liquidity",
+                    func() : R<(), Text> {
 
-                // U.log("\n\nRemoving liquidity \n\n");
-                let intent = swap.LiquidityIntentRemove.get({
-                    from_account;
-                    l1 = ledger_A;
-                    l2 = ledger_B;
-                    to_a_account = destination_A;
-                    to_b_account = destination_B;
-                });
+                        let intent = swap.LiquidityIntentRemove.get({
+                            from_account;
+                            l1 = ledger_A;
+                            l2 = ledger_B;
+                            to_a_account = destination_A;
+                            to_b_account = destination_B;
+                        });
 
-                // U.log("\nIntent ready\n");
-                switch(intent) {
-                    case (#ok(intent)) {
-                        swap.LiquidityIntentRemove.commit(intent);
-                        // U.log("\n\nLiquidity Remove Commited\n\n");
-                        cvid.internals.empty := true;
-                        #ok;
-                    };
-                    case (#err(e)) #err("Error getting intent: " # e);
-                };
-                });
+                        switch (intent) {
+                            case (#ok(intent)) {
+                                swap.LiquidityIntentRemove.commit(intent);
+                                cvid.internals.empty := true;
+                                cvid.internals.total_added := {
+                                    tokenA = 0;
+                                    tokenB = 0;
+                                };
+                                #ok;
+                            };
+                            case (#err(e)) #err(e);
+                        };
+                    },
+                );
 
-    
             };
 
-            public func add(vid : T.NodeId, vec : T.NodeCoreMem) : R<(), Text> {
-
+            public func add(vid : T.NodeId, vec : T.NodeCoreMem) : RunResult {
 
                 let ?source_A = core.getSource(vid, vec, 0) else return #err("no source 0");
                 let ?source_B = core.getSource(vid, vec, 1) else return #err("no source 1");
@@ -241,29 +294,6 @@ module {
                 var in_a = bal_a;
                 var in_b = bal_b;
 
-                // switch(swap.Price.get(ledger_A, ledger_B, 0)) {
-                //     case (?price) {
-
-                //         U.log("!!!!!Price: " # debug_show(price) # "\n\n");
-                //         // We will add liquidity only at the rate the pool is currently
-                //         // If bal_a is more valuable than bal_b, in_a will be limited to the amount of bal_b
-                //         // and vice versa with in_b
-                
-                //         if (swap.Price.divide(bal_a, price) > bal_b) {
-                //             in_a := swap.Price.multiply(bal_b, price);
-                //         } else {
-                //             in_b := swap.Price.divide(bal_a, price);
-                //         };
-                //         U.log(debug_show({in_a; in_b}));
-
-                //     };
-                //     case (null) {
-                //         U.log("No price found");
-                //         (); // First time adding liquidity
-                //     };
-                // };
-
-                // U.log("\n\n\n Adding liquidity: " # debug_show({in_a; in_b}) # "\n\n\n");
                 let intent = swap.LiquidityIntentAdd.get({
                     to_account;
                     l1 = ledger_A;
@@ -274,32 +304,32 @@ module {
                     from_a_amount = in_a;
                     from_b_amount = in_b;
                 });
-                // U.log("\nIntent ready\n");
-                U.performance("Exchange add liquidity", func() : R<(), Text> { 
 
-                switch(intent) {
-                    case (#ok(intent)) {
-                        swap.LiquidityIntentAdd.commit(intent);
-                        // U.log("\n\nLiquidity Add Commited\n\n");
-                        let ?cvid = Map.get(mem.main, Map.n32hash, vid) else return #err("Not found");
-                        cvid.internals.empty := false;
-                        #ok;
-                    };
-                    case (#err(e)) #err("Error getting intent: " # e);
-                };
-            
-                });
-          
-            
+                U.performance(
+                    "Exchange add liquidity",
+                    func() : R<(), Text> {
+
+                        switch (intent) {
+                            case (#ok(intent)) {
+                                swap.LiquidityIntentAdd.commit(intent);
+                                let ?cvid = Map.get(mem.main, Map.n32hash, vid) else return #err("Not found");
+                                cvid.internals.empty := false;
+                                cvid.internals.total_added := {
+                                    tokenA = cvid.internals.total_added.tokenA + (if (intent.zeroForOne) intent.from_a_amount else intent.from_b_amount);
+                                    tokenB = cvid.internals.total_added.tokenB + (if (intent.zeroForOne) intent.from_b_amount else intent.from_a_amount);
+                                };
+                                #ok;
+                            };
+                            case (#err(e)) #err(e);
+                        };
+
+                    },
+                );
+
             };
 
         };
 
-       
-
     };
-
-
-
 
 };

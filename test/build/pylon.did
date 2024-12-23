@@ -6,6 +6,7 @@ type _anon_class_22_1 =
                                      }) -> () oneway;
    beat: () -> ();
    dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
+   dex_pool_create: (PoolRequest) -> (PoolResponse);
    dex_quote: (QuoteRequest) -> (QuoteResponse) query;
    dex_swap: (SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
@@ -227,6 +228,17 @@ type PylonMetaResp =
                       allowed: bool;
                       expire_sec: nat64;
                     };
+ };
+type PoolResponse = 
+ variant {
+   err: text;
+   ok;
+ };
+type PoolRequest = 
+ record {
+   base: principal;
+   centerPrice: float64;
+   quote: principal;
  };
 type PlatformPath = blob;
 type PlatformId = nat64;

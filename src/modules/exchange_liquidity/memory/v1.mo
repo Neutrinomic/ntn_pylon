@@ -22,19 +22,24 @@ module {
         internals : {
             var empty: Bool;
             var last_run: Nat64;
+            var total_added : {
+                tokenA: Nat;
+                tokenB: Nat;
+            };
+            var last_inputs : {
+                tokenA: Nat;
+                tokenB: Nat;
+            };
             var last_error : ?Text;
         };
     };
 
     public type Flow = {
-        #hold; // Hold at source
         #add; // Add from source
         #remove; // Remove from source
-        #pass_through; // Pass from source to destination
     };
 
     public type Range = {
-        #full;
         #partial : { from_price : Float; to_price : Float };
     };
  

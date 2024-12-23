@@ -7,10 +7,7 @@ module {
 
     public func get() : [ICRC55.Billing] {
            [{
-                cost_per_day = 50_0000;
-                transaction_fee = #none;
-           },{
-                cost_per_day = 10_0000;
+                cost_per_day = 0;
                 transaction_fee = #none;
            }];
           

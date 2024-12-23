@@ -18,7 +18,13 @@ import { DF } from "./utils";
 export function EUtil(d: ReturnType<typeof DF>) {
     return {
         async createLPNode(ledger_one_id: number, ledger_two_id: number, range : Range = { full: null}, subaccountId : number = 1): ReturnType<typeof d.u.createNode> {
-
+            if (!("partial" in range)) return;
+            let middle = range.partial.from_price + (range.partial.to_price - range.partial.from_price) / 2;
+            await d.u.pylon.dex_pool_create({
+                base: d.ledgers[ledger_one_id].id,
+                quote: d.ledgers[ledger_two_id].id,
+                centerPrice : middle,
+            });
             let node = await d.u.createNode({
                 'exchange_liquidity': {
                     'init': {},

@@ -36,7 +36,7 @@ module {
                 description = "Split X tokens while providing Y tokens collateral";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
-                create_allowed = true;
+                create_allowed = false;
                 ledger_slots = [
                     "Split",
                 ];
