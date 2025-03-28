@@ -1,0 +1,1 @@
+dfx canister --network ic update-settings --freezing-threshold 2592000 --confirm-very-long-freezing-threshold transcendence

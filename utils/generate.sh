@@ -1,0 +1,1 @@
+DFX_MOC_PATH=/home/infu/sanctum/moc/moc dfx generate

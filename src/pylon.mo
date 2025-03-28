@@ -7,6 +7,10 @@ import Timer "mo:base/Timer";
 import U "mo:devefi/utils";
 import T "./vector_modules";
 import MU_sys "mo:devefi/sys";
+import Vector "mo:vector";
+import Nat64 "mo:base/Nat64";
+import Error "mo:base/Error";
+import Result "mo:base/Result";
 
 import VecThrottle "./modules/throttle/throttle";
 // import VecBorrow "./modules/borrow/borrow";
@@ -100,7 +104,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     let vec_split = VecSplit.Mod({xmem=mem_vec_split_1; core});
 
     stable let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
-    let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap});
+    let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap; dvf});
 
     let vmod = T.VectorModules({
         vec_throttle;
@@ -205,8 +209,13 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     };
 
     public shared({caller}) func dex_pool_create(req : swap.Pool.PoolRequest) : async swap.Pool.PoolResponse {
-        // assert(Principal.isController(caller));
+        assert(Principal.isController(caller));
         swap.Canister.dex_pool_create(req);
+    };
+
+    public shared({caller}) func dex_pool_delete(req : swap.Canister.DeletePoolRequest) : async swap.Canister.DeletePoolResponse {
+        assert(Principal.isController(caller));
+        swap.Canister.dex_pool_delete(req);
     };
 
     // ICRC 45
@@ -235,11 +244,16 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
+    public shared ({caller}) func admin_withdraw_all() : async Result.Result<[{ledger: Principal; amount: Nat; result: Result.Result<Nat64, Text>}], Text> {
+        assert Principal.isController(caller);
+        await sys.admin_withdraw_all();
+    };
+
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
         null
     };
 
-    public shared func beat() : async () {
-        core.heartbeat(proc);
-    };
+    // public shared func beat() : async () {
+    //     core.heartbeat(proc);
+    // };
 };

@@ -36,7 +36,7 @@ module {
                 id = ID; // This has to be same as the variant in vec.custom
                 name = "Throttle";
                 author = "Neutrinite";
-                description = "Send X tokens every Y seconds";
+                description = "Send X tokens every Y seconds..";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
                 create_allowed = false;

@@ -16,6 +16,7 @@ import Vector "mo:vector";
 import Swap "mo:devefi_swap";
 import Debug "mo:base/Debug";
 import Option "mo:base/Option";
+import Float "mo:base/Float";
 
 module {
     let T = Core.VectorModule;
@@ -38,6 +39,42 @@ module {
     }) : T.Class<I.CreateRequest, I.ModifyRequest, I.Shared> {
 
         let mem = MU.access(xmem);
+
+        // Helper function to convert actual price to raw price
+        private func convertToRawPrice(ledgerA : Principal, ledgerB : Principal, actualPrice : Float) : Float {
+            let decimalAdjustment = swap.calculateDecimalAdjustment(ledgerA, ledgerB);
+            return actualPrice / decimalAdjustment;
+        };
+
+        // Helper function to convert raw price to actual price
+        private func convertToActualPrice(ledgerA : Principal, ledgerB : Principal, rawPrice : Float) : Float {
+            let decimalAdjustment = swap.calculateDecimalAdjustment(ledgerA, ledgerB);
+            return rawPrice * decimalAdjustment;
+        };
+
+        // Helper function to convert range from actual price to raw price
+        private func convertRangeToRawPrice(ledgerA : Principal, ledgerB : Principal, range : I.Range) : swap.LiquidityIntentAdd.Range {
+            switch (range) {
+                case (#partial({ from_price; to_price })) {
+                    #partial({
+                        from_price = convertToRawPrice(ledgerA, ledgerB, from_price);
+                        to_price = convertToRawPrice(ledgerA, ledgerB, to_price);
+                    })
+                };
+            };
+        };
+
+        // Helper function to convert range from raw price to actual price
+        private func convertRangeToActualPrice(ledgerA : Principal, ledgerB : Principal, range : I.Range) : I.Range {
+            switch (range) {
+                case (#partial({ from_price; to_price })) {
+                    #partial({
+                        from_price = convertToActualPrice(ledgerA, ledgerB, from_price);
+                        to_price = convertToActualPrice(ledgerA, ledgerB, to_price);
+                    })
+                };
+            };
+        };
 
         public func meta() : T.Meta {
             {
@@ -121,7 +158,11 @@ module {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             t.variables.flow := m.flow;
+            
+            // When modifying, we need to store the range in actual price format
+            // The conversion to raw price happens when we use it in the add function
             t.variables.range := m.range;
+            
             #ok();
         };
 
@@ -134,11 +175,15 @@ module {
             let ledger_B = U.onlyICLedger(vec.ledgers[1]);
             let { tokenA; tokenB } = swap.Pool.balance(ledger_A, ledger_B, 0, from_account);
 
+            // We don't need to convert the range here because we're already storing actual prices
+            // in the module's memory. The conversion only happens when interacting with the swap module.
+            let actualRange = t.variables.range;
+
             #ok {
                 init = t.init;
                 variables = {
                     flow = t.variables.flow;
-                    range = t.variables.range;
+                    range = actualRange;
                 };
                 internals = {
                     addedTokenA = t.internals.total_added.tokenA;
@@ -162,7 +207,7 @@ module {
         let DEBUG = true;
 
         let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000;
-        let RUN_ONCE_UNLESS_INPUTS_CHANGED : Nat64 = 30 * 1_000_000_000;
+        let RUN_ONCE_UNLESS_INPUTS_CHANGED : Nat64 = 90 * 1_000_000_000;
 
         private func has_input_changed(vid : T.NodeId, vec : T.NodeCoreMem, vmem : VM.NodeMem) : Bool {
             let ?sourceA = core.getSource(vid, vec, 0) else return false;
@@ -294,13 +339,16 @@ module {
                 var in_a = bal_a;
                 var in_b = bal_b;
 
+                // Convert the range from actual price to raw price before passing to swap module
+                let rawRange = convertRangeToRawPrice(ledger_A, ledger_B, extended.variables.range);
+
                 let intent = swap.LiquidityIntentAdd.get({
                     to_account;
                     l1 = ledger_A;
                     l2 = ledger_B;
                     from_a_account = sourceAccount_A;
                     from_b_account = sourceAccount_B;
-                    range = extended.variables.range;
+                    range = rawRange;
                     from_a_amount = in_a;
                     from_b_amount = in_b;
                 });

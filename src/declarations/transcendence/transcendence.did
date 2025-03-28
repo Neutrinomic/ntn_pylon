@@ -1,13 +1,14 @@
-type _anon_class_24_1 = 
+type _anon_class_28_1 = 
  service {
    add_supported_ledger: (principal, variant {
                                        icp;
                                        icrc;
                                      }) -> () oneway;
-   beat: () -> ();
+   admin_withdraw_all: () -> (Result);
    chrono_records: () -> (opt ChronoRecord) query;
    dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
    dex_pool_create: (PoolRequest) -> (PoolResponse);
+   dex_pool_delete: (DeletePoolRequest) -> (DeletePoolResponse);
    dex_quote: (QuoteRequest) -> (QuoteResponse) query;
    dex_swap: (SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
@@ -116,6 +117,15 @@ type SwapRequest =
    ledger_to: SupportedLedger;
    min_amount_out: nat;
  };
+type Swap = 
+ record {
+   amountIn: nat;
+   amountOut: nat;
+   from: Account;
+   newPrice: float64;
+   to: Account;
+   zeroForOne: bool;
+ };
 type SupportedLedger = 
  variant {
    ic: principal;
@@ -165,11 +175,23 @@ type Shared__2 =
 type Shared__1 = 
  record {
    init: record {};
-   internals: record {
-                price: opt float64;
-                swap_fee_e4s: nat;
-              };
-   variables: record {max_slippage: float64;};
+   internals:
+    record {
+      current_rate: opt float64;
+      last_buy: nat64;
+      last_error: opt text;
+      last_run: nat64;
+      next_buy: nat64;
+      price: opt float64;
+      swap_fee_e4s: nat;
+    };
+   variables:
+    record {
+      buy_for_amount: nat;
+      buy_interval_seconds: nat64;
+      max_impact: float64;
+      max_rate: opt float64;
+    };
  };
 type Shared = 
  variant {
@@ -196,6 +218,20 @@ type SETTINGS =
    PYLON_NAME: text;
    REQUEST_MAX_EXPIRE_SEC: nat64;
    TEMP_NODE_EXPIRATION_SEC: nat64;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: nat64;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: vec record {
+             amount: nat;
+             ledger: principal;
+             result: Result_1;
+           };
  };
 type Received = 
  record {
@@ -388,7 +424,13 @@ type ModifyRequest__2 =
    flow: Flow;
    range: Range;
  };
-type ModifyRequest__1 = record {max_slippage: float64;};
+type ModifyRequest__1 = 
+ record {
+   buy_for_amount: nat;
+   buy_interval_seconds: nat64;
+   max_impact: float64;
+   max_rate: opt float64;
+ };
 type ModifyRequest = 
  variant {
    exchange: ModifyRequest__1;
@@ -418,6 +460,22 @@ type MarketTickInner =
  };
 type LocalNodeId = nat32;
 type ListPairsResponse = vec PairInfo;
+type LiquidityRemove = 
+ record {
+   amountA: nat;
+   amountB: nat;
+   from: Account;
+   toA: Account;
+   toB: Account;
+ };
+type LiquidityAdd = 
+ record {
+   amountA: nat;
+   amountB: nat;
+   fromA: Account;
+   fromB: Account;
+   to: Account;
+ };
 type Level = nat8;
 type LedgerLabel = text;
 type LedgerInfo__1 = 
@@ -584,6 +642,16 @@ type DepthRequest =
    level: Level;
    limit: nat32;
  };
+type DeletePoolResponse = 
+ variant {
+   err: text;
+   ok;
+ };
+type DeletePoolRequest = 
+ record {
+   base: principal;
+   quote: principal;
+ };
 type DeleteNodeResp = 
  variant {
    err: text;
@@ -619,7 +687,13 @@ type CreateRequest__2 =
 type CreateRequest__1 = 
  record {
    init: record {};
-   variables: record {max_slippage: float64;};
+   variables:
+    record {
+      buy_for_amount: nat;
+      buy_interval_seconds: nat64;
+      max_impact: float64;
+      max_rate: opt float64;
+    };
  };
 type CreateRequest = 
  variant {
@@ -680,7 +754,17 @@ type Command =
    modify_node: ModifyNodeRequest;
    transfer: TransferRequest;
  };
-type ChronoRecord = variant {account: C100_Account;};
+type ChronoRecord = 
+ variant {
+   account: C100_Account;
+   dex: C200_Dex;
+ };
+type C200_Dex = 
+ variant {
+   liquidityAdd: LiquidityAdd;
+   liquidityRemove: LiquidityRemove;
+   swap: Swap;
+ };
 type C100_Account = 
  variant {
    received: Received;
@@ -764,4 +848,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (opt SETTINGS) -> _anon_class_24_1
+service : (opt SETTINGS) -> _anon_class_28_1

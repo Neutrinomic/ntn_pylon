@@ -16,9 +16,16 @@ module {
 
         };
         variables : {
-            var max_slippage : Float;
+            var max_impact : Float;
+            var buy_for_amount : Nat;
+            var buy_interval_seconds : Nat64;  // Interval in seconds
+            var max_rate : ?Float;  // Maximum rate at which to swap (e.g., ICP/NTN), null means no limit
         };
-        internals : {};
+        internals : {
+            var last_run: Nat64;
+            var last_error: ?Text;
+            var last_buy: Nat64;  // Timestamp of the last buy
+        };
     };
 
  

@@ -29,6 +29,44 @@ export const idlFactory = ({ IDL }) => {
     'PYLON_GOVERNED_BY' : IDL.Text,
     'REQUEST_MAX_EXPIRE_SEC' : IDL.Nat64,
   });
+  const Result_1 = IDL.Variant({ 'ok' : IDL.Nat64, 'err' : IDL.Text });
+  const Result = IDL.Variant({
+    'ok' : IDL.Vec(
+      IDL.Record({
+        'result' : Result_1,
+        'ledger' : IDL.Principal,
+        'amount' : IDL.Nat,
+      })
+    ),
+    'err' : IDL.Text,
+  });
+  const Swap = IDL.Record({
+    'to' : Account,
+    'from' : Account,
+    'amountIn' : IDL.Nat,
+    'zeroForOne' : IDL.Bool,
+    'amountOut' : IDL.Nat,
+    'newPrice' : IDL.Float64,
+  });
+  const LiquidityAdd = IDL.Record({
+    'to' : Account,
+    'fromA' : Account,
+    'fromB' : Account,
+    'amountA' : IDL.Nat,
+    'amountB' : IDL.Nat,
+  });
+  const LiquidityRemove = IDL.Record({
+    'toA' : Account,
+    'toB' : Account,
+    'from' : Account,
+    'amountA' : IDL.Nat,
+    'amountB' : IDL.Nat,
+  });
+  const C200_Dex = IDL.Variant({
+    'swap' : Swap,
+    'liquidityAdd' : LiquidityAdd,
+    'liquidityRemove' : LiquidityRemove,
+  });
   const Sent = IDL.Record({
     'to' : IDL.Variant({ 'icp' : IDL.Vec(IDL.Nat8), 'icrc' : Account }),
     'ledger' : IDL.Principal,
@@ -40,7 +78,10 @@ export const idlFactory = ({ IDL }) => {
     'amount' : IDL.Nat,
   });
   const C100_Account = IDL.Variant({ 'sent' : Sent, 'received' : Received });
-  const ChronoRecord = IDL.Variant({ 'account' : C100_Account });
+  const ChronoRecord = IDL.Variant({
+    'dex' : C200_Dex,
+    'account' : C100_Account,
+  });
   const SupportedLedger = IDL.Variant({
     'ic' : IDL.Principal,
     'other' : IDL.Record({
@@ -79,6 +120,11 @@ export const idlFactory = ({ IDL }) => {
     'quote' : IDL.Principal,
   });
   const PoolResponse = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
+  const DeletePoolRequest = IDL.Record({
+    'base' : IDL.Principal,
+    'quote' : IDL.Principal,
+  });
+  const DeletePoolResponse = IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text });
   const QuoteRequest = IDL.Record({
     'ledger_to' : SupportedLedger,
     'ledger_from' : SupportedLedger,
@@ -271,7 +317,12 @@ export const idlFactory = ({ IDL }) => {
     'interval_sec' : NumVariant,
     'max_amount' : NumVariant,
   });
-  const ModifyRequest__1 = IDL.Record({ 'max_slippage' : IDL.Float64 });
+  const ModifyRequest__1 = IDL.Record({
+    'max_impact' : IDL.Float64,
+    'max_rate' : IDL.Opt(IDL.Float64),
+    'buy_for_amount' : IDL.Nat,
+    'buy_interval_seconds' : IDL.Nat64,
+  });
   const Flow = IDL.Variant({ 'add' : IDL.Null, 'remove' : IDL.Null });
   const Range = IDL.Variant({
     'partial' : IDL.Record({
@@ -317,7 +368,12 @@ export const idlFactory = ({ IDL }) => {
   });
   const CreateRequest__1 = IDL.Record({
     'init' : IDL.Record({}),
-    'variables' : IDL.Record({ 'max_slippage' : IDL.Float64 }),
+    'variables' : IDL.Record({
+      'max_impact' : IDL.Float64,
+      'max_rate' : IDL.Opt(IDL.Float64),
+      'buy_for_amount' : IDL.Nat,
+      'buy_interval_seconds' : IDL.Nat64,
+    }),
   });
   const CreateRequest__2 = IDL.Record({
     'init' : IDL.Record({}),
@@ -382,11 +438,21 @@ export const idlFactory = ({ IDL }) => {
   });
   const Shared__1 = IDL.Record({
     'internals' : IDL.Record({
+      'next_buy' : IDL.Nat64,
+      'last_error' : IDL.Opt(IDL.Text),
       'swap_fee_e4s' : IDL.Nat,
+      'current_rate' : IDL.Opt(IDL.Float64),
       'price' : IDL.Opt(IDL.Float64),
+      'last_buy' : IDL.Nat64,
+      'last_run' : IDL.Nat64,
     }),
     'init' : IDL.Record({}),
-    'variables' : IDL.Record({ 'max_slippage' : IDL.Float64 }),
+    'variables' : IDL.Record({
+      'max_impact' : IDL.Float64,
+      'max_rate' : IDL.Opt(IDL.Float64),
+      'buy_for_amount' : IDL.Nat,
+      'buy_interval_seconds' : IDL.Nat64,
+    }),
   });
   const Shared__2 = IDL.Record({
     'internals' : IDL.Record({
@@ -557,16 +623,17 @@ export const idlFactory = ({ IDL }) => {
     }),
     'modules' : IDL.Vec(ModuleMeta),
   });
-  const _anon_class_24_1 = IDL.Service({
+  const _anon_class_28_1 = IDL.Service({
     'add_supported_ledger' : IDL.Func(
         [IDL.Principal, IDL.Variant({ 'icp' : IDL.Null, 'icrc' : IDL.Null })],
         [],
         ['oneway'],
       ),
-    'beat' : IDL.Func([], [], []),
+    'admin_withdraw_all' : IDL.Func([], [Result], []),
     'chrono_records' : IDL.Func([], [IDL.Opt(ChronoRecord)], ['query']),
     'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
     'dex_pool_create' : IDL.Func([PoolRequest], [PoolResponse], []),
+    'dex_pool_delete' : IDL.Func([DeletePoolRequest], [DeletePoolResponse], []),
     'dex_quote' : IDL.Func([QuoteRequest], [QuoteResponse], ['query']),
     'dex_swap' : IDL.Func([SwapRequest], [SwapResponse], []),
     'get_ledger_errors' : IDL.Func([], [IDL.Vec(IDL.Vec(IDL.Text))], ['query']),
@@ -622,7 +689,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'icrc55_get_pylon_meta' : IDL.Func([], [PylonMetaResp], ['query']),
   });
-  return _anon_class_24_1;
+  return _anon_class_28_1;
 };
 export const init = ({ IDL }) => {
   const BillingFeeSplit = IDL.Record({

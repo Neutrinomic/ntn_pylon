@@ -59,7 +59,11 @@ export type BillingTransactionFee = { 'none' : null } |
 export interface BlockType { 'url' : string, 'block_type' : string }
 export type C100_Account = { 'sent' : Sent } |
   { 'received' : Received };
-export type ChronoRecord = { 'account' : C100_Account };
+export type C200_Dex = { 'swap' : Swap } |
+  { 'liquidityAdd' : LiquidityAdd } |
+  { 'liquidityRemove' : LiquidityRemove };
+export type ChronoRecord = { 'dex' : C200_Dex } |
+  { 'account' : C100_Account };
 export type Command = { 'modify_node' : ModifyNodeRequest } |
   { 'create_node' : CreateNodeRequest } |
   { 'transfer' : TransferRequest } |
@@ -102,7 +106,12 @@ export type CreateRequest = { 'split' : CreateRequest__3 } |
   { 'exchange_liquidity' : CreateRequest__2 };
 export interface CreateRequest__1 {
   'init' : {},
-  'variables' : { 'max_slippage' : number },
+  'variables' : {
+    'max_impact' : number,
+    'max_rate' : [] | [number],
+    'buy_for_amount' : bigint,
+    'buy_interval_seconds' : bigint,
+  },
 }
 export interface CreateRequest__2 {
   'init' : {},
@@ -122,6 +131,9 @@ export interface DataCertificate {
 }
 export type DataSource = Principal;
 export type DeleteNodeResp = { 'ok' : null } |
+  { 'err' : string };
+export interface DeletePoolRequest { 'base' : Principal, 'quote' : Principal }
+export type DeletePoolResponse = { 'ok' : null } |
   { 'err' : string };
 export interface DepthRequest { 'level' : Level, 'limit' : number }
 export interface DestinationEndpointResp {
@@ -239,6 +251,20 @@ export interface LedgerInfo__1 {
 }
 export type LedgerLabel = string;
 export type Level = number;
+export interface LiquidityAdd {
+  'to' : Account,
+  'fromA' : Account,
+  'fromB' : Account,
+  'amountA' : bigint,
+  'amountB' : bigint,
+}
+export interface LiquidityRemove {
+  'toA' : Account,
+  'toB' : Account,
+  'from' : Account,
+  'amountA' : bigint,
+  'amountB' : bigint,
+}
 export type ListPairsResponse = Array<PairInfo>;
 export type LocalNodeId = number;
 export type MarketTickInner = [number, number, number, number, number, bigint];
@@ -253,7 +279,12 @@ export type ModifyRequest = { 'split' : ModifyRequest__3 } |
   { 'throttle' : ModifyRequest__4 } |
   { 'exchange' : ModifyRequest__1 } |
   { 'exchange_liquidity' : ModifyRequest__2 };
-export interface ModifyRequest__1 { 'max_slippage' : number }
+export interface ModifyRequest__1 {
+  'max_impact' : number,
+  'max_rate' : [] | [number],
+  'buy_for_amount' : bigint,
+  'buy_interval_seconds' : bigint,
+}
 export interface ModifyRequest__2 { 'flow' : Flow, 'range' : Range }
 export interface ModifyRequest__3 { 'split' : Array<bigint> }
 export interface ModifyRequest__4 {
@@ -378,6 +409,14 @@ export interface Received {
   'ledger' : Principal,
   'amount' : bigint,
 }
+export type Result = {
+    'ok' : Array<
+      { 'result' : Result_1, 'ledger' : Principal, 'amount' : bigint }
+    >
+  } |
+  { 'err' : string };
+export type Result_1 = { 'ok' : bigint } |
+  { 'err' : string };
 export interface SETTINGS {
   'PYLON_NAME' : string,
   'TEMP_NODE_EXPIRATION_SEC' : bigint,
@@ -398,9 +437,22 @@ export type Shared = { 'split' : Shared__3 } |
   { 'exchange' : Shared__1 } |
   { 'exchange_liquidity' : Shared__2 };
 export interface Shared__1 {
-  'internals' : { 'swap_fee_e4s' : bigint, 'price' : [] | [number] },
+  'internals' : {
+    'next_buy' : bigint,
+    'last_error' : [] | [string],
+    'swap_fee_e4s' : bigint,
+    'current_rate' : [] | [number],
+    'price' : [] | [number],
+    'last_buy' : bigint,
+    'last_run' : bigint,
+  },
   'init' : {},
-  'variables' : { 'max_slippage' : number },
+  'variables' : {
+    'max_impact' : number,
+    'max_rate' : [] | [number],
+    'buy_for_amount' : bigint,
+    'buy_interval_seconds' : bigint,
+  },
 }
 export interface Shared__2 {
   'internals' : {
@@ -431,6 +483,14 @@ export interface SourceEndpointResp {
 }
 export type SupportedLedger = { 'ic' : Principal } |
   { 'other' : { 'platform' : bigint, 'ledger' : Uint8Array | number[] } };
+export interface Swap {
+  'to' : Account,
+  'from' : Account,
+  'amountIn' : bigint,
+  'zeroForOne' : boolean,
+  'amountOut' : bigint,
+  'newPrice' : number,
+}
 export interface SwapRequest {
   'min_amount_out' : bigint,
   'ledger_to' : SupportedLedger,
@@ -473,15 +533,16 @@ export type ValueMap = [string, Value];
 export type Version = { 'alpha' : Uint16Array | number[] } |
   { 'beta' : Uint16Array | number[] } |
   { 'release' : Uint16Array | number[] };
-export interface _anon_class_24_1 {
+export interface _anon_class_28_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
-  'beat' : ActorMethod<[], undefined>,
+  'admin_withdraw_all' : ActorMethod<[], Result>,
   'chrono_records' : ActorMethod<[], [] | [ChronoRecord]>,
   'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
   'dex_pool_create' : ActorMethod<[PoolRequest], PoolResponse>,
+  'dex_pool_delete' : ActorMethod<[DeletePoolRequest], DeletePoolResponse>,
   'dex_quote' : ActorMethod<[QuoteRequest], QuoteResponse>,
   'dex_swap' : ActorMethod<[SwapRequest], SwapResponse>,
   'get_ledger_errors' : ActorMethod<[], Array<Array<string>>>,
@@ -507,6 +568,6 @@ export interface _anon_class_24_1 {
   'icrc55_get_nodes' : ActorMethod<[Array<GetNode>], Array<[] | [NodeShared]>>,
   'icrc55_get_pylon_meta' : ActorMethod<[], PylonMetaResp>,
 }
-export interface _SERVICE extends _anon_class_24_1 {}
+export interface _SERVICE extends _anon_class_28_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

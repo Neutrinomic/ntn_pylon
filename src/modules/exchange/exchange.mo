@@ -12,10 +12,12 @@ import Iter "mo:base/Iter";
 import IT "mo:itertools/Iter";
 import Nat32 "mo:base/Nat32";
 import Nat "mo:base/Nat";
+import Nat64 "mo:base/Nat64";
 import Vector "mo:vector";
 import Swap "mo:devefi_swap";
 import Float "mo:base/Float";
 import ICRC55 "mo:devefi/ICRC55";
+import Option "mo:base/Option";
 
 module {
     let T = Core.VectorModule;
@@ -44,10 +46,10 @@ module {
                 id = ID; // This has to be same as the variant in vec.custom
                 name = "Exchange";
                 author = "Neutrinite";
-                description = "Exchange X tokens for Y";
+                description = "Exchange X tokens for Y.";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
-                create_allowed = false;
+                create_allowed = true;
                 ledger_slots = [
                     "Sell",
                     "Buy",
@@ -65,9 +67,16 @@ module {
             let obj : VM.NodeMem = {
                 init = t.init;
                 variables = {
-                    var max_slippage = t.variables.max_slippage;
+                    var max_impact = t.variables.max_impact;
+                    var buy_for_amount = t.variables.buy_for_amount;
+                    var buy_interval_seconds = t.variables.buy_interval_seconds;
+                    var max_rate = t.variables.max_rate;
                 };
-                internals = {};
+                internals = {
+                    var last_run = 0;
+                    var last_error = null;
+                    var last_buy = 0;
+                };
             };
             ignore Map.put(mem.main, Map.n32hash, id, obj);
             #ok(ID);
@@ -79,7 +88,10 @@ module {
 
                 };
                 variables = {
-                    max_slippage = 20_000;
+                    max_impact = 20_000;
+                    buy_for_amount = 1_000_000;  // Default amount of source token to use for each buy
+                    buy_interval_seconds = 60 : Nat64;  // Default to 1 minute (60 seconds)
+                    max_rate = null;  // No rate limit by default
                 };
             };
         };
@@ -92,7 +104,10 @@ module {
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
-            t.variables.max_slippage := m.max_slippage;
+            t.variables.max_impact := m.max_impact;
+            t.variables.buy_for_amount := m.buy_for_amount;
+            t.variables.buy_interval_seconds := m.buy_interval_seconds;
+            t.variables.max_rate := m.max_rate;
             #ok();
         };
 
@@ -101,15 +116,31 @@ module {
 
             let ledger_A = U.onlyICLedger(vec.ledgers[0]);
             let ledger_B = U.onlyICLedger(vec.ledgers[1]);
+            
+            // Calculate the next buy time (convert seconds to nanoseconds)
+            let now = U.now();
+            let interval_ns : Nat64 = t.variables.buy_interval_seconds * 1_000_000_000;
+            let next_buy = t.internals.last_buy + interval_ns;
+            
+            // Get current rate
+            let current_rate = swap.Price.get(ledger_A, ledger_B, 0);
 
             #ok {
                 init = t.init;
                 variables = {
-                    max_slippage = t.variables.max_slippage;
+                    max_impact = t.variables.max_impact;
+                    buy_for_amount = t.variables.buy_for_amount;
+                    buy_interval_seconds = t.variables.buy_interval_seconds;
+                    max_rate = t.variables.max_rate;
                 };
                 internals = {
                     swap_fee_e4s = swap._swap_fee_e4s;
-                    price = swap.Price.get(ledger_A, ledger_B, 0);
+                    price = current_rate;
+                    last_run = t.internals.last_run;
+                    last_error = t.internals.last_error;
+                    last_buy = t.internals.last_buy;
+                    next_buy = next_buy;
+                    current_rate = current_rate;
                 };
             };
         };
@@ -123,20 +154,28 @@ module {
         };
 
         let DEBUG = true;
+        let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000; // 6 seconds in nanoseconds
 
         public func run() : () {
+            let now = U.now();
             label vec_loop for ((vid, parm) in Map.entries(mem.main)) {
                 let ?vec = core.getNodeById(vid) else continue vec_loop;
                 if (not vec.active) continue vec_loop;
-
+                
+                // Skip if there was an error and not enough time has passed
+                if (Option.isSome(parm.internals.last_error) and (parm.internals.last_run + RUN_ONCE_EVERY*5) > now) continue vec_loop;
+                
+                parm.internals.last_run := now;
+                
                 switch (Run.single(vid, vec, parm)) {
                     case (#err(e)) {
+                        parm.internals.last_error := ?e;
                         if (DEBUG) U.log("Err in exchange: " # e);
                     };
-                    case (#ok) ();
+                    case (#ok) {
+                        if (Option.isSome(parm.internals.last_error)) parm.internals.last_error := null;
+                    };
                 };
-                
-                
             };
         };
 
@@ -145,36 +184,65 @@ module {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, th : VM.NodeMem) : R<(), Text> {
                 let now = U.now();
                 
+                // Convert seconds to nanoseconds
+                let interval_ns : Nat64 = th.variables.buy_interval_seconds * 1_000_000_000;
+                
+                // Check if it's time to buy
+                if (th.internals.last_buy + interval_ns > now) {
+                    return #ok;
+                };
+                
                 let ?source = core.getSource(vid, vec, 0) else return #err("No source");
                 let ?destination = core.getDestinationAccountIC(vec, 0) else return #err("No destination");
                 let ?source_account = core.Source.getAccount(source) else return #err("No source account");
-
-                let bal = core.Source.balance(source);
-                if (bal == 0) return #ok;
+                
+                let available_balance = core.Source.balance(source);
+                
+                // Check if we have enough balance
+                if (available_balance < th.variables.buy_for_amount) {
+                    return #ok;
+                };
+                
+                let buy_for_amount = th.variables.buy_for_amount;
                 
                 let ?price = swap.Price.get(U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), 0) else return #err("No price for exchange " # debug_show(vec.ledgers[0]) # " -> " # debug_show(vec.ledgers[1]));
-                // U.log("\n\n Swapping " # debug_show(bal) # "\n\n");
-                let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), bal, false);
-                // U.log(debug_show(intent));
-                U.performance("Exchange SWAP", func() : R<(), Text> { 
-
-                switch (intent) {
-                    case (#err(e)) #err(e);
-
-                    case (#ok(intent)) {
-                        let {amount_in; amount_out} = swap.Intent.quote(intent);
-
-                        let expected_receive_fwd = (swap.Price.multiply(bal, price));
-                        
-                        if (expected_receive_fwd < amount_out) return #err("Internal error, " # debug_show(bal) # " shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (amount_out));
-                        let slippage = (Float.fromInt(expected_receive_fwd) - Float.fromInt(amount_out)) / Float.fromInt(expected_receive_fwd);
-                        U.log(debug_show({expected_receive_fwd; amount_out; slippage}));
-                        if (slippage > th.variables.max_slippage) return #err("Slippage too high. slippage_e6s = " # debug_show (slippage));
-                        swap.Intent.commit(intent);
-                        #ok;
+                
+                // Check if the current rate is below the max rate (if specified)
+                // For ICP -> NTN, a higher price means you get fewer NTN per ICP, so we want price <= max_rate
+                switch (th.variables.max_rate) {
+                    case (null) { /* No max rate specified, proceed with swap */ };
+                    case (?max_rate) {
+                        if (price > max_rate) {
+                            // Current rate exceeds max rate, skip this swap
+                            return #ok;
+                        };
                     };
                 };
-
+                
+                let intent = swap.Intent.get(source_account, destination, U.onlyICLedger(vec.ledgers[0]), U.onlyICLedger(vec.ledgers[1]), buy_for_amount, false);
+                
+                return U.performance("Exchange SWAP", func() : R<(), Text> { 
+                    switch (intent) {
+                        case (#err(e)) #err(e);
+                        case (#ok(intent)) {
+                            let {amount_in; amount_out} = swap.Intent.quote(intent);
+                            let expected_receive_fwd = (swap.Price.multiply(buy_for_amount, price));
+                            
+                            if (expected_receive_fwd < amount_out) return #err("Internal error, " # debug_show(buy_for_amount) # " shouldn't get more than expected " # debug_show (expected_receive_fwd) # " " # debug_show (amount_out));
+                            
+                            let impact = (Float.fromInt(expected_receive_fwd) - Float.fromInt(amount_out)) / Float.fromInt(expected_receive_fwd);
+                            U.log(debug_show({expected_receive_fwd; amount_out; impact}));
+                            
+                            if (impact > th.variables.max_impact) return #err("Price impact too high: " # debug_show(impact));
+                            
+                            swap.Intent.commit(intent);
+                            
+                            // Update the last buy timestamp
+                            th.internals.last_buy := now;
+                            
+                            #ok;
+                        };
+                    };
                 });
             };
         };
