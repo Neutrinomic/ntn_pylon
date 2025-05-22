@@ -39,7 +39,7 @@ module {
                 description = "Send X tokens every Y seconds..";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
-                create_allowed = false;
+                create_allowed = true;
                 ledger_slots = [
                     "Throttle"
                 ];
@@ -47,7 +47,7 @@ module {
                 sources = sources(0);
                 destinations = destinations(0);
                 author_account = Billing.authorAccount();
-                temporary_allowed = true;
+                temporary_allowed = false;
             };
         };
 
@@ -67,6 +67,7 @@ module {
                 let fee = core.Source.fee(source);
 
                 let now = U.now();
+                if (bal < fee * 100) return;
 
                 if (now > th.internals.wait_until_ts) {
                     switch (th.variables.interval_sec) {
@@ -93,7 +94,15 @@ module {
             };
         };
 
+        private func validate_min_amount(x:I.NumVariant, req_min:Nat64) : Bool {
+            switch (x) {
+                case (#fixed(fixed)) fixed > req_min;
+                case (#rnd({ min; max })) if (min >= max) false else min > req_min;
+            };
+        };
+
         public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+            if (not validate_min_amount(t.variables.interval_sec, 60)) return #err("Min interval_sec must be 60 sec");
 
             let obj : M.NodeMem = {
                 init = t.init;
@@ -116,9 +125,11 @@ module {
 
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
+            if (not validate_min_amount(m.interval_sec, 60)) return #err("Min interval_sec must be 60 sec");
 
             t.variables.interval_sec := m.interval_sec;
             t.variables.max_amount := m.max_amount;
+            t.internals.wait_until_ts := 0;
 
             #ok();
         };

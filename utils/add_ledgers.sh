@@ -31,7 +31,21 @@
 #     variant {icrc}
 # )"
 
+# dfx canister --network ic call transcendence add_supported_ledger  "(
+#     principal \"hvgxa-wqaaa-aaaaq-aacia-cai\",
+#     variant {icrc}
+# )"
+
 dfx canister --network ic call transcendence add_supported_ledger  "(
-    principal \"hvgxa-wqaaa-aaaaq-aacia-cai\",
+    principal \"n6tkf-tqaaa-aaaal-qsneq-cai\",
     variant {icrc}
 )"
+
+dfx canister --network ic call transcendence add_supported_ledger  "(
+    principal \"6c7su-kiaaa-aaaar-qaira-cai\",
+    variant {icrc}
+)"
+
+
+
+

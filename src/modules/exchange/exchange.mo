@@ -58,7 +58,7 @@ module {
                 sources = sources(0);
                 destinations = destinations(0);
                 author_account = Billing.authorAccount();
-                temporary_allowed = true;
+                temporary_allowed = false;
             };
         };
 
@@ -123,7 +123,15 @@ module {
             let next_buy = t.internals.last_buy + interval_ns;
             
             // Get current rate
-            let current_rate = swap.Price.get(ledger_A, ledger_B, 0);
+            let current_rate = switch(swap.Price.get(ledger_A, ledger_B, 0)) {
+                case (null) {
+                    null;
+                };
+                case (?rate) {
+                    let decimal_adjustment = swap.calculateDecimalAdjustment(ledger_A, ledger_B);
+                    ?(rate * decimal_adjustment);
+                };
+            };
 
             #ok {
                 init = t.init;

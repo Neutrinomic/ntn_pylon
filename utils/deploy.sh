@@ -6,7 +6,7 @@ record {
      PYLON_GOVERNED_BY = \"Neutrinite DAO\";
      BILLING = record {
          ledger = principal \"f54if-eqaaa-aaaaq-aacea-cai\";
-         min_create_balance = 50000000;
+         min_create_balance = 200000000;
          operation_cost = 20000;
          freezing_threshold_days = 10;
          exempt_daily_cost_balance = null;

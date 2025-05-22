@@ -36,7 +36,7 @@ module {
                 description = "Split X tokens while providing Y tokens collateral";
                 supported_ledgers = [];
                 version = #alpha([0, 0, 1]);
-                create_allowed = false;
+                create_allowed = true;
                 ledger_slots = [
                     "Split",
                 ];
@@ -44,11 +44,14 @@ module {
                 sources = sources(0);
                 destinations = destinations(0);
                 author_account = Billing.authorAccount();
-                temporary_allowed = true;
+                temporary_allowed = false;
             };
         };
 
         public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+            if (t.variables.split.size() == 0) return #err("Split must have at least one destination"); 
+            if (t.variables.split.size() > 10) return #err("Split must have at most 10 destinations");
+
 
             let obj : VM.NodeMem = {
                 init = t.init;
@@ -75,6 +78,9 @@ module {
 
         public func modify(id : T.NodeId, m : I.ModifyRequest) : T.Modify {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
+
+            if (m.split.size() == 0) return #err("Split must have at least one destination"); 
+            if (m.split.size() > 10) return #err("Split must have at most 10 destinations");
 
             t.variables.split := m.split;
             #ok();
@@ -170,7 +176,7 @@ module {
 
             Array.tabulate<(Nat, Text)>(
                 t.variables.split.size(),
-                func(idx : Nat) { (0, Nat.toText(t.variables.split[idx])) },
+                func(idx : Nat) { (0, "Destination " #  Nat.toText(idx)) },
             );
         };
 
