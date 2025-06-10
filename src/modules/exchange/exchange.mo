@@ -191,7 +191,7 @@ module {
         module Run {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, th : VM.NodeMem) : R<(), Text> {
                 let now = U.now();
-                
+                if (vec.ledgers.size() < 2) return #err("Ledger missing");
                 // Convert seconds to nanoseconds
                 let interval_ns : Nat64 = th.variables.buy_interval_seconds * 1_000_000_000;
                 

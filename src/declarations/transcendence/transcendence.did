@@ -1,10 +1,9 @@
-type _anon_class_28_1 = 
+type _anon_class_29_1 = 
  service {
    add_supported_ledger: (principal, variant {
                                        icp;
                                        icrc;
                                      }) -> () oneway;
-   admin_withdraw_all: () -> (Result);
    chrono_records: () -> (opt ChronoRecord) query;
    dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
    dex_pool_create: (PoolRequest) -> (PoolResponse);
@@ -140,6 +139,12 @@ type SourceEndpointResp =
    endpoint: Endpoint;
    name: text;
  };
+type Shared__5 = 
+ record {
+   init: record {};
+   internals: record {};
+   variables: record {description: text;};
+ };
 type Shared__4 = 
  record {
    init: record {};
@@ -199,6 +204,7 @@ type Shared =
    exchange_liquidity: Shared__2;
    split: Shared__3;
    throttle: Shared__4;
+   vault: Shared__5;
  };
 type Sent = 
  record {
@@ -218,20 +224,6 @@ type SETTINGS =
    PYLON_NAME: text;
    REQUEST_MAX_EXPIRE_SEC: nat64;
    TEMP_NODE_EXPIRATION_SEC: nat64;
- };
-type Result_1 = 
- variant {
-   err: text;
-   ok: nat64;
- };
-type Result = 
- variant {
-   err: text;
-   ok: vec record {
-             amount: nat;
-             ledger: principal;
-             result: Result_1;
-           };
  };
 type Received = 
  record {
@@ -413,6 +405,7 @@ type ModuleMeta =
    temporary_allowed: bool;
    version: Version;
  };
+type ModifyRequest__5 = record {description: text;};
 type ModifyRequest__4 = 
  record {
    interval_sec: NumVariant;
@@ -437,6 +430,7 @@ type ModifyRequest =
    exchange_liquidity: ModifyRequest__2;
    split: ModifyRequest__3;
    throttle: ModifyRequest__4;
+   vault: ModifyRequest__5;
  };
 type ModifyNodeResponse = 
  variant {
@@ -663,6 +657,11 @@ type DataCertificate =
    certificate: blob;
    hash_tree: blob;
  };
+type CreateRequest__5 = 
+ record {
+   init: record {};
+   variables: record {description: text;};
+ };
 type CreateRequest__4 = 
  record {
    init: record {};
@@ -701,6 +700,7 @@ type CreateRequest =
    exchange_liquidity: CreateRequest__2;
    split: CreateRequest__3;
    throttle: CreateRequest__4;
+   vault: CreateRequest__5;
  };
 type CreateNodeResponse = 
  variant {
@@ -848,4 +848,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (opt SETTINGS) -> _anon_class_28_1
+service : (opt SETTINGS) -> _anon_class_29_1

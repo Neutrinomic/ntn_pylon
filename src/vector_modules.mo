@@ -9,6 +9,7 @@ import Exchange "./modules/exchange/exchange";
 // import Escrow "./modules/escrow/escrow";
 import Split "./modules/split/split";
 import ExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
+import Vault "./modules/vault/vault";
 
 // THIS SHOULD BE AUTO-GENERATED FILE
 
@@ -22,6 +23,7 @@ module {
         // #escrow: Escrow.Interface.CreateRequest;
         #split: Split.Interface.CreateRequest;
         #exchange_liquidity: ExchangeLiquidity.Interface.CreateRequest;
+        #vault: Vault.Interface.CreateRequest;
         //...
     };
 
@@ -33,6 +35,7 @@ module {
         // #escrow: Escrow.Interface.Shared;
         #split: Split.Interface.Shared;
         #exchange_liquidity: ExchangeLiquidity.Interface.Shared;
+        #vault: Vault.Interface.Shared;
         //...
     };
     
@@ -44,6 +47,7 @@ module {
         // #escrow: Escrow.Interface.ModifyRequest;
         #split: Split.Interface.ModifyRequest;
         #exchange_liquidity: ExchangeLiquidity.Interface.ModifyRequest;
+        #vault: Vault.Interface.ModifyRequest;
         //...
     };
 
@@ -56,6 +60,7 @@ module {
         // vec_escrow : Escrow.Mod;
         vec_split : Split.Mod;
         vec_exchange_liquidity : ExchangeLiquidity.Mod;
+        vec_vault : Vault.Mod;
     }) {
     
         public func get(mid :Core.ModuleId, id : Core.NodeId, vec:Core.NodeMem) : Result.Result<Shared, Text> {
@@ -102,6 +107,12 @@ module {
                     case (#err(x)) return #err(x);
                 }
             };
+            if (mid == Vault.ID) {
+                switch(m.vec_vault.get(id, vec)) {
+                    case (#ok(x)) return #ok(#vault(x));
+                    case (#err(x)) return #err(x);
+                }
+            };
 
             #err("Unknown variant");
         };
@@ -114,6 +125,7 @@ module {
             // if (mid == Escrow.ID) return #escrow(m.vec_escrow.defaults());
             if (mid == Split.ID) return #split(m.vec_split.defaults());
             if (mid == ExchangeLiquidity.ID) return #exchange_liquidity(m.vec_exchange_liquidity.defaults());
+            if (mid == Vault.ID) return #vault(m.vec_vault.defaults());
             Debug.trap("Unknown variant");
 
         };
@@ -127,6 +139,7 @@ module {
             // if (mid == Escrow.ID) return m.vec_escrow.sources(id);
             if (mid == Split.ID) return m.vec_split.sources(id);
             if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.sources(id);
+            if (mid == Vault.ID) return m.vec_vault.sources(id);
             Debug.trap("Unknown variant");
             
         };
@@ -139,6 +152,7 @@ module {
             // if (mid == Escrow.ID) return m.vec_escrow.destinations(id);
             if (mid == Split.ID) return m.vec_split.destinations(id);
             if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.destinations(id);
+            if (mid == Vault.ID) return m.vec_vault.destinations(id);
             Debug.trap("Unknown variant");
         };
 
@@ -154,9 +168,10 @@ module {
                 // case (#escrow(t)) return m.vec_escrow.create(id, creq, t);
                 case (#split(t)) return m.vec_split.create(id, creq, t);
                 case (#exchange_liquidity(t)) return m.vec_exchange_liquidity.create(id, creq, t);
+                case (#vault(t)) return m.vec_vault.create(id, creq, t);
                 //...
             };
-            #err("Unknown variant or mismatch");
+            #err("Unknown variant or mismatch.");
         };
 
         public func modify(mid :Core.ModuleId, id:Core.NodeId, creq : ModifyRequest) : Result.Result<(), Text> {
@@ -168,9 +183,10 @@ module {
                 // case (#escrow(r)) if (mid == Escrow.ID) return m.vec_escrow.modify(id, r);
                 case (#split(r)) if (mid == Split.ID) return m.vec_split.modify(id, r);
                 case (#exchange_liquidity(r)) if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.modify(id, r);
+                case (#vault(r)) if (mid == Vault.ID) return m.vec_vault.modify(id, r);
                 //...
             };
-            #err("Unknown variant or mismatch");
+            #err("Unknown variant or mismatch.");
         };
 
         public func delete(mid :Core.ModuleId, id:Core.NodeId) : Result.Result<(), Text> {
@@ -181,7 +197,8 @@ module {
             // if (mid == Escrow.ID) return m.vec_escrow.delete(id);
             if (mid == Split.ID) return m.vec_split.delete(id);
             if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.delete(id);
-            #err("Unknown variant");
+            if (mid == Vault.ID) return m.vec_vault.delete(id);
+            #err("Unknown variant.");
         };
 
         public func nodeMeta(mid :Core.ModuleId) : ICRC55.ModuleMeta {
@@ -192,6 +209,7 @@ module {
             // if (mid == Escrow.ID) return m.vec_escrow.meta();
             if (mid == Split.ID) return m.vec_split.meta();
             if (mid == ExchangeLiquidity.ID) return m.vec_exchange_liquidity.meta();
+            if (mid == Vault.ID) return m.vec_vault.meta();
             Debug.trap("Unknown variant");
         };
 
@@ -205,6 +223,7 @@ module {
                 // m.vec_escrow.meta(),
                 m.vec_split.meta(),
                 m.vec_exchange_liquidity.meta(),
+                m.vec_vault.meta(),
             //...
             ];
         };

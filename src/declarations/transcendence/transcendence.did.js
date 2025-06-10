@@ -29,17 +29,6 @@ export const idlFactory = ({ IDL }) => {
     'PYLON_GOVERNED_BY' : IDL.Text,
     'REQUEST_MAX_EXPIRE_SEC' : IDL.Nat64,
   });
-  const Result_1 = IDL.Variant({ 'ok' : IDL.Nat64, 'err' : IDL.Text });
-  const Result = IDL.Variant({
-    'ok' : IDL.Vec(
-      IDL.Record({
-        'result' : Result_1,
-        'ledger' : IDL.Principal,
-        'amount' : IDL.Nat,
-      })
-    ),
-    'err' : IDL.Text,
-  });
   const Swap = IDL.Record({
     'to' : Account,
     'from' : Account,
@@ -308,6 +297,7 @@ export const idlFactory = ({ IDL }) => {
     'sources' : IDL.Opt(IDL.Vec(IDL.Opt(InputAddress))),
     'refund' : IDL.Opt(Account),
   });
+  const ModifyRequest__5 = IDL.Record({ 'description' : IDL.Text });
   const ModifyRequest__3 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
   const NumVariant = IDL.Variant({
     'rnd' : IDL.Record({ 'max' : IDL.Nat64, 'min' : IDL.Nat64 }),
@@ -332,6 +322,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const ModifyRequest__2 = IDL.Record({ 'flow' : Flow, 'range' : Range });
   const ModifyRequest = IDL.Variant({
+    'vault' : ModifyRequest__5,
     'split' : ModifyRequest__3,
     'throttle' : ModifyRequest__4,
     'exchange' : ModifyRequest__1,
@@ -354,6 +345,10 @@ export const idlFactory = ({ IDL }) => {
     'ledgers' : IDL.Vec(SupportedLedger),
     'temporary' : IDL.Bool,
     'refund' : Account,
+  });
+  const CreateRequest__5 = IDL.Record({
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({ 'description' : IDL.Text }),
   });
   const CreateRequest__3 = IDL.Record({
     'init' : IDL.Record({}),
@@ -380,6 +375,7 @@ export const idlFactory = ({ IDL }) => {
     'variables' : IDL.Record({ 'flow' : Flow, 'range' : Range }),
   });
   const CreateRequest = IDL.Variant({
+    'vault' : CreateRequest__5,
     'split' : CreateRequest__3,
     'throttle' : CreateRequest__4,
     'exchange' : CreateRequest__1,
@@ -422,6 +418,11 @@ export const idlFactory = ({ IDL }) => {
     'signature' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'expire_at' : IDL.Opt(IDL.Nat64),
     'commands' : IDL.Vec(Command),
+  });
+  const Shared__5 = IDL.Record({
+    'internals' : IDL.Record({}),
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({ 'description' : IDL.Text }),
   });
   const Shared__3 = IDL.Record({
     'internals' : IDL.Record({}),
@@ -467,6 +468,7 @@ export const idlFactory = ({ IDL }) => {
     'variables' : IDL.Record({ 'flow' : Flow, 'range' : Range }),
   });
   const Shared = IDL.Variant({
+    'vault' : Shared__5,
     'split' : Shared__3,
     'throttle' : Shared__4,
     'exchange' : Shared__1,
@@ -623,13 +625,12 @@ export const idlFactory = ({ IDL }) => {
     }),
     'modules' : IDL.Vec(ModuleMeta),
   });
-  const _anon_class_28_1 = IDL.Service({
+  const _anon_class_29_1 = IDL.Service({
     'add_supported_ledger' : IDL.Func(
         [IDL.Principal, IDL.Variant({ 'icp' : IDL.Null, 'icrc' : IDL.Null })],
         [],
         ['oneway'],
       ),
-    'admin_withdraw_all' : IDL.Func([], [Result], []),
     'chrono_records' : IDL.Func([], [IDL.Opt(ChronoRecord)], ['query']),
     'dex_ohlcv' : IDL.Func([OHLCVRequest], [OHLCVResponse], ['query']),
     'dex_pool_create' : IDL.Func([PoolRequest], [PoolResponse], []),
@@ -689,7 +690,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'icrc55_get_pylon_meta' : IDL.Func([], [PylonMetaResp], ['query']),
   });
-  return _anon_class_28_1;
+  return _anon_class_29_1;
 };
 export const init = ({ IDL }) => {
   const BillingFeeSplit = IDL.Record({

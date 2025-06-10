@@ -19,6 +19,7 @@ import VecExchange "./modules/exchange/exchange";
 import VecExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
 // import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
+import VecVault "./modules/vault/vault";
 import Core "mo:devefi/core";
 import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
@@ -106,6 +107,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
     let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap; dvf});
 
+    stable let mem_vec_vault_1 = VecVault.Mem.Vector.V1.new();
+    let vec_vault = VecVault.Mod({xmem=mem_vec_vault_1; core});
+
     let vmod = T.VectorModules({
         vec_throttle;
         // vec_lend;
@@ -114,6 +118,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         // vec_escrow;
         vec_split;
         vec_exchange_liquidity;
+        vec_vault;
     });
 
     
@@ -130,6 +135,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_exchange.run();
         vec_throttle.run();
         vec_split.run();
+        vec_vault.run();
     };
 
     ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
@@ -228,6 +234,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         swap.Canister.icrc45_get_pairs(req);
     };
 
+    // Stats
+
+    public query func top_accounts(ledger : Principal) : async [(Blob, Nat)] {
+        core.top_accounts(ledger);
+    };
 
     // ---------- Debug functions -----------
 
@@ -244,10 +255,10 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
-    public shared ({caller}) func admin_withdraw_all() : async Result.Result<[{ledger: Principal; amount: Nat; result: Result.Result<Nat64, Text>}], Text> {
-        assert Principal.isController(caller);
-        await sys.admin_withdraw_all();
-    };
+    // public shared ({caller}) func admin_withdraw_all() : async Result.Result<[{ledger: Principal; amount: Nat; result: Result.Result<Nat64, Text>}], Text> {
+    //     assert Principal.isController(caller);
+    //     await sys.admin_withdraw_all();
+    // };
 
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
         null

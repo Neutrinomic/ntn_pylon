@@ -1,6 +1,7 @@
 #!/bin/sh
 dfx canister --network ic stop transcendence
-DFX_MOC_PATH="/home/infu/sanctum/moc/moc" dfx deploy --network ic transcendence --argument "(opt 
+dfx canister --network ic snapshot transcendence
+dfx deploy --network ic transcendence --argument "(opt 
 record {
      PYLON_NAME = \"Transcendence\";
      PYLON_GOVERNED_BY = \"Neutrinite DAO\";

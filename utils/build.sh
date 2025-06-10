@@ -1,0 +1,1 @@
+dfx build --network ic transcendence

@@ -100,7 +100,8 @@ export interface Controller {
 export type CreateNodeRequest = [CommonCreateRequest, CreateRequest];
 export type CreateNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type CreateRequest = { 'split' : CreateRequest__3 } |
+export type CreateRequest = { 'vault' : CreateRequest__5 } |
+  { 'split' : CreateRequest__3 } |
   { 'throttle' : CreateRequest__4 } |
   { 'exchange' : CreateRequest__1 } |
   { 'exchange_liquidity' : CreateRequest__2 };
@@ -124,6 +125,10 @@ export interface CreateRequest__3 {
 export interface CreateRequest__4 {
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
+}
+export interface CreateRequest__5 {
+  'init' : {},
+  'variables' : { 'description' : string },
 }
 export interface DataCertificate {
   'certificate' : Uint8Array | number[],
@@ -275,7 +280,8 @@ export type ModifyNodeRequest = [
 ];
 export type ModifyNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type ModifyRequest = { 'split' : ModifyRequest__3 } |
+export type ModifyRequest = { 'vault' : ModifyRequest__5 } |
+  { 'split' : ModifyRequest__3 } |
   { 'throttle' : ModifyRequest__4 } |
   { 'exchange' : ModifyRequest__1 } |
   { 'exchange_liquidity' : ModifyRequest__2 };
@@ -291,6 +297,7 @@ export interface ModifyRequest__4 {
   'interval_sec' : NumVariant,
   'max_amount' : NumVariant,
 }
+export interface ModifyRequest__5 { 'description' : string }
 export interface ModuleMeta {
   'id' : string,
   'create_allowed' : boolean,
@@ -409,14 +416,6 @@ export interface Received {
   'ledger' : Principal,
   'amount' : bigint,
 }
-export type Result = {
-    'ok' : Array<
-      { 'result' : Result_1, 'ledger' : Principal, 'amount' : bigint }
-    >
-  } |
-  { 'err' : string };
-export type Result_1 = { 'ok' : bigint } |
-  { 'err' : string };
 export interface SETTINGS {
   'PYLON_NAME' : string,
   'TEMP_NODE_EXPIRATION_SEC' : bigint,
@@ -432,7 +431,8 @@ export interface Sent {
   'ledger' : Principal,
   'amount' : bigint,
 }
-export type Shared = { 'split' : Shared__3 } |
+export type Shared = { 'vault' : Shared__5 } |
+  { 'split' : Shared__3 } |
   { 'throttle' : Shared__4 } |
   { 'exchange' : Shared__1 } |
   { 'exchange_liquidity' : Shared__2 };
@@ -475,6 +475,11 @@ export interface Shared__4 {
   'internals' : { 'wait_until_ts' : bigint },
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
+}
+export interface Shared__5 {
+  'internals' : {},
+  'init' : {},
+  'variables' : { 'description' : string },
 }
 export interface SourceEndpointResp {
   'balance' : bigint,
@@ -533,12 +538,11 @@ export type ValueMap = [string, Value];
 export type Version = { 'alpha' : Uint16Array | number[] } |
   { 'beta' : Uint16Array | number[] } |
   { 'release' : Uint16Array | number[] };
-export interface _anon_class_28_1 {
+export interface _anon_class_29_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
   >,
-  'admin_withdraw_all' : ActorMethod<[], Result>,
   'chrono_records' : ActorMethod<[], [] | [ChronoRecord]>,
   'dex_ohlcv' : ActorMethod<[OHLCVRequest], OHLCVResponse>,
   'dex_pool_create' : ActorMethod<[PoolRequest], PoolResponse>,
@@ -568,6 +572,6 @@ export interface _anon_class_28_1 {
   'icrc55_get_nodes' : ActorMethod<[Array<GetNode>], Array<[] | [NodeShared]>>,
   'icrc55_get_pylon_meta' : ActorMethod<[], PylonMetaResp>,
 }
-export interface _SERVICE extends _anon_class_28_1 {}
+export interface _SERVICE extends _anon_class_29_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
