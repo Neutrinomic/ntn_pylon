@@ -13,6 +13,7 @@ import Error "mo:base/Error";
 import Result "mo:base/Result";
 
 import VecThrottle "./modules/throttle/throttle";
+import VecSwitcher "./modules/switcher/switcher";
 // import VecBorrow "./modules/borrow/borrow";
 // import VecLend "./modules/lend/lend";
 import VecExchange "./modules/exchange/exchange";
@@ -89,6 +90,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let mem_vec_throttle_1 = VecThrottle.Mem.Vector.V1.new();
     let vec_throttle = VecThrottle.Mod({xmem=mem_vec_throttle_1; core});
 
+    stable let mem_vec_switcher_1 = VecSwitcher.Mem.Vector.V1.new();
+    let vec_switcher = VecSwitcher.Mod({xmem=mem_vec_switcher_1; core});
+
     // stable let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
     // let vec_lend = VecLend.Mod({xmem=mem_vec_lend_1; core});
 
@@ -112,6 +116,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     let vmod = T.VectorModules({
         vec_throttle;
+        vec_switcher;
         // vec_lend;
         // vec_borrow;
         vec_exchange;
@@ -134,6 +139,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_exchange_liquidity.run();
         vec_exchange.run();
         vec_throttle.run();
+        vec_switcher.run();
         vec_split.run();
         vec_vault.run();
     };
