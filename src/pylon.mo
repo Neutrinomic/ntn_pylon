@@ -46,6 +46,8 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
 
 
+    let admin_id = Principal.fromText("v6ksx-vfv66-dlpks-agv2k-2pafk-yjlow-5fesr-dxigk-rzvzp-xrfbg-tae");
+
     let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_1 ; me_can; chrono;});
 
     stable let mem_core_1 = Core.Mem.Core.V1.new();
@@ -221,12 +223,12 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     };
 
     public shared({caller}) func dex_pool_create(req : swap.Pool.PoolRequest) : async swap.Pool.PoolResponse {
-        assert(Principal.isController(caller));
+        assert(caller == admin_id);
         swap.Canister.dex_pool_create(req);
     };
 
     public shared({caller}) func dex_pool_delete(req : swap.Canister.DeletePoolRequest) : async swap.Canister.DeletePoolResponse {
-        assert(Principal.isController(caller));
+        assert(caller == admin_id);
         swap.Canister.dex_pool_delete(req);
     };
 
@@ -249,7 +251,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     // ---------- Debug functions -----------
 
     public shared ({caller}) func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {
-        assert Principal.isController(caller);
+        assert(caller == admin_id);
         dvf.add_ledger<system>(id, ltype);
     };
 
