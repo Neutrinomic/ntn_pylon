@@ -118,7 +118,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     let vmod = T.VectorModules({
         vec_throttle;
-        vec_switcher;
+        // vec_switcher;
         // vec_lend;
         // vec_borrow;
         vec_exchange;
@@ -141,7 +141,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_exchange_liquidity.run();
         vec_exchange.run();
         vec_throttle.run();
-        vec_switcher.run();
+        // vec_switcher.run();
         vec_split.run();
         vec_vault.run();
     };

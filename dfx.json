@@ -2,7 +2,8 @@
   "canisters": {
     "transcendence": {
       "type": "motoko",
-      "main": "./src/pylon.mo"
+      "main": "./src/pylon.mo",
+      "gzip": true
     }
    },
   "defaults": {

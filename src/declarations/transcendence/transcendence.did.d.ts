@@ -100,9 +100,10 @@ export interface Controller {
 export type CreateNodeRequest = [CommonCreateRequest, CreateRequest];
 export type CreateNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type CreateRequest = { 'vault' : CreateRequest__5 } |
+export type CreateRequest = { 'switcher' : CreateRequest__4 } |
+  { 'vault' : CreateRequest__6 } |
   { 'split' : CreateRequest__3 } |
-  { 'throttle' : CreateRequest__4 } |
+  { 'throttle' : CreateRequest__5 } |
   { 'exchange' : CreateRequest__1 } |
   { 'exchange_liquidity' : CreateRequest__2 };
 export interface CreateRequest__1 {
@@ -124,9 +125,21 @@ export interface CreateRequest__3 {
 }
 export interface CreateRequest__4 {
   'init' : {},
-  'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
+  'variables' : {
+    'throttle_interval' : NumVariant,
+    'switch_interval' : NumVariant,
+    'amount' : NumVariant,
+    'switch_chance' : bigint,
+  },
 }
 export interface CreateRequest__5 {
+  'init' : {},
+  'variables' : {
+    'interval_sec' : NumVariant__1,
+    'max_amount' : NumVariant__1,
+  },
+}
+export interface CreateRequest__6 {
   'init' : {},
   'variables' : { 'description' : string },
 }
@@ -280,9 +293,10 @@ export type ModifyNodeRequest = [
 ];
 export type ModifyNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type ModifyRequest = { 'vault' : ModifyRequest__5 } |
+export type ModifyRequest = { 'switcher' : ModifyRequest__4 } |
+  { 'vault' : ModifyRequest__6 } |
   { 'split' : ModifyRequest__3 } |
-  { 'throttle' : ModifyRequest__4 } |
+  { 'throttle' : ModifyRequest__5 } |
   { 'exchange' : ModifyRequest__1 } |
   { 'exchange_liquidity' : ModifyRequest__2 };
 export interface ModifyRequest__1 {
@@ -294,10 +308,16 @@ export interface ModifyRequest__1 {
 export interface ModifyRequest__2 { 'flow' : Flow, 'range' : Range }
 export interface ModifyRequest__3 { 'split' : Array<bigint> }
 export interface ModifyRequest__4 {
-  'interval_sec' : NumVariant,
-  'max_amount' : NumVariant,
+  'throttle_interval' : NumVariant,
+  'switch_interval' : NumVariant,
+  'amount' : NumVariant,
+  'switch_chance' : bigint,
 }
-export interface ModifyRequest__5 { 'description' : string }
+export interface ModifyRequest__5 {
+  'interval_sec' : NumVariant__1,
+  'max_amount' : NumVariant__1,
+}
+export interface ModifyRequest__6 { 'description' : string }
 export interface ModuleMeta {
   'id' : string,
   'create_allowed' : boolean,
@@ -335,6 +355,8 @@ export interface NodeShared {
   'refund' : Account,
 }
 export type NumVariant = { 'rnd' : { 'max' : bigint, 'min' : bigint } } |
+  { 'fixed' : bigint };
+export type NumVariant__1 = { 'rnd' : { 'max' : bigint, 'min' : bigint } } |
   { 'fixed' : bigint };
 export interface OHLCVRequest {
   'l1' : SupportedLedger,
@@ -431,9 +453,10 @@ export interface Sent {
   'ledger' : Principal,
   'amount' : bigint,
 }
-export type Shared = { 'vault' : Shared__5 } |
+export type Shared = { 'switcher' : Shared__4 } |
+  { 'vault' : Shared__6 } |
   { 'split' : Shared__3 } |
-  { 'throttle' : Shared__4 } |
+  { 'throttle' : Shared__5 } |
   { 'exchange' : Shared__1 } |
   { 'exchange_liquidity' : Shared__2 };
 export interface Shared__1 {
@@ -472,11 +495,28 @@ export interface Shared__3 {
   'variables' : { 'split' : Array<bigint> },
 }
 export interface Shared__4 {
-  'internals' : { 'wait_until_ts' : bigint },
+  'internals' : {
+    'next_send_ts' : bigint,
+    'next_switch_ts' : bigint,
+    'current_source' : bigint,
+  },
   'init' : {},
-  'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
+  'variables' : {
+    'throttle_interval' : NumVariant,
+    'switch_interval' : NumVariant,
+    'amount' : NumVariant,
+    'switch_chance' : bigint,
+  },
 }
 export interface Shared__5 {
+  'internals' : { 'wait_until_ts' : bigint },
+  'init' : {},
+  'variables' : {
+    'interval_sec' : NumVariant__1,
+    'max_amount' : NumVariant__1,
+  },
+}
+export interface Shared__6 {
   'internals' : {},
   'init' : {},
   'variables' : { 'description' : string },
@@ -538,7 +578,7 @@ export type ValueMap = [string, Value];
 export type Version = { 'alpha' : Uint16Array | number[] } |
   { 'beta' : Uint16Array | number[] } |
   { 'release' : Uint16Array | number[] };
-export interface _anon_class_29_1 {
+export interface _anon_class_30_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
@@ -571,7 +611,11 @@ export interface _anon_class_29_1 {
   'icrc55_get_defaults' : ActorMethod<[string], CreateRequest>,
   'icrc55_get_nodes' : ActorMethod<[Array<GetNode>], Array<[] | [NodeShared]>>,
   'icrc55_get_pylon_meta' : ActorMethod<[], PylonMetaResp>,
+  'top_accounts' : ActorMethod<
+    [Principal],
+    Array<[Uint8Array | number[], bigint]>
+  >,
 }
-export interface _SERVICE extends _anon_class_29_1 {}
+export interface _SERVICE extends _anon_class_30_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

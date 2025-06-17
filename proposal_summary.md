@@ -1,6 +1,6 @@
 
 Upgrade Transcendence Pylon. 
-Add Switcher vector.
+Rem Switcher vector.
 
 
 https://github.com/Neutrinomic/ntn_pylon

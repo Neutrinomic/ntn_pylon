@@ -1,4 +1,4 @@
-type _anon_class_29_1 = 
+type _anon_class_30_1 = 
  service {
    add_supported_ledger: (principal, variant {
                                        icp;
@@ -27,6 +27,10 @@ type _anon_class_29_1 =
    icrc55_get_defaults: (text) -> (CreateRequest) query;
    icrc55_get_nodes: (vec GetNode) -> (vec opt NodeShared) query;
    icrc55_get_pylon_meta: () -> (PylonMetaResp) query;
+   top_accounts: (principal) -> (vec record {
+                                       blob;
+                                       nat;
+                                     }) query;
  };
 type Version = 
  variant {
@@ -139,20 +143,37 @@ type SourceEndpointResp =
    endpoint: Endpoint;
    name: text;
  };
-type Shared__5 = 
+type Shared__6 = 
  record {
    init: record {};
    internals: record {};
    variables: record {description: text;};
  };
-type Shared__4 = 
+type Shared__5 = 
  record {
    init: record {};
    internals: record {wait_until_ts: nat64;};
    variables: record {
-                interval_sec: NumVariant;
-                max_amount: NumVariant;
+                interval_sec: NumVariant__1;
+                max_amount: NumVariant__1;
               };
+ };
+type Shared__4 = 
+ record {
+   init: record {};
+   internals:
+    record {
+      current_source: nat;
+      next_send_ts: nat64;
+      next_switch_ts: nat64;
+    };
+   variables:
+    record {
+      amount: NumVariant;
+      switch_chance: nat64;
+      switch_interval: NumVariant;
+      throttle_interval: NumVariant;
+    };
  };
 type Shared__3 = 
  record {
@@ -203,8 +224,9 @@ type Shared =
    exchange: Shared__1;
    exchange_liquidity: Shared__2;
    split: Shared__3;
-   throttle: Shared__4;
-   vault: Shared__5;
+   switcher: Shared__4;
+   throttle: Shared__5;
+   vault: Shared__6;
  };
 type Sent = 
  record {
@@ -358,6 +380,14 @@ type OHLCVRequest =
              t1s;
            };
  };
+type NumVariant__1 = 
+ variant {
+   fixed: nat64;
+   rnd: record {
+          max: nat64;
+          min: nat64;
+        };
+ };
 type NumVariant = 
  variant {
    fixed: nat64;
@@ -405,11 +435,18 @@ type ModuleMeta =
    temporary_allowed: bool;
    version: Version;
  };
-type ModifyRequest__5 = record {description: text;};
+type ModifyRequest__6 = record {description: text;};
+type ModifyRequest__5 = 
+ record {
+   interval_sec: NumVariant__1;
+   max_amount: NumVariant__1;
+ };
 type ModifyRequest__4 = 
  record {
-   interval_sec: NumVariant;
-   max_amount: NumVariant;
+   amount: NumVariant;
+   switch_chance: nat64;
+   switch_interval: NumVariant;
+   throttle_interval: NumVariant;
  };
 type ModifyRequest__3 = record {split: vec nat;};
 type ModifyRequest__2 = 
@@ -429,8 +466,9 @@ type ModifyRequest =
    exchange: ModifyRequest__1;
    exchange_liquidity: ModifyRequest__2;
    split: ModifyRequest__3;
-   throttle: ModifyRequest__4;
-   vault: ModifyRequest__5;
+   switcher: ModifyRequest__4;
+   throttle: ModifyRequest__5;
+   vault: ModifyRequest__6;
  };
 type ModifyNodeResponse = 
  variant {
@@ -657,18 +695,29 @@ type DataCertificate =
    certificate: blob;
    hash_tree: blob;
  };
-type CreateRequest__5 = 
+type CreateRequest__6 = 
  record {
    init: record {};
    variables: record {description: text;};
  };
-type CreateRequest__4 = 
+type CreateRequest__5 = 
  record {
    init: record {};
    variables: record {
-                interval_sec: NumVariant;
-                max_amount: NumVariant;
+                interval_sec: NumVariant__1;
+                max_amount: NumVariant__1;
               };
+ };
+type CreateRequest__4 = 
+ record {
+   init: record {};
+   variables:
+    record {
+      amount: NumVariant;
+      switch_chance: nat64;
+      switch_interval: NumVariant;
+      throttle_interval: NumVariant;
+    };
  };
 type CreateRequest__3 = 
  record {
@@ -699,8 +748,9 @@ type CreateRequest =
    exchange: CreateRequest__1;
    exchange_liquidity: CreateRequest__2;
    split: CreateRequest__3;
-   throttle: CreateRequest__4;
-   vault: CreateRequest__5;
+   switcher: CreateRequest__4;
+   throttle: CreateRequest__5;
+   vault: CreateRequest__6;
  };
 type CreateNodeResponse = 
  variant {
@@ -848,4 +898,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (opt SETTINGS) -> _anon_class_29_1
+service : (opt SETTINGS) -> _anon_class_30_1

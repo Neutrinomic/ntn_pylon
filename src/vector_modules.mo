@@ -18,7 +18,7 @@ module {
 
     public type CreateRequest = {
         #throttle : ThrottleVector.Interface.CreateRequest;
-        #switcher : SwitcherVector.Interface.CreateRequest;
+        // #switcher : SwitcherVector.Interface.CreateRequest;
         // #lend: Lend.Interface.CreateRequest;
         // #borrow: Borrow.Interface.CreateRequest;
         #exchange: Exchange.Interface.CreateRequest;
@@ -31,7 +31,7 @@ module {
 
     public type Shared = {
         #throttle : ThrottleVector.Interface.Shared;
-        #switcher : SwitcherVector.Interface.Shared;
+        // #switcher : SwitcherVector.Interface.Shared;
         // #lend: Lend.Interface.Shared;
         // #borrow: Borrow.Interface.Shared;
         #exchange: Exchange.Interface.Shared;
@@ -44,7 +44,7 @@ module {
     
     public type ModifyRequest = {
         #throttle : ThrottleVector.Interface.ModifyRequest;
-        #switcher : SwitcherVector.Interface.ModifyRequest;
+        // #switcher : SwitcherVector.Interface.ModifyRequest;
         // #lend: Lend.Interface.ModifyRequest;
         // #borrow: Borrow.Interface.ModifyRequest;
         #exchange: Exchange.Interface.ModifyRequest;
@@ -58,7 +58,7 @@ module {
 
     public class VectorModules(m: {
         vec_throttle : ThrottleVector.Mod;
-        vec_switcher : SwitcherVector.Mod;
+        // vec_switcher : SwitcherVector.Mod;
         // vec_lend : Lend.Mod;
         // vec_borrow : Borrow.Mod;
         vec_exchange : Exchange.Mod;
@@ -76,12 +76,12 @@ module {
                     case (#err(x)) return #err(x);
                 }
             };
-            if (mid == SwitcherVector.ID) {
-                switch(m.vec_switcher.get(id, vec)) {
-                    case (#ok(x)) return #ok(#switcher(x));
-                    case (#err(x)) return #err(x);
-                }
-            };
+            // if (mid == SwitcherVector.ID) {
+            //     switch(m.vec_switcher.get(id, vec)) {
+            //         case (#ok(x)) return #ok(#switcher(x));
+            //         case (#err(x)) return #err(x);
+            //     }
+            // };
             // if (mid == Lend.ID) {
             //     switch(m.vec_lend.get(id, vec)) {
             //         case (#ok(x)) return #ok(#lend(x));
@@ -130,7 +130,7 @@ module {
 
         public func getDefaults(mid:Core.ModuleId) : CreateRequest {
             if (mid == ThrottleVector.ID) return #throttle(m.vec_throttle.defaults());
-            if (mid == SwitcherVector.ID) return #switcher(m.vec_switcher.defaults());
+            // if (mid == SwitcherVector.ID) return #switcher(m.vec_switcher.defaults());
             // if (mid == Lend.ID) return #lend(m.vec_lend.defaults());
             // if (mid == Borrow.ID) return #borrow(m.vec_borrow.defaults());
             if (mid == Exchange.ID) return #exchange(m.vec_exchange.defaults());
@@ -145,7 +145,7 @@ module {
 
         public func sources(mid :Core.ModuleId, id : Core.NodeId) : Core.EndpointsDescription {
             if (mid == ThrottleVector.ID) return m.vec_throttle.sources(id);
-            if (mid == SwitcherVector.ID) return m.vec_switcher.sources(id);
+            // if (mid == SwitcherVector.ID) return m.vec_switcher.sources(id);
             // if (mid == Lend.ID) return m.vec_lend.sources(id);
             // if (mid == Borrow.ID) return m.vec_borrow.sources(id);
             if (mid == Exchange.ID) return m.vec_exchange.sources(id);
@@ -159,7 +159,7 @@ module {
 
         public func destinations(mid :Core.ModuleId, id : Core.NodeId) : Core.EndpointsDescription {
             if (mid == ThrottleVector.ID) return m.vec_throttle.destinations(id);
-            if (mid == SwitcherVector.ID) return m.vec_switcher.destinations(id);
+            // if (mid == SwitcherVector.ID) return m.vec_switcher.destinations(id);
             // if (mid == Lend.ID) return m.vec_lend.destinations(id);
             // if (mid == Borrow.ID) return m.vec_borrow.destinations(id);
             if (mid == Exchange.ID) return m.vec_exchange.destinations(id);
@@ -176,7 +176,7 @@ module {
             
             switch (req) {
                 case (#throttle(t)) return m.vec_throttle.create(id, creq, t);
-                case (#switcher(t)) return m.vec_switcher.create(id, creq, t);
+                // case (#switcher(t)) return m.vec_switcher.create(id, creq, t);
                 // case (#lend(t)) return m.vec_lend.create(id, creq, t);
                 // case (#borrow(t)) return m.vec_borrow.create(id, creq, t);
                 case (#exchange(t)) return m.vec_exchange.create(id, creq, t);
@@ -192,7 +192,7 @@ module {
         public func modify(mid :Core.ModuleId, id:Core.NodeId, creq : ModifyRequest) : Result.Result<(), Text> {
             switch (creq) {
                 case (#throttle(r)) if (mid == ThrottleVector.ID) return m.vec_throttle.modify(id, r);
-                case (#switcher(r)) if (mid == SwitcherVector.ID) return m.vec_switcher.modify(id, r);
+                // case (#switcher(r)) if (mid == SwitcherVector.ID) return m.vec_switcher.modify(id, r);
                 // case (#lend(r)) if (mid == Lend.ID) return m.vec_lend.modify(id, r);
                 // case (#borrow(r)) if (mid == Borrow.ID) return m.vec_borrow.modify(id, r);
                 case (#exchange(r)) if (mid == Exchange.ID) return m.vec_exchange.modify(id, r);
@@ -207,7 +207,7 @@ module {
 
         public func delete(mid :Core.ModuleId, id:Core.NodeId) : Result.Result<(), Text> {
             if (mid == ThrottleVector.ID) return m.vec_throttle.delete(id);
-            if (mid == SwitcherVector.ID) return m.vec_switcher.delete(id);
+            // if (mid == SwitcherVector.ID) return m.vec_switcher.delete(id);
             // if (mid == Lend.ID) return m.vec_lend.delete(id);
             // if (mid == Borrow.ID) return m.vec_borrow.delete(id);
             if (mid == Exchange.ID) return m.vec_exchange.delete(id);
@@ -220,7 +220,7 @@ module {
 
         public func nodeMeta(mid :Core.ModuleId) : ICRC55.ModuleMeta {
             if (mid == ThrottleVector.ID) return m.vec_throttle.meta();
-            if (mid == SwitcherVector.ID) return m.vec_switcher.meta();
+            // if (mid == SwitcherVector.ID) return m.vec_switcher.meta();
             // if (mid == Lend.ID) return m.vec_lend.meta();
             // if (mid == Borrow.ID) return m.vec_borrow.meta();
             if (mid == Exchange.ID) return m.vec_exchange.meta();
@@ -235,7 +235,7 @@ module {
         public func meta() : [ICRC55.ModuleMeta] {
             [
                 m.vec_throttle.meta(),
-                m.vec_switcher.meta(),
+                // m.vec_switcher.meta(),
                 // m.vec_lend.meta(),
                 // m.vec_borrow.meta(),
                 m.vec_exchange.meta(),
