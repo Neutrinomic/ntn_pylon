@@ -36,8 +36,8 @@ describe('Exchange swap leave range ltest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -49,17 +49,20 @@ describe('Exchange swap leave range ltest', () => {
 
 
   it(`Make exchange vector B->A`, async () => {
+    let b = 50000_000_000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_A]);
 
-    let b = 50000_000_000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -108,7 +111,7 @@ describe('Exchange swap leave range ltest', () => {
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_B);
 
 
-    expect(balance_a).toBeApprox(104570969726n, 100000n);
+    expect(balance_a).toBeApprox(104552656864n, 100000n);
     expect(balance_b).toBeApprox(149970059428n, 100000n);
 
 
@@ -134,8 +137,8 @@ describe('Exchange swap leave range ltest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100n);
 
     let node_after = await d.u.getNode(node.id);
     expect(node_after.sources[PORT_0].balance).toBeApprox(0n, 100n);
@@ -149,8 +152,8 @@ describe('Exchange swap leave range ltest', () => {
     let SUBACCOUNT_DEST_ID = 345;
     let node = await EU.createLPNode(LEDGER_B, LEDGER_A, {
       partial : {
-        from_price: 1.5,
-        to_price: 3.0,
+        from_price: 0.5,
+        to_price: 5.0,
       }
     }, SUBACCOUNT_DEST_ID);
 
@@ -165,8 +168,8 @@ describe('Exchange swap leave range ltest', () => {
     expect(n1.tokenB).toBeLessThan(a);
 
 
-    expect(n1.tokenA).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 1000000n);
-    expect(n1.tokenB).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 1000000n);
+    expect(n1.tokenA).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 1000000n);
+    expect(n1.tokenB).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 1000000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -179,7 +182,10 @@ describe('Exchange swap leave range ltest', () => {
     let resp = await d.u.modifyNodeCustom(node.id, {
       'exchange_liquidity': {
           'flow': { 'remove': null },
-          'range' : { "full" : null } // Shoudn't matter
+          'range' : { "partial" : {
+            'from_price': 0.40,
+            'to_price': 0.60,
+          } } 
       },
     });
 

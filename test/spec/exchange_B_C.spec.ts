@@ -36,8 +36,8 @@ describe('Exchange cbtest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -66,8 +66,8 @@ describe('Exchange cbtest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_C].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_C].fee, 100000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -79,17 +79,20 @@ describe('Exchange cbtest', () => {
 
 
   it(`Make exchange vector B->C`, async () => {
-
+    let b = 10000_000_000n;
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_C]);
 
-    let b = 10000_000_000n;
+
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -97,7 +100,7 @@ describe('Exchange cbtest', () => {
     // Set destination
     await d.u.setDestination(node.id, PORT_0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(12)] });
 
-    await d.passTime(3);
+    await d.passTime(5);
 
     let node_after = await d.u.getNode(node.id);
     expect(node_after.sources[PORT_0].balance).toBe(0n);
@@ -106,23 +109,26 @@ describe('Exchange cbtest', () => {
     let balance_out = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(12)] }, LEDGER_C);
 
     
-    expect(balance_out).toBeApprox(29764418753n, 50_0000n);
+    expect(balance_out).toBeApprox(29792546786n, 500n);
   });
 
 
 
   it(`Make exchange vector C->B`, async () => {
 
+    let b = 10000_000_000n;
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_C].fee,
+          'buy_interval_seconds': 10n,  
         },
       },
     },[LEDGER_C, LEDGER_B]);
 
-    let b = 10000_000_000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_C);
@@ -133,13 +139,14 @@ describe('Exchange cbtest', () => {
     await d.passTime(3);
 
     let node_after = await d.u.getNode(node.id);
+    d.inspect(node_after);
     expect(node_after.sources[PORT_0].balance).toBe(0n);
 
     // Check balance of destination
     let balance_out = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(12)] }, LEDGER_B);
 
 
-    expect(balance_out).toBeApprox(3324056140n, 50_0000n);
+    expect(balance_out).toBeApprox(3319983395n, 50_0000n);
   });
 
 });

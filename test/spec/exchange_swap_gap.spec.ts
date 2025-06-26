@@ -36,8 +36,8 @@ describe('Exchange swap gap xtest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -65,7 +65,7 @@ describe('Exchange swap gap xtest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
     expect(n1.tokenB).toBeApprox(0n, 100000n);
 
     let node_after = await d.u.getNode(node.id);
@@ -78,17 +78,20 @@ describe('Exchange swap gap xtest', () => {
 
 
   it(`Make exchange vector B->A`, async () => {
+    let b = 500_000_000_000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_A]);
 
-    let b = 500_000_000_000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -99,7 +102,7 @@ describe('Exchange swap gap xtest', () => {
     await d.passTime(3);
 
     let node_after = await d.u.getNode(node.id);
-    expect(node_after.sources[PORT_0].balance).toBe(367111552252n);
+    expect(node_after.sources[PORT_0].balance).toBe(367174267126n);
 
     // Check balance of destination
     let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(12)] }, LEDGER_A);

@@ -36,8 +36,8 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -65,8 +65,8 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -93,7 +93,7 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 11n*d.ledgers[LEDGER_A].fee, 300n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 300n);
     expect(n1.tokenB).toBeApprox(0n, 300n);
 
     let node_after = await d.u.getNode(node.id);
@@ -124,7 +124,10 @@ describe('Exchange btest', () => {
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_A, LEDGER_B]);
@@ -144,7 +147,7 @@ describe('Exchange btest', () => {
 
     d.inspect(nafter.custom[0]);
 
-    expect(n1.tokenA).toBeApprox(a - 11n*d.ledgers[LEDGER_A].fee, 10000n);
+    expect(n1.tokenA).toBeApprox(a - 11n*d.ledgers[LEDGER_A].fee, 1000000n);
     expect(n1.tokenB).toBeApprox(0n, 300n);
 
     let node_after = await d.u.getNode(node.id);
@@ -173,7 +176,7 @@ describe('Exchange btest', () => {
     expect(n1.tokenB).toBeLessThan(b);
 
     expect(n1.tokenA).toBeApprox(0n, 300n);
-    expect(n1.tokenB).toBeApprox(b - 11n*d.ledgers[LEDGER_B].fee, 300n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 300n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -203,7 +206,7 @@ describe('Exchange btest', () => {
     expect(n1.tokenB).toBeLessThan(b);
 
     expect(n1.tokenA).toBeApprox(0n, 2000n);
-    expect(n1.tokenB).toBeApprox(b - 11n*d.ledgers[LEDGER_B].fee, 10000n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 10000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -231,8 +234,8 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -245,7 +248,10 @@ describe('Exchange btest', () => {
     let resp = await d.u.modifyNodeCustom(node.id, {
       'exchange_liquidity': {
           'flow': { 'remove': null },
-          'range' : { "full" : null } // Shoudn't matter
+          'range' : { "partial" : {
+            'from_price': 0.40,
+            'to_price': 0.60,
+          } } 
       },
     });
 
@@ -261,8 +267,8 @@ describe('Exchange btest', () => {
     expect(balance_a).toBeLessThan(a);
     expect(balance_b).toBeLessThan(b);
 
-    expect(balance_a).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
-    expect(balance_b).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
+    expect(balance_a).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(balance_b).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100000n);
 
     expect(balance_a).toBeApprox(a, 200000n);
     expect(balance_b).toBeApprox(b, 200000n);
@@ -276,8 +282,8 @@ describe('Exchange btest', () => {
     let SUBACCOUNT_DEST_ID = 123;
     let node = await EU.createLPNode(LEDGER_B, LEDGER_A, {
       partial : {
-        from_price: 1.7,
-        to_price: 2.2,
+        from_price: 0.1,
+        to_price: 11.2,
       }
     }, SUBACCOUNT_DEST_ID);
 
@@ -291,8 +297,8 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(b);
     expect(n1.tokenB).toBeLessThan(a);
 
-    expect(n1.tokenA).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 1000000n);
-    expect(n1.tokenB).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 1000000n);
+    expect(n1.tokenA).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 1000000n);
+    expect(n1.tokenB).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 1000000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -305,7 +311,10 @@ describe('Exchange btest', () => {
     let resp = await d.u.modifyNodeCustom(node.id, {
       'exchange_liquidity': {
           'flow': { 'remove': null },
-          'range' : { "full" : null } // Shoudn't matter
+          'range' : { "partial" : {
+            'from_price': 0.1,
+            'to_price': 11.20,
+          } } 
       },
     });
 
@@ -321,8 +330,8 @@ describe('Exchange btest', () => {
     expect(balance_a).toBeLessThan(a);
     expect(balance_b).toBeLessThan(b);
 
-    expect(balance_a).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
-    expect(balance_b).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
+    expect(balance_a).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(balance_b).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100000n);
 
     expect(balance_a).toBeApprox(a, 200000n);
     expect(balance_b).toBeApprox(b, 200000n);
@@ -336,8 +345,8 @@ describe('Exchange btest', () => {
     let SUBACCOUNT_DEST_ID = 414;
     let node = await EU.createLPNode(LEDGER_B, LEDGER_A, {
       partial : {
-        from_price: 1.7,
-        to_price: 2.2,
+        from_price: 0.1,
+        to_price: 11.2,
       }
     }, SUBACCOUNT_DEST_ID);
 
@@ -350,8 +359,8 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(b);
     expect(n1.tokenB).toBeLessThan(a);
 
-    expect(n1.tokenA).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 1000000n);
-    expect(n1.tokenB).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 1000000n);
+    expect(n1.tokenA).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 1000000n);
+    expect(n1.tokenB).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 1000000n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -364,7 +373,10 @@ describe('Exchange btest', () => {
     let resp = await d.u.modifyNodeCustom(node.id, {
       'exchange_liquidity': {
           'flow': { 'remove': null },
-          'range' : { "full" : null } // Shoudn't matter
+          'range' : { "partial" : {
+            'from_price': 1.70,
+            'to_price': 2.20,
+          } } 
       },
     });
 
@@ -380,8 +392,8 @@ describe('Exchange btest', () => {
     expect(balance_a).toBeLessThan(a);
     expect(balance_b).toBeLessThan(b);
 
-    expect(balance_a).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100000n);
-    expect(balance_b).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100000n);
+    expect(balance_a).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100000n);
+    expect(balance_b).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100000n);
 
     expect(balance_a).toBeApprox(a, 200000n);
     expect(balance_b).toBeApprox(b, 200000n);

@@ -8,15 +8,17 @@ mkdir -p ./build
 
 # Use GNU Parallel to process each *.test.mo file
 #   `NODE_OPTIONS="--no-deprecation" npx mocv bin`/moc `mops sources` --idl --hide-warnings --error-detail 0 -o "./build/${base_name}.wasm" --idl {} 1>/dev/null 2>/dev/null &&
-mocv use 0.13.2 # Only for the tests
+# mocv use 0.13.2 # Only for the tests
+dfx build transcendence --network ic
 
 # Extract the base name without the directory and .test.mo extension
-base_name="pylon"
+base_name="transcendence"
 
 echo "Processing $base_name...";
 
 # Run moc to produce the wasm file. Adjust the moc command as necessary.
-`NODE_OPTIONS="--no-deprecation" npx mocv bin`/moc `mops sources` --idl --hide-warnings -o "./build/${base_name}.wasm" --idl ../src/pylon.mo &&
+# `NODE_OPTIONS="--no-deprecation" npx mocv bin`/moc `mops sources` --idl --hide-warnings -o "./build/${base_name}.wasm" --idl ../src/pylon.mo &&
+cp ../.dfx/ic/canisters/transcendence/* ./build/
 
 # Assuming main.did is produced by the above moc command and matches the base name.
 # Generate JavaScript bindings

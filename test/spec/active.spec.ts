@@ -17,7 +17,7 @@ describe('Active', () => {
       'throttle': {
         'init': {  },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -46,7 +46,7 @@ describe('Active', () => {
     expect(await d.u.getSourceBalance(node.id, 0)).toBe(bal2);
 
     await d.u.setActive(node.id, true);
-    await d.passTime(2);
+    await d.passTime(80);
     expect(await d.u.getSourceBalance(node.id, 0)).toBeLessThan(bal2);
 
   }, 600 * 1000);

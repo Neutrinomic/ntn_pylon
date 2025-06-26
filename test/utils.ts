@@ -1,7 +1,7 @@
 import { Principal } from '@dfinity/principal';
 import { resolve } from 'node:path';
 
-import { Actor, PocketIc, createIdentity } from '@hadronous/pic';
+import { Actor, PocketIc, createIdentity } from '@dfinity/pic';
 import { IDL } from '@dfinity/candid';
 import {
     _SERVICE as PylonService, idlFactory as PylonIdlFactory, init as PylonInit,
@@ -16,7 +16,7 @@ import {
     AccountsResponse,
     BatchCommandResponse,
     InputAddress
-} from './build/pylon.idl.js';
+} from './build/transcendence.idl.js';
 
 import { ICRCLedgerService, ICRCLedger } from "./icrc_ledger/ledgerCanister";
 
@@ -25,7 +25,7 @@ import { Account, Subaccount} from './icrc_ledger/ledger.idl.js';
 import { toState } from "@infu/icblast";
 import {AccountIdentifier, SubAccount} from "@dfinity/ledger-icp"
 import util from 'util';
-const WASM_PYLON_PATH = resolve(__dirname, "./build/pylon.wasm");
+const WASM_PYLON_PATH = resolve(__dirname, "./build/transcendence.wasm.gz");
 
 
 export async function PylonCan(pic: PocketIc) {
@@ -53,6 +53,7 @@ export function DF() {
         pylonCanisterId: undefined as Principal,
         u: undefined as ReturnType<typeof createNodeUtils>,
         jo : undefined as ReturnType<typeof createIdentity>,
+        admin : undefined as ReturnType<typeof createIdentity>,
 
         toState : toState,
 
@@ -65,15 +66,15 @@ export function DF() {
             for (let i = 0; i < n; i++) {
                 await this.pic.advanceTime(3 * 1000);
                 await this.pic.tick(6);
-                 await this.pylon.beat();
+                //    await this.pylon.beat();
             }
         },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.advanceTime( n * 60 * 1000);
             await this.pic.tick(3);
-            await this.pylon.beat();
-            // await this.passTime(5)
+            // await this.pylon.beat();
+            await this.passTime(3)
         },
 
         async beforeAll(): Promise<void> {
@@ -82,6 +83,8 @@ export function DF() {
             // Initialize PocketIc
             this.pic = await PocketIc.create(process.env.PIC_URL);
 
+
+         
             // Ledger initialization
             let TOTAL_LEDGERS = 5;
 
@@ -93,9 +96,9 @@ export function DF() {
             
             const tokens: Token[] = [
                 { name: 'tAAA', fee: 10_000n, decimals: 8 },
-                { name: 'tBBB', fee: 2_000n, decimals: 12 },
-                { name: 'tCCC', fee: 4_500n, decimals: 6 },
-                { name: 'tDDD', fee: 15_000n, decimals: 16 },
+                { name: 'tBBB', fee: 2_000n, decimals: 8 },
+                { name: 'tCCC', fee: 4_500n, decimals: 8 },
+                { name: 'tDDD', fee: 15_000n, decimals: 8 },
                 { name: 'tEEE', fee: 20_000n, decimals: 7 }
             ];
 
@@ -121,6 +124,7 @@ export function DF() {
                 lg.can.setIdentity(this.jo);
             };
 
+   
 
             // Set the identity for ledger and pylon
             
@@ -236,7 +240,7 @@ export function createNodeUtils({
                 memo: [],
                 created_at_time: [],
             });
-
+            // console.log({r:txresp, l:ledgers[from_ledger].id.toText()});
             if (!("Ok" in txresp)) {
                 throw new Error("Transaction failed");
             }

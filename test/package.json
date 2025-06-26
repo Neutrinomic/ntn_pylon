@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@hadronous/pic": "^0.8.1",
     "@types/jest": "^29.5.12"
   },
   "license": "MIT",
@@ -11,13 +10,14 @@
     "test:basic2": "jest -c ./jest.config.ts -t 'Basic'"
   },
   "dependencies": {
-    "@dfinity/agent": "^1.0.0",
-    "@dfinity/candid": "^1.0.0",
-    "@dfinity/certificate-verification": "^2.4.0",
-    "@dfinity/identity": "^1.0.0",
-    "@dfinity/ledger-icp": "^2.6.0",
-    "@dfinity/principal": "^1.0.0",
-    "@dfinity/utils": "^2.5.1",
+    "@dfinity/agent": "^2.4.1",
+    "@dfinity/candid": "^2.4.1",
+    "@dfinity/certificate-verification": "^3.0.3",
+    "@dfinity/identity": "^2.4.1",
+    "@dfinity/ledger-icp": "^3.0.0",
+    "@dfinity/pic": "^0.13.1",
+    "@dfinity/principal": "^2.4.1",
+    "@dfinity/utils": "^2.13.1",
     "@infu/icblast": "^2.0.46",
     "@noble/hashes": "^1.5.0",
     "@types/lodash": "^4.17.12",

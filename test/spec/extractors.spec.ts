@@ -17,7 +17,7 @@ describe('Extractors', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 1000_0000n }
         },
       },
@@ -27,7 +27,7 @@ describe('Extractors', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 1000_0000n }
         },
       },
@@ -56,7 +56,7 @@ describe('Extractors', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 1_0000_0000n }
         },
       },
@@ -66,7 +66,7 @@ describe('Extractors', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 1_0000_0000n }
         },
       },
@@ -82,7 +82,7 @@ describe('Extractors', () => {
     await d.passTime(70);
 
 
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(999890000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(699930000n);
     expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(11)] })).toBe(0n);
 
   }, 600 * 1000);

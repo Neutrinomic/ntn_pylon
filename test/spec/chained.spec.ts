@@ -17,7 +17,7 @@ describe('Chained vectors', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -38,11 +38,11 @@ describe('Chained vectors', () => {
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
-    await d.passTime(50);
+    await d.passTime(2);
 
 
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] })).toBe(49840000n);
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(2)] })).toBe(49840000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] })).toBe(4985000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(2)] })).toBe(4985000n);
 
   }, 600 * 1000);
 
@@ -55,7 +55,7 @@ describe('Chained vectors', () => {
       'throttle': {
         'init': { d },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -66,7 +66,7 @@ describe('Chained vectors', () => {
       'throttle': {
         'init': {  },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -90,11 +90,11 @@ describe('Chained vectors', () => {
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
-    await d.passTime(50);
+    await d.passTime(2);
 
 
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(49790000n);
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(11)] })).toBe(49790000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(4980000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(11)] })).toBe(4980000n);
 
   }, 600 * 1000);
 

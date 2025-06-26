@@ -1,6 +1,6 @@
 
 Upgrade Transcendence Pylon. 
-Rem Switcher vector.
+Fix visibility.
 
 
 https://github.com/Neutrinomic/ntn_pylon

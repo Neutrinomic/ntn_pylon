@@ -25,8 +25,8 @@ describe('Exchange xctest', () => {
 
     let node = await EU.createLPNode(LEDGER_A, LEDGER_B, {
       partial : {
-        from_price: 0.40,
-        to_price: 0.60,
+        from_price: 0.99,
+        to_price: 1.01,
       }
     });
 
@@ -35,8 +35,8 @@ describe('Exchange xctest', () => {
     let b = 1000_0000_0000n;
     let n1 = await EU.addLiquidity(node.id, LEDGER_A, LEDGER_B, a, b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 100n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 100n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 100n);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -47,17 +47,21 @@ describe('Exchange xctest', () => {
 
 
   it(`Make exchange vector A->B`, async () => {
+    let a = 2000_000_000n;
+
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': a - 1n*d.ledgers[LEDGER_A].fee,
+          'buy_interval_seconds': 10n,
         },
       },
-    },[LEDGER_A,LEDGER_B]);
+    }, [LEDGER_A, LEDGER_B]);
 
-    let a = 2000_000_000n;
 
     // Set destination
     await d.u.setDestination(node.id, PORT_0, { owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] });
@@ -76,21 +80,24 @@ describe('Exchange xctest', () => {
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(51)] }, LEDGER_B);
 
 
-    expect(balance_b).toBe(995938694n);
+    expect(balance_b).toBe(1993978060n);
   });
 
   it(`Make exchange vector B->A`, async () => {
+    let b = 9940354n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B,LEDGER_A]);
 
-    let b = 9940354n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -109,23 +116,26 @@ describe('Exchange xctest', () => {
 
     // d.inspect(node_after);
 
-    expect(balance_a).toBe(19846724n);
+    expect(balance_a).toBe(9896545n);
     
   });
 
 
   it(`Make exchange vector B->A`, async () => {
+    let b = 994035400n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B,LEDGER_A]);
 
-    let b = 994035400n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -143,22 +153,25 @@ describe('Exchange xctest', () => {
     let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(52)] }, LEDGER_A);
 
 
-    expect(balance_a).toBe(1984183522n);
+    expect(balance_a).toBe(991039306n);
   });
 
 
   it(`Make exchange vector A->B`, async () => {
+    let a = 20_000_00000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': a - 1n*d.ledgers[LEDGER_A].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_A,LEDGER_B]);
 
-    let a = 20_000_00000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, a, LEDGER_A);
@@ -175,7 +188,7 @@ describe('Exchange xctest', () => {
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(53)] }, LEDGER_B);
 
 
-    expect(balance_b).toBe(995950003n);
+    expect(balance_b).toBe(1993978060n);
   });
 
 });

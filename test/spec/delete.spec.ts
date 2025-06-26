@@ -17,7 +17,7 @@ describe('Delete', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -37,7 +37,7 @@ describe('Delete', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -73,8 +73,8 @@ describe('Delete', () => {
       'throttle': {
         'init': {  },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
-          'max_amount': { 'fixed': 10000000n }
+          'interval_sec': { 'fixed': 61n },
+          'max_amount': { 'fixed': 30000000n }
         },
       },
     },[0],{temporary:false});
@@ -86,7 +86,7 @@ describe('Delete', () => {
     await d.u.deleteNode(node.id)
 
     await expect(d.u.getNode(node.id)).rejects.toThrow('Node not found');
-    await d.passTime(10);
+    await d.passTime(2);
     
     let refund_account = d.u.getRefundAccount();
 
@@ -94,7 +94,7 @@ describe('Delete', () => {
 
 
     let pmeta = await d.u.getPylonMeta();
-    expect(refund).toBe(202940000n);
+    expect(refund).toBe(219940000n);
 
   }, 600 * 1000);
 

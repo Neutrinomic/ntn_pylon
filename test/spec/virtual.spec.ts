@@ -1,5 +1,4 @@
-
-import { Account } from "../build/pylon.idl";
+import { Account } from "../build/transcendence.idl";
 import { DF } from "../utils";
 import {match, P } from 'ts-pattern';
 
@@ -50,16 +49,18 @@ describe('Virtual virtest', () => {
       owner : d.jo.getPrincipal(),
       subaccount : [d.u.subaccountFromId(1232)]
     };
-    let resp = await d.u.virtualTransfer(d.u.virtual(d.u.mainAccount()), jo_acc, 5000_0000n);
 
+    let resp = await d.u.virtualTransfer(d.u.mainAccount(), jo_acc, 5000_0000n);
+    
     //@ts-ignore
     // expect(resp.ok.commands[0].transfer.ok).toBeDefined();
 
     match(resp).with({
-      ok: P.any, commands: [{transfer: {ok: P.any}}]
+      ok: { id: P.any, commands: [{transfer: {ok: P.any}}] }
     }, (x) => {
-      expect(x.commands[0].transfer.ok).toBeDefined();
+      expect(x.ok.commands[0].transfer.ok).toBeDefined();
     }).otherwise(() => {
+      d.inspect(resp);
       fail("Should have been ok");
     });
 
@@ -83,7 +84,7 @@ describe('Virtual virtest', () => {
       owner : d.jo.getPrincipal(),
       subaccount : [d.u.subaccountFromId(1232)]
     };
-    let resp = await d.u.virtualTransfer(d.u.virtual(jo_acc),  d.u.mainAccount(), 5000_0000n);
+    let resp = await d.u.virtualTransfer(jo_acc,  d.u.mainAccount(), 5000_0000n);
 
     //@ts-ignore
     expect(resp.ok.commands[0].transfer.err).toBe("Not the owner");
@@ -97,7 +98,7 @@ describe('Virtual virtest', () => {
       subaccount : [d.u.subaccountFromId(1232)]
     };
 
-    let resp = await d.u.virtualTransfer(d.u.virtual(d.u.mainAccount()), jo_acc, 5000_0000_0000n);
+    let resp = await d.u.virtualTransfer(d.u.mainAccount(), jo_acc, 5000_0000_0000n);
 
     //@ts-ignore
     expect(resp.ok.commands[0].transfer.err).toBe("Insufficient balance");
@@ -119,7 +120,7 @@ describe('Virtual virtest', () => {
       subaccount : [d.u.subaccountFromId(44232323)]
     };
 
-    let resp = await d.u.virtualTransfer(d.u.virtual(d.u.mainAccount()), d.u.virtual(jo_acc), 2000_0000n);
+    let resp = await d.u.virtualTransfer(d.u.mainAccount(), d.u.virtual(jo_acc), 2000_0000n);
 
     await d.passTime(5);
 

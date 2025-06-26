@@ -17,7 +17,7 @@ describe('Top-up vector', () => {
         'throttle': {
           'init': {  },
           'variables': {
-            'interval_sec': { 'fixed': 1n },
+            'interval_sec': { 'fixed': 61n },
             'max_amount': { 'fixed': 10000000n }
           },
         },

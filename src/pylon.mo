@@ -76,7 +76,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
             TEMP_NODE_EXPIRATION_SEC = 3600;
             MAX_INSTRUCTIONS_PER_HEARTBEAT = 300_000_000;
             REQUEST_MAX_EXPIRE_SEC = 3600;
-            ALLOW_TEMP_NODE_CREATION = false;
+            ALLOW_TEMP_NODE_CREATION = true;
         }:Core.SETTINGS);
         dvf;
         chain;
@@ -223,12 +223,12 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     };
 
     public shared({caller}) func dex_pool_create(req : swap.Pool.PoolRequest) : async swap.Pool.PoolResponse {
-        assert(caller == admin_id);
+        assert((caller == admin_id) or (Principal.isController(caller)));
         swap.Canister.dex_pool_create(req);
     };
 
     public shared({caller}) func dex_pool_delete(req : swap.Canister.DeletePoolRequest) : async swap.Canister.DeletePoolResponse {
-        assert(caller == admin_id);
+        assert((caller == admin_id) or (Principal.isController(caller)));
         swap.Canister.dex_pool_delete(req);
     };
 
@@ -251,7 +251,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     // ---------- Debug functions -----------
 
     public shared ({caller}) func add_supported_ledger(id : Principal, ltype : {#icp; #icrc}) : () {
-        assert(caller == admin_id);
+        assert((caller == admin_id) or (Principal.isController(caller)));
         dvf.add_ledger<system>(id, ltype);
     };
 
@@ -272,7 +272,5 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         null
     };
 
-    // public shared func beat() : async () {
-    //     core.heartbeat(proc);
-    // };
+
 };

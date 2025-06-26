@@ -17,7 +17,7 @@ describe('Throttle', () => {
       'throttle': {
         'init': { },
         'variables': {
-          'interval_sec': { 'fixed': 1n },
+          'interval_sec': { 'fixed': 61n },
           'max_amount': { 'fixed': 10000000n }
         },
       },
@@ -25,7 +25,9 @@ describe('Throttle', () => {
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
-    await d.passTime(5);
+
+    await d.passTime(20);
+
 
     expect(await d.u.getSourceBalance(node.id, 0)).toBe(99980000n);
 
@@ -34,7 +36,7 @@ describe('Throttle', () => {
 
     expect(await d.u.getSourceBalance(node.id, 0)).not.toBe(99980000n);
 
-    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] })).toBe(89910000n);
+    expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] })).toBe(9990000n);
 
   }, 600 * 1000);
 

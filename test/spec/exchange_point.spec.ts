@@ -36,8 +36,8 @@ describe('Exchange swap point ptest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBe(a - 3n*d.ledgers[LEDGER_A].fee);
-    expect(n1.tokenB).toBe(b - 3n*d.ledgers[LEDGER_B].fee);
+    expect(n1.tokenA).toBe(a - 2n*d.ledgers[LEDGER_A].fee);
+    expect(n1.tokenB).toBe(b - 2n*d.ledgers[LEDGER_B].fee);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -48,17 +48,20 @@ describe('Exchange swap point ptest', () => {
 
 
   it(`Make exchange vector B->A`, async () => {
+    let b = 500_0000_0000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_A]);
 
-    let b = 500_0000_0000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);

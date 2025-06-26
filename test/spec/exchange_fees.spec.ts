@@ -38,8 +38,8 @@ describe('Exchange looptest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBe(a - 3n*d.ledgers[LEDGER_A].fee);
-    expect(n1.tokenB).toBe(b - 3n*d.ledgers[LEDGER_B].fee);
+    expect(n1.tokenA).toBe(a - 2n*d.ledgers[LEDGER_A].fee);
+    expect(n1.tokenB).toBe(b - 2n*d.ledgers[LEDGER_B].fee);
 
     let node_after = await d.u.getNode(node.id);
 
@@ -50,12 +50,16 @@ describe('Exchange looptest', () => {
 
 
   it(`Make loop from exchange vectors B->A->B->A..`, async () => {
+    let b = 500_0000_0000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_A]);
@@ -64,12 +68,14 @@ describe('Exchange looptest', () => {
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': 10000_000n,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_A, LEDGER_B]);
 
-    let b = 500_0000_0000n;
 
     // Set destination
     await d.u.connectNodes(node.id, PORT_0, node2.id, PORT_0);
@@ -112,8 +118,8 @@ describe('Exchange looptest', () => {
     let balance_a = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_A);
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_B);
 
-    expect(balance_a).toBeApprox(183338741564n, 90000000n);
-    expect(balance_b).toBeApprox(144980120727n, 90000000n);
+    expect(balance_a).toBeApprox(33841624544n, 90000000n);
+    expect(balance_b).toBeApprox(149969990002n, 90000000n);
 
 
 
@@ -146,8 +152,8 @@ describe('Exchange looptest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    expect(n1.tokenA).toBeApprox(a - 12n*d.ledgers[LEDGER_A].fee, 20000n);
-    expect(n1.tokenB).toBeApprox(b - 12n*d.ledgers[LEDGER_B].fee, 20000n);
+    expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 20000n);
+    expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_B].fee, 20000n);
 
     let node_after = await d.u.getNode(0);
 
@@ -183,8 +189,8 @@ describe('Exchange looptest', () => {
     let balance_b = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(SUBACCOUNT_DEST_ID)] }, LEDGER_B);
 
 
-    expect(balance_a).toBeApprox(383338611564n, 10000000n);
-    expect(balance_b).toBeApprox(244980094727n, 10000000n);
+    expect(balance_a).toBeApprox(233861562556n, 10000000n);
+    expect(balance_b).toBeApprox(249964007686n, 10000000n);
 
 
 

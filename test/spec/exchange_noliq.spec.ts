@@ -22,16 +22,19 @@ describe('Exchange no liquidity notest', () => {
 
   it(`Make exchange vector B->C`, async () => {
 
+    let b = 100_000_000n;
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_B].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_B, LEDGER_C]);
 
-    let b = 100_000_000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_B);
@@ -55,17 +58,20 @@ describe('Exchange no liquidity notest', () => {
 
 
   it(`Make exchange vector C->B`, async () => {
+    let b = 100_000_000n;
 
     let node = await d.u.createNode({
       'exchange': {
         'init': { },
         'variables': {
-          'max_slippage': 8.0,
+          'max_impact': 8.0,
+          'max_rate': [],
+          'buy_for_amount': b - 1n*d.ledgers[LEDGER_C].fee,
+          'buy_interval_seconds': 10n,
         },
       },
     },[LEDGER_C, LEDGER_B]);
 
-    let b = 100_000_000n;
 
     // Send funds to source 1
     await d.u.sendToNode(node.id, PORT_0, b, LEDGER_C);

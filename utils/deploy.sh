@@ -1,6 +1,6 @@
 #!/bin/sh
 dfx canister --network ic stop transcendence
-dfx canister --network ic snapshot transcendence
+
 dfx deploy --network ic transcendence --argument "(opt 
 record {
      PYLON_NAME = \"Transcendence\";
