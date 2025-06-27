@@ -40,5 +40,24 @@ describe('Throttle', () => {
 
   }, 600 * 1000);
 
+
+  it(`Get controller nodes`, async () => {
+    let node2 = await d.u.createNode({
+      'throttle': {
+        'init': { },
+        'variables': {
+          'interval_sec': { 'fixed': 61n },
+          'max_amount': { 'fixed': 10000000n }
+        },
+      },
+    });
+
+    let my_nodes = await d.u.listNodes();
+
+    expect(my_nodes.length).toBe(2);
+
+    expect(my_nodes[0].active).toBe(true);
+
+  }, 600 * 1000);
 });
 

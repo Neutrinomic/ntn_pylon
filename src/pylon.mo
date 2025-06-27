@@ -63,7 +63,6 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
                 min_create_balance = 2000_0000;
                 operation_cost = 1000;
                 freezing_threshold_days = 10;
-                exempt_daily_cost_balance = null;
                 split = {
                     platform = 20;
                     pylon = 20; 
@@ -79,7 +78,6 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
             ALLOW_TEMP_NODE_CREATION = true;
         }:Core.SETTINGS);
         dvf;
-        chain;
         me_can;
     });
 
@@ -111,14 +109,14 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     let vec_split = VecSplit.Mod({xmem=mem_vec_split_1; core});
 
     stable let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
-    let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap; dvf});
+    let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap});
 
     stable let mem_vec_vault_1 = VecVault.Mem.Vector.V1.new();
     let vec_vault = VecVault.Mod({xmem=mem_vec_vault_1; core});
 
     let vmod = T.VectorModules({
         vec_throttle;
-        // vec_switcher;
+        vec_switcher;
         // vec_lend;
         // vec_borrow;
         vec_exchange;
@@ -141,7 +139,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_exchange_liquidity.run();
         vec_exchange.run();
         vec_throttle.run();
-        // vec_switcher.run();
+        vec_switcher.run();
         vec_split.run();
         vec_vault.run();
     };
