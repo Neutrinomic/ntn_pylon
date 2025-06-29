@@ -118,7 +118,6 @@ describe('Auto Liquidity', () => {
 
     // Get initial state
     let node_after = await d.u.getNode(node.id);
-    const initial_rebalance = (node_after.custom[0] as any).auto_liquidity.internals.last_rebalance;
 
     // For testing purposes, we'll modify the interval to make it shorter
     await d.u.modifyNodeCustom(node.id, {
@@ -384,9 +383,6 @@ describe('Auto Liquidity', () => {
     expect(node_after1.sources[PORT_0].balance).toBeLessThan(1_000_000n);
     expect(node_after1.sources[PORT_1].balance).toBeLessThan(1_000_000n);
 
-    // Record last rebalance time
-    const last_rebalance1 = (node_after1.custom[0] as any).auto_liquidity.internals.last_rebalance;
-
     // Second addition - should add liquidity without rebalancing since interval hasn't passed
     await d.u.sendToNode(node.id, 0, 8_000_000_000n, LEDGER_A);
     await d.u.sendToNode(node.id, 1, 4_000_000_000n, LEDGER_B);
@@ -396,12 +392,10 @@ describe('Auto Liquidity', () => {
     let node_after2 = await d.u.getNode(node.id);
     const tokenA2 = (node_after2.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB2 = (node_after2.custom[0] as any).auto_liquidity.internals.tokenB;
-    const last_rebalance2 = (node_after2.custom[0] as any).auto_liquidity.internals.last_rebalance;
     
-    // Tokens should increase but last_rebalance should remain the same
+    // Tokens should increase
     expect(tokenA2).toBeGreaterThan(tokenA1);
     expect(tokenB2).toBeGreaterThan(tokenB1);
-    expect(last_rebalance2).toBe(last_rebalance1); // Rebalance time shouldn't change
     expect(node_after2.sources[PORT_0].balance).toBeLessThan(1_000_000n);
     expect(node_after2.sources[PORT_1].balance).toBeLessThan(1_000_000n);
 
@@ -414,11 +408,9 @@ describe('Auto Liquidity', () => {
     let node_after3 = await d.u.getNode(node.id);
     const tokenA3 = (node_after3.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB3 = (node_after3.custom[0] as any).auto_liquidity.internals.tokenB;
-    const last_rebalance3 = (node_after3.custom[0] as any).auto_liquidity.internals.last_rebalance;
     
     expect(tokenA3).toBeGreaterThan(tokenA2);
     expect(tokenB3).toBeGreaterThan(tokenB2);
-    expect(last_rebalance3).toBe(last_rebalance1); // Rebalance time still shouldn't change
     expect(node_after3.sources[PORT_0].balance).toBeLessThan(1_000_000n);
     expect(node_after3.sources[PORT_1].balance).toBeLessThan(1_000_000n);
   }, 600 * 1000);
@@ -450,7 +442,6 @@ describe('Auto Liquidity', () => {
     let node_after1 = await d.u.getNode(node.id);
     const tokenA1 = (node_after1.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB1 = (node_after1.custom[0] as any).auto_liquidity.internals.tokenB;
-    const last_rebalance1 = (node_after1.custom[0] as any).auto_liquidity.internals.last_rebalance;
     
     expect(tokenA1).toBeGreaterThan(0n);
     expect(tokenB1).toBeGreaterThan(0n);
@@ -463,12 +454,8 @@ describe('Auto Liquidity', () => {
     await d.u.sendToNode(node.id, 1, 2_500_000_000n, LEDGER_B);
     await d.passTime(5);
 
-    // Check that rebalance occurred
+    // Check after potential rebalance
     let node_after2 = await d.u.getNode(node.id);
-    const last_rebalance2 = (node_after2.custom[0] as any).auto_liquidity.internals.last_rebalance;
-    
-    // Verify rebalance time was updated
-    expect(last_rebalance2).toBeGreaterThan(last_rebalance1);
     
     // Tokens should still be there after rebalance
     const tokenA2 = (node_after2.custom[0] as any).auto_liquidity.internals.tokenA;
@@ -504,7 +491,6 @@ describe('Auto Liquidity', () => {
     let node_after1 = await d.u.getNode(node.id);
     const tokenA1 = (node_after1.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB1 = (node_after1.custom[0] as any).auto_liquidity.internals.tokenB;
-    const last_rebalance1 = (node_after1.custom[0] as any).auto_liquidity.internals.last_rebalance;
     
     // Simulate price change by performing a large swap
     // Create an exchange node to swap A->B
@@ -537,12 +523,8 @@ describe('Auto Liquidity', () => {
     await d.u.sendToNode(node.id, 1, 2_500_000_000n, LEDGER_B);
     await d.passTime(5);
 
-    // Check that rebalance occurred
+    // Check after potential rebalance
     let node_after2 = await d.u.getNode(node.id);
-    const last_rebalance2 = (node_after2.custom[0] as any).auto_liquidity.internals.last_rebalance;
-    
-    // Verify rebalance time was updated
-    expect(last_rebalance2).toBeGreaterThan(last_rebalance1);
     
     // Tokens should still be there after rebalance
     const tokenA2 = (node_after2.custom[0] as any).auto_liquidity.internals.tokenA;

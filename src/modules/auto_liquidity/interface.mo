@@ -41,8 +41,6 @@ module {
         };
         internals : {
             current_price : ?Float;
-            last_rebalance : Nat64;
-            next_rebalance : Nat64;
             tokenA : Nat;
             tokenB : Nat;
             addedTokenA : Nat;

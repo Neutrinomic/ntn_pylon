@@ -187,10 +187,7 @@ module {
                 };
             };
 
-            // Calculate next rebalance time
-            let now = U.now();
-            let interval_ns : Nat64 = t.variables.interval_seconds * 1_000_000_000;
-            let next_rebalance = t.internals.last_rebalance + interval_ns;
+
 
             #ok {
                 init = t.init;
@@ -202,8 +199,6 @@ module {
                 };
                 internals = {
                     current_price = current_price;
-                    last_rebalance = t.internals.last_rebalance;
-                    next_rebalance = next_rebalance;
                     tokenA = tokenA;
                     tokenB = tokenB;
                     addedTokenA = t.internals.total_added.tokenA;
