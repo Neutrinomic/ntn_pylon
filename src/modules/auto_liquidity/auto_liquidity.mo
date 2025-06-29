@@ -90,7 +90,8 @@ module {
             // Check if there is a pool
             let #ic(l1) = req.ledgers[0] else return #err("Ledger 1 not supported");
             let #ic(l2) = req.ledgers[1] else return #err("Ledger 2 not supported");
-            if (Option.isNull(swap.Pool.get(swap.getPoolAccount(l1, l2, 0)))) return #err("No pool found");
+            let ?pool = swap.Pool.get(swap.getPoolAccount(l1, l2, 0)) else return #err("No pool found");
+            if (pool.ledgerA != l1 or pool.ledgerB != l2) return #err("Switch ledger order");
 
             // Validate parameters
             if (t.variables.interval_seconds < 600) return #err("Interval must be at least 600 seconds (10 minutes)");
@@ -388,7 +389,10 @@ module {
                     case (#ok(intent)) {
                         swap.LiquidityIntentRemove.commit(intent);
                         cvid.internals.empty := true;
-
+                        cvid.internals.total_added := {
+                            tokenA = 0;
+                            tokenB = 0;
+                        };
                         // Calculate removed amounts
                         let tokenA_removed = tokenA;
                         let tokenB_removed = tokenB;
@@ -401,14 +405,26 @@ module {
                             let tokenA_to_send = Float.toInt(Float.fromInt(tokenA_removed) * remove_fraction);
                             let tokenB_to_send = Float.toInt(Float.fromInt(tokenB_removed) * remove_fraction);
 
+                            // Check actual source balances after removal
+                            let actual_bal_a = core.Source.balance(source_A);
+                            let actual_bal_b = core.Source.balance(source_B);
+                            
+                            // Get minimum ledger fees
+                            let fee_a = core.Source.fee(source_A);
+                            let fee_b = core.Source.fee(source_B);
+
+                            // Ensure we're only sending what we have available and meeting minimum requirements
+                            let safe_tokenA_to_send = Int.min(tokenA_to_send, actual_bal_a );
+                            let safe_tokenB_to_send = Int.min(tokenB_to_send, actual_bal_b );
+
                             // Transfer to destination accounts using core.Source.Send
-                            if (tokenA_to_send > 0) {
-                                let #ok(intentA) = core.Source.Send.intent(source_A, #destination({ port = 0 }), Int.abs(tokenA_to_send)) else return #err("Failed to create transfer intent for token A");
+                            if (safe_tokenA_to_send > 5*fee_a) {
+                                let #ok(intentA) = core.Source.Send.intent(source_A, #destination({ port = 0 }), Int.abs(safe_tokenA_to_send)) else return #err("Failed to create transfer intent for token A");
                                 ignore core.Source.Send.commit(intentA);
                             };
 
-                            if (tokenB_to_send > 0) {
-                                let #ok(intentB) = core.Source.Send.intent(source_B, #destination({ port = 1 }), Int.abs(tokenB_to_send)) else return #err("Failed to create transfer intent for token B");
+                            if (safe_tokenB_to_send > 5*fee_b) {
+                                let #ok(intentB) = core.Source.Send.intent(source_B, #destination({ port = 1 }), Int.abs(safe_tokenB_to_send)) else return #err("Failed to create transfer intent for token B");
                                 ignore core.Source.Send.commit(intentB);
                             };
                         };
@@ -449,6 +465,10 @@ module {
                 switch (intent) {
                     case (#ok(intent)) {
                         swap.LiquidityIntentRemove.commit(intent);
+                        cvid.internals.total_added := {
+                            tokenA = 0;
+                            tokenB = 0;
+                        };
                         cvid.internals.empty := true;
                     };
                     case (#err(e)) return #err(e);
@@ -485,8 +505,8 @@ module {
                 let ?price_details = swap.Price.getDirectDetailed(ledger_A, ledger_B, 0) else return #err("No price found");
 
                 // If price details are not available, fall back to the calculated range
-                let raw_from_price = convertToRawPrice(ledger_A, ledger_B, if (price_details.dir) from_price else to_price);
-                let raw_to_price = convertToRawPrice(ledger_A, ledger_B, if (price_details.dir) to_price else from_price);
+                let raw_from_price = convertToRawPrice(ledger_A, ledger_B, from_price);
+                let raw_to_price = convertToRawPrice(ledger_A, ledger_B, to_price);
 
                 // First try to add token A if available - use range from prev tick down to lower bound
                 if (bal_a >= min_fee) {

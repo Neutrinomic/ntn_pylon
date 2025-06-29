@@ -102,7 +102,8 @@ module {
             // Check if there is a pool
             let #ic(l1) = req.ledgers[0] else return #err("Ledger 1 not supported");
             let #ic(l2) = req.ledgers[1] else return #err("Ledger 2 not supported");
-            if (Option.isNull(swap.Pool.get(swap.getPoolAccount(l1, l2, 0)))) return #err("No pool found");
+            let ?pool = swap.Pool.get(swap.getPoolAccount(l1, l2, 0)) else return #err("No pool found");
+            if (pool.ledgerA != l1 or pool.ledgerB != l2) return #err("Switch ledger order");
 
             let obj : VM.NodeMem = {
                 init = t.init;
