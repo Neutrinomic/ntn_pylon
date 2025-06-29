@@ -18,6 +18,7 @@ import VecSwitcher "./modules/switcher/switcher";
 // import VecLend "./modules/lend/lend";
 import VecExchange "./modules/exchange/exchange";
 import VecExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
+import VecAutoLiquidity "./modules/auto_liquidity/auto_liquidity";
 // import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import VecVault "./modules/vault/vault";
@@ -91,7 +92,8 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     let vec_throttle = VecThrottle.Mod({xmem=mem_vec_throttle_1; core});
 
     stable let mem_vec_switcher_1 = VecSwitcher.Mem.Vector.V1.new();
-    let vec_switcher = VecSwitcher.Mod({xmem=mem_vec_switcher_1; core});
+    stable let mem_vec_switcher_2 = VecSwitcher.Mem.Vector.V2.upgrade( mem_vec_switcher_1);
+    let vec_switcher = VecSwitcher.Mod({xmem=mem_vec_switcher_2; core});
 
     // stable let mem_vec_lend_1 = VecLend.Mem.Vector.V1.new();
     // let vec_lend = VecLend.Mod({xmem=mem_vec_lend_1; core});
@@ -111,6 +113,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let mem_vec_exchange_liquidity_1 = VecExchangeLiquidity.Mem.Vector.V1.new();
     let vec_exchange_liquidity = VecExchangeLiquidity.Mod({xmem=mem_vec_exchange_liquidity_1; core; swap});
 
+    stable let mem_vec_auto_liquidity_1 = VecAutoLiquidity.Mem.Vector.V1.new();
+    let vec_auto_liquidity = VecAutoLiquidity.Mod({xmem=mem_vec_auto_liquidity_1; core; swap});
+
     stable let mem_vec_vault_1 = VecVault.Mem.Vector.V1.new();
     let vec_vault = VecVault.Mod({xmem=mem_vec_vault_1; core});
 
@@ -123,6 +128,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         // vec_escrow;
         vec_split;
         vec_exchange_liquidity;
+        vec_auto_liquidity;
         vec_vault;
     });
 
@@ -137,6 +143,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     private func proc() {
         vec_exchange_liquidity.run();
+        vec_auto_liquidity.run();
         vec_exchange.run();
         vec_throttle.run();
         vec_switcher.run();

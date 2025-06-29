@@ -4,7 +4,8 @@ module {
         init : {
         };
         variables : {
-            amount : NumVariant;
+            amount_a : NumVariant;
+            amount_b : NumVariant;
             switch_chance : Nat64; // 0-1000 percentage chance to switch
             switch_interval : NumVariant; // Time in seconds before considering a switch
             throttle_interval : NumVariant; // Time in seconds between sends
@@ -12,7 +13,8 @@ module {
     };
 
     public type ModifyRequest = {
-        amount : NumVariant;
+        amount_a : NumVariant;
+        amount_b : NumVariant;
         switch_chance : Nat64;
         switch_interval : NumVariant;
         throttle_interval : NumVariant;
@@ -22,7 +24,8 @@ module {
         init : {
         };
         variables : {
-            amount : NumVariant;
+            amount_a : NumVariant;
+            amount_b : NumVariant;
             switch_chance : Nat64;
             switch_interval : NumVariant;
             throttle_interval : NumVariant;

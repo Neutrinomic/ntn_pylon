@@ -1,36 +1,37 @@
 type _anon_class_30_1 = 
  service {
-   add_supported_ledger: (principal, variant {
-                                       icp;
-                                       icrc;
-                                     }) -> () oneway;
+   add_supported_ledger: (id: principal, ltype: variant {
+                                                  icp;
+                                                  icrc;
+                                                }) -> () oneway;
    chrono_records: () -> (opt ChronoRecord) query;
-   dex_ohlcv: (OHLCVRequest) -> (OHLCVResponse) query;
-   dex_pool_create: (PoolRequest) -> (PoolResponse);
-   dex_pool_delete: (DeletePoolRequest) -> (DeletePoolResponse);
-   dex_quote: (QuoteRequest) -> (QuoteResponse) query;
-   dex_swap: (SwapRequest) -> (SwapResponse);
+   dex_ohlcv: (req: OHLCVRequest) -> (OHLCVResponse) query;
+   dex_pool_create: (req: PoolRequest) -> (PoolResponse);
+   dex_pool_delete: (req: DeletePoolRequest) -> (DeletePoolResponse);
+   dex_quote: (req: QuoteRequest) -> (QuoteResponse) query;
+   dex_swap: (req: SwapRequest) -> (SwapResponse);
    get_ledger_errors: () -> (vec vec text) query;
    get_ledgers_info: () -> (vec LedgerInfo__1) query;
-   icrc3_get_archives: (GetArchivesArgs) -> (GetArchivesResult) query;
-   icrc3_get_blocks: (GetBlocksArgs) -> (GetBlocksResult) query;
+   icrc3_get_archives: (args: GetArchivesArgs) -> (GetArchivesResult) query;
+   icrc3_get_blocks: (args: GetBlocksArgs) -> (GetBlocksResult) query;
    icrc3_get_tip_certificate: () -> (opt DataCertificate) query;
    icrc3_supported_block_types: () -> (vec BlockType) query;
-   icrc45_get_pairs: (PairRequest) -> (PairResponse) query;
+   icrc45_get_pairs: (req: PairRequest) -> (PairResponse) query;
    icrc45_list_pairs: () -> (ListPairsResponse) query;
-   icrc55_account_register: (Account) -> ();
-   icrc55_accounts: (AccountsRequest) -> (AccountsResponse) query;
-   icrc55_command: (BatchCommandRequest) -> (BatchCommandResponse);
-   icrc55_command_validate: (BatchCommandRequest) -> (ValidationResult) query;
-   icrc55_get_controller_nodes: (GetControllerNodesRequest) ->
+   icrc55_account_register: (acc: Account) -> ();
+   icrc55_accounts: (req: AccountsRequest) -> (AccountsResponse) query;
+   icrc55_command: (req: BatchCommandRequest) -> (BatchCommandResponse);
+   icrc55_command_validate: (req: BatchCommandRequest) ->
+    (ValidationResult) query;
+   icrc55_get_controller_nodes: (req: GetControllerNodesRequest) ->
     (vec NodeShared) query;
-   icrc55_get_defaults: (text) -> (CreateRequest) query;
-   icrc55_get_nodes: (vec GetNode) -> (vec opt NodeShared) query;
+   icrc55_get_defaults: (id: text) -> (CreateRequest) query;
+   icrc55_get_nodes: (req: vec GetNode) -> (vec opt NodeShared) query;
    icrc55_get_pylon_meta: () -> (PylonMetaResp) query;
-   top_accounts: (principal) -> (vec record {
-                                       blob;
-                                       nat;
-                                     }) query;
+   top_accounts: (ledger: principal) -> (vec record {
+                                               blob;
+                                               nat;
+                                             }) query;
  };
 type Version = 
  variant {
@@ -154,8 +155,8 @@ type Shared__5 =
    init: record {};
    internals: record {wait_until_ts: nat64;};
    variables: record {
-                interval_sec: NumVariant__1;
-                max_amount: NumVariant__1;
+                interval_sec: NumVariant;
+                max_amount: NumVariant;
               };
  };
 type Shared__4 = 
@@ -169,7 +170,8 @@ type Shared__4 =
     };
    variables:
     record {
-      amount: NumVariant;
+      amount_a: NumVariant;
+      amount_b: NumVariant;
       switch_chance: nat64;
       switch_interval: NumVariant;
       throttle_interval: NumVariant;
@@ -380,14 +382,6 @@ type OHLCVRequest =
              t1s;
            };
  };
-type NumVariant__1 = 
- variant {
-   fixed: nat64;
-   rnd: record {
-          max: nat64;
-          min: nat64;
-        };
- };
 type NumVariant = 
  variant {
    fixed: nat64;
@@ -438,12 +432,13 @@ type ModuleMeta =
 type ModifyRequest__6 = record {description: text;};
 type ModifyRequest__5 = 
  record {
-   interval_sec: NumVariant__1;
-   max_amount: NumVariant__1;
+   interval_sec: NumVariant;
+   max_amount: NumVariant;
  };
 type ModifyRequest__4 = 
  record {
-   amount: NumVariant;
+   amount_a: NumVariant;
+   amount_b: NumVariant;
    switch_chance: nat64;
    switch_interval: NumVariant;
    throttle_interval: NumVariant;
@@ -704,8 +699,8 @@ type CreateRequest__5 =
  record {
    init: record {};
    variables: record {
-                interval_sec: NumVariant__1;
-                max_amount: NumVariant__1;
+                interval_sec: NumVariant;
+                max_amount: NumVariant;
               };
  };
 type CreateRequest__4 = 
@@ -713,7 +708,8 @@ type CreateRequest__4 =
    init: record {};
    variables:
     record {
-      amount: NumVariant;
+      amount_a: NumVariant;
+      amount_b: NumVariant;
       switch_chance: nat64;
       switch_interval: NumVariant;
       throttle_interval: NumVariant;
@@ -898,4 +894,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (opt SETTINGS) -> _anon_class_30_1
+service : (DFV_SETTINGS: opt SETTINGS) -> _anon_class_30_1

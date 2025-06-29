@@ -128,16 +128,14 @@ export interface CreateRequest__4 {
   'variables' : {
     'throttle_interval' : NumVariant,
     'switch_interval' : NumVariant,
-    'amount' : NumVariant,
+    'amount_a' : NumVariant,
+    'amount_b' : NumVariant,
     'switch_chance' : bigint,
   },
 }
 export interface CreateRequest__5 {
   'init' : {},
-  'variables' : {
-    'interval_sec' : NumVariant__1,
-    'max_amount' : NumVariant__1,
-  },
+  'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
 }
 export interface CreateRequest__6 {
   'init' : {},
@@ -310,12 +308,13 @@ export interface ModifyRequest__3 { 'split' : Array<bigint> }
 export interface ModifyRequest__4 {
   'throttle_interval' : NumVariant,
   'switch_interval' : NumVariant,
-  'amount' : NumVariant,
+  'amount_a' : NumVariant,
+  'amount_b' : NumVariant,
   'switch_chance' : bigint,
 }
 export interface ModifyRequest__5 {
-  'interval_sec' : NumVariant__1,
-  'max_amount' : NumVariant__1,
+  'interval_sec' : NumVariant,
+  'max_amount' : NumVariant,
 }
 export interface ModifyRequest__6 { 'description' : string }
 export interface ModuleMeta {
@@ -355,8 +354,6 @@ export interface NodeShared {
   'refund' : Account,
 }
 export type NumVariant = { 'rnd' : { 'max' : bigint, 'min' : bigint } } |
-  { 'fixed' : bigint };
-export type NumVariant__1 = { 'rnd' : { 'max' : bigint, 'min' : bigint } } |
   { 'fixed' : bigint };
 export interface OHLCVRequest {
   'l1' : SupportedLedger,
@@ -504,17 +501,15 @@ export interface Shared__4 {
   'variables' : {
     'throttle_interval' : NumVariant,
     'switch_interval' : NumVariant,
-    'amount' : NumVariant,
+    'amount_a' : NumVariant,
+    'amount_b' : NumVariant,
     'switch_chance' : bigint,
   },
 }
 export interface Shared__5 {
   'internals' : { 'wait_until_ts' : bigint },
   'init' : {},
-  'variables' : {
-    'interval_sec' : NumVariant__1,
-    'max_amount' : NumVariant__1,
-  },
+  'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
 }
 export interface Shared__6 {
   'internals' : {},

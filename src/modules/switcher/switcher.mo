@@ -2,6 +2,7 @@ import U "mo:devefi/utils";
 import Billing "../../billing_all";
 import MU "mo:mosup";
 import Ver1 "./memory/v1";
+import Ver2 "./memory/v2";
 import Map "mo:map/Map";
 import Nat "mo:base/Nat";
 import Nat64 "mo:base/Nat64";
@@ -15,9 +16,10 @@ module {
     public module Mem {
         public module Vector {
             public let V1 = Ver1;
+            public let V2 = Ver2;
         };
     };
-    let M = Mem.Vector.V1;
+    let M = Mem.Vector.V2;
 
     public let ID = "switcher";
 
@@ -41,7 +43,7 @@ module {
                 version = #alpha([0, 0, 1]);
                 create_allowed = true;
                 ledger_slots = [
-                    "Switcher"
+                    "A","B"
                 ];
                 billing = Billing.get();
                 sources = sources(0);
@@ -107,10 +109,10 @@ module {
                     };
 
                     // Calculate amount to send
-                    let amount_to_send : Nat64 = switch (sw.variables.amount) {
+                    let amount_to_send : Nat64 = switch (if (source_idx == 0) sw.variables.amount_a else sw.variables.amount_b) {
                         case (#fixed(fixed)) fixed;
                         case (#rnd({ min; max })) if (min >= max) 0 else min + rng.next() % (max - min);
-                    };
+                    }; 
 
                     // If current source has insufficient balance, switch to the other source
                     if (bal < fee * 100) {
@@ -138,12 +140,13 @@ module {
         public func create(id : T.NodeId, req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             if (not validate_min_amount(t.variables.switch_interval, 60)) return #err("Min switch_interval must be 60 sec");
             if (not validate_min_amount(t.variables.throttle_interval, 20)) return #err("Min throttle_interval must be 20 sec");
-            if (t.variables.switch_chance <= 1000) return #err("switch_chance must be between 0 and 1000");
+            if (t.variables.switch_chance > 1000) return #err("switch_chance must be between 0 and 1000");
 
             let obj : M.NodeMem = {
                 init = t.init;
                 variables = {
-                    var amount = t.variables.amount;
+                    var amount_a = t.variables.amount_a;
+                    var amount_b = t.variables.amount_b;
                     var switch_chance = t.variables.switch_chance;
                     var switch_interval = t.variables.switch_interval;
                     var throttle_interval = t.variables.throttle_interval;
@@ -167,9 +170,10 @@ module {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
             if (not validate_min_amount(m.switch_interval, 60)) return #err("Min switch_interval must be 60 sec");
             if (not validate_min_amount(m.throttle_interval, 20)) return #err("Min throttle_interval must be 20 sec");
-            if (m.switch_chance <= 1000) return #err("switch_chance must be between 0 and 1000");
+            if (m.switch_chance > 1000) return #err("switch_chance must be between 0 and 1000");
 
-            t.variables.amount := m.amount;
+            t.variables.amount_a := m.amount_a;
+            t.variables.amount_b := m.amount_b;
             t.variables.switch_chance := m.switch_chance;
             t.variables.switch_interval := m.switch_interval;
             t.variables.throttle_interval := m.throttle_interval;
@@ -185,7 +189,8 @@ module {
             #ok {
                 init = t.init;
                 variables = {
-                    amount = t.variables.amount;
+                    amount_a = t.variables.amount_a;
+                    amount_b = t.variables.amount_b;
                     switch_chance = t.variables.switch_chance;
                     switch_interval = t.variables.switch_interval;
                     throttle_interval = t.variables.throttle_interval;
@@ -202,7 +207,8 @@ module {
             {
                 init = {};
                 variables = {
-                    amount = #fixed(100_0000);
+                    amount_a = #fixed(100_0000);
+                    amount_b = #fixed(100_0000);
                     switch_chance = 500; // 50% chance (out of 1000)
                     switch_interval = #fixed(3600); // 1 hour
                     throttle_interval = #fixed(600); // 10 minutes

@@ -304,18 +304,15 @@ export const idlFactory = ({ IDL }) => {
   const ModifyRequest__4 = IDL.Record({
     'throttle_interval' : NumVariant,
     'switch_interval' : NumVariant,
-    'amount' : NumVariant,
+    'amount_a' : NumVariant,
+    'amount_b' : NumVariant,
     'switch_chance' : IDL.Nat64,
   });
   const ModifyRequest__6 = IDL.Record({ 'description' : IDL.Text });
   const ModifyRequest__3 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
-  const NumVariant__1 = IDL.Variant({
-    'rnd' : IDL.Record({ 'max' : IDL.Nat64, 'min' : IDL.Nat64 }),
-    'fixed' : IDL.Nat64,
-  });
   const ModifyRequest__5 = IDL.Record({
-    'interval_sec' : NumVariant__1,
-    'max_amount' : NumVariant__1,
+    'interval_sec' : NumVariant,
+    'max_amount' : NumVariant,
   });
   const ModifyRequest__1 = IDL.Record({
     'max_impact' : IDL.Float64,
@@ -362,7 +359,8 @@ export const idlFactory = ({ IDL }) => {
     'variables' : IDL.Record({
       'throttle_interval' : NumVariant,
       'switch_interval' : NumVariant,
-      'amount' : NumVariant,
+      'amount_a' : NumVariant,
+      'amount_b' : NumVariant,
       'switch_chance' : IDL.Nat64,
     }),
   });
@@ -377,8 +375,8 @@ export const idlFactory = ({ IDL }) => {
   const CreateRequest__5 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
-      'interval_sec' : NumVariant__1,
-      'max_amount' : NumVariant__1,
+      'interval_sec' : NumVariant,
+      'max_amount' : NumVariant,
     }),
   });
   const CreateRequest__1 = IDL.Record({
@@ -450,7 +448,8 @@ export const idlFactory = ({ IDL }) => {
     'variables' : IDL.Record({
       'throttle_interval' : NumVariant,
       'switch_interval' : NumVariant,
-      'amount' : NumVariant,
+      'amount_a' : NumVariant,
+      'amount_b' : NumVariant,
       'switch_chance' : IDL.Nat64,
     }),
   });
@@ -468,8 +467,8 @@ export const idlFactory = ({ IDL }) => {
     'internals' : IDL.Record({ 'wait_until_ts' : IDL.Nat64 }),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
-      'interval_sec' : NumVariant__1,
-      'max_amount' : NumVariant__1,
+      'interval_sec' : NumVariant,
+      'max_amount' : NumVariant,
     }),
   });
   const Shared__1 = IDL.Record({
