@@ -247,10 +247,7 @@ module {
                 // Check mode and run appropriate function
                 switch (parm.variables.mode) {
                     case (#auto) {
-                        // Add input change detection
-                        let force_refresh = (parm.internals.last_run + RUN_ONCE_UNLESS_INPUTS_CHANGED < now);
-                        if (not has_input_changed(vid, vec, parm) and (not force_refresh)) continue vec_loop;
-
+                      
                         switch (Run.single(vid, vec, parm)) {
                             case (#err(e)) {
                                 parm.internals.last_error := ?e;
@@ -299,6 +296,10 @@ module {
             public func single(vid : T.NodeId, vec : T.NodeCoreMem, ex : VM.NodeMem) : RunResult {
                 let now = U.now();
 
+                // Add input change detection
+                let force_refresh = (ex.internals.last_run + RUN_ONCE_UNLESS_INPUTS_CHANGED < now);
+               
+
                 // First get necessary data
                 var ledger_A = U.onlyICLedger(vec.ledgers[0]);
                 var ledger_B = U.onlyICLedger(vec.ledgers[1]);
@@ -313,6 +314,9 @@ module {
                 let ?source_B = core.getSource(vid, vec, 1) else return #err("no source 1");
                 let bal_a = core.Source.balance(source_A);
                 let bal_b = core.Source.balance(source_B);
+
+                let inputs_changed = ex.internals.last_inputs.tokenA != bal_a or ex.internals.last_inputs.tokenB != bal_b;
+
                 let min_fee = swap._swap_fee_e4s * 100; // 100x the fee as minimum
                 let sources_have_funds = bal_a >= min_fee or bal_b >= min_fee;
 
@@ -321,7 +325,7 @@ module {
                 let is_rebalance_time = ex.internals.last_rebalance + interval_ns <= now;
 
                 // If it's not time to rebalance and sources don't have funds, skip
-                if (not is_rebalance_time and not sources_have_funds) {
+                if (not is_rebalance_time and not sources_have_funds and not force_refresh and not inputs_changed) {
                     return #skip;
                 };
 
