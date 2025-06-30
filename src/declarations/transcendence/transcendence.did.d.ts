@@ -479,9 +479,7 @@ export type Shared = { 'switcher' : Shared__5 } |
 export interface Shared__1 {
   'internals' : {
     'last_error' : [] | [string],
-    'next_rebalance' : bigint,
     'current_price' : [] | [number],
-    'last_rebalance' : bigint,
     'tokenA' : bigint,
     'tokenB' : bigint,
     'last_run' : bigint,

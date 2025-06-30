@@ -230,9 +230,7 @@ type Shared__1 =
       addedTokenB: nat;
       current_price: opt float64;
       last_error: opt text;
-      last_rebalance: nat64;
       last_run: nat64;
-      next_rebalance: nat64;
       tokenA: nat;
       tokenB: nat;
     };

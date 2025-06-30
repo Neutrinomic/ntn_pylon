@@ -58,9 +58,9 @@ module {
             from_price : Float;
             to_price : Float;
         } {
-            let percentage = rangePercent / 100.0;
-            let from_price = currentPrice * (1.0 - percentage);
-            let to_price = currentPrice * (1.0 + percentage);
+            let factor = Float.sqrt(1.0 + rangePercent / 100.0);
+            let from_price = currentPrice / factor;
+            let to_price = currentPrice * factor;
             return { from_price; to_price };
         };
 

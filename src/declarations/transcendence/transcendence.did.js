@@ -522,9 +522,7 @@ export const idlFactory = ({ IDL }) => {
   const Shared__1 = IDL.Record({
     'internals' : IDL.Record({
       'last_error' : IDL.Opt(IDL.Text),
-      'next_rebalance' : IDL.Nat64,
       'current_price' : IDL.Opt(IDL.Float64),
-      'last_rebalance' : IDL.Nat64,
       'tokenA' : IDL.Nat,
       'tokenB' : IDL.Nat,
       'last_run' : IDL.Nat64,
