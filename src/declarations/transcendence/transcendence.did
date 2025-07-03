@@ -1,4 +1,4 @@
-type _anon_class_31_1 = 
+type _anon_class_32_1 = 
  service {
    add_supported_ledger: (id: principal, ltype: variant {
                                                   icp;
@@ -144,13 +144,13 @@ type SourceEndpointResp =
    endpoint: Endpoint;
    name: text;
  };
-type Shared__7 = 
+type Shared__8 = 
  record {
    init: record {};
    internals: record {};
    variables: record {description: text;};
  };
-type Shared__6 = 
+type Shared__7 = 
  record {
    init: record {};
    internals: record {wait_until_ts: nat64;};
@@ -159,7 +159,7 @@ type Shared__6 =
                 max_amount: NumVariant;
               };
  };
-type Shared__5 = 
+type Shared__6 = 
  record {
    init: record {};
    internals:
@@ -177,13 +177,13 @@ type Shared__5 =
       throttle_interval: NumVariant;
     };
  };
-type Shared__4 = 
+type Shared__5 = 
  record {
    init: record {};
    internals: record {};
    variables: record {split: vec nat;};
  };
-type Shared__3 = 
+type Shared__4 = 
  record {
    init: record {};
    internals:
@@ -200,7 +200,7 @@ type Shared__3 =
                 range: Range;
               };
  };
-type Shared__2 = 
+type Shared__3 = 
  record {
    init: record {};
    internals:
@@ -219,6 +219,29 @@ type Shared__2 =
       buy_interval_seconds: nat64;
       max_impact: float64;
       max_rate: opt float64;
+    };
+ };
+type Shared__2 = 
+ record {
+   init: record {};
+   internals:
+    record {
+      current_ratios: vec float64;
+      last_error: opt text;
+      last_rebalance: nat64;
+      last_remove: nat64;
+      last_run: nat64;
+      total_value_usd: float64;
+    };
+   variables:
+    record {
+      price_ledger_id: principal;
+      rebalance_interval_seconds: nat64;
+      remove_amount_usd: nat;
+      remove_interval_seconds: nat64;
+      swap_amount_usd: nat;
+      threshold_percent: float64;
+      token_ratios: vec nat;
     };
  };
 type Shared__1 = 
@@ -245,12 +268,13 @@ type Shared__1 =
 type Shared = 
  variant {
    auto_liquidity: Shared__1;
-   exchange: Shared__2;
-   exchange_liquidity: Shared__3;
-   split: Shared__4;
-   switcher: Shared__5;
-   throttle: Shared__6;
-   vault: Shared__7;
+   balancer: Shared__2;
+   exchange: Shared__3;
+   exchange_liquidity: Shared__4;
+   split: Shared__5;
+   switcher: Shared__6;
+   throttle: Shared__7;
+   vault: Shared__8;
  };
 type Sent = 
  record {
@@ -451,13 +475,13 @@ type ModuleMeta =
    temporary_allowed: bool;
    version: Version;
  };
-type ModifyRequest__7 = record {description: text;};
-type ModifyRequest__6 = 
+type ModifyRequest__8 = record {description: text;};
+type ModifyRequest__7 = 
  record {
    interval_sec: NumVariant;
    max_amount: NumVariant;
  };
-type ModifyRequest__5 = 
+type ModifyRequest__6 = 
  record {
    amount_a: NumVariant;
    amount_b: NumVariant;
@@ -465,18 +489,28 @@ type ModifyRequest__5 =
    switch_interval: NumVariant;
    throttle_interval: NumVariant;
  };
-type ModifyRequest__4 = record {split: vec nat;};
-type ModifyRequest__3 = 
+type ModifyRequest__5 = record {split: vec nat;};
+type ModifyRequest__4 = 
  record {
    flow: Flow;
    range: Range;
  };
-type ModifyRequest__2 = 
+type ModifyRequest__3 = 
  record {
    buy_for_amount: nat;
    buy_interval_seconds: nat64;
    max_impact: float64;
    max_rate: opt float64;
+ };
+type ModifyRequest__2 = 
+ record {
+   price_ledger_id: principal;
+   rebalance_interval_seconds: nat64;
+   remove_amount_usd: nat;
+   remove_interval_seconds: nat64;
+   swap_amount_usd: nat;
+   threshold_percent: float64;
+   token_ratios: vec nat;
  };
 type ModifyRequest__1 = 
  record {
@@ -488,12 +522,13 @@ type ModifyRequest__1 =
 type ModifyRequest = 
  variant {
    auto_liquidity: ModifyRequest__1;
-   exchange: ModifyRequest__2;
-   exchange_liquidity: ModifyRequest__3;
-   split: ModifyRequest__4;
-   switcher: ModifyRequest__5;
-   throttle: ModifyRequest__6;
-   vault: ModifyRequest__7;
+   balancer: ModifyRequest__2;
+   exchange: ModifyRequest__3;
+   exchange_liquidity: ModifyRequest__4;
+   split: ModifyRequest__5;
+   switcher: ModifyRequest__6;
+   throttle: ModifyRequest__7;
+   vault: ModifyRequest__8;
  };
 type ModifyNodeResponse = 
  variant {
@@ -725,12 +760,12 @@ type DataCertificate =
    certificate: blob;
    hash_tree: blob;
  };
-type CreateRequest__7 = 
+type CreateRequest__8 = 
  record {
    init: record {};
    variables: record {description: text;};
  };
-type CreateRequest__6 = 
+type CreateRequest__7 = 
  record {
    init: record {};
    variables: record {
@@ -738,7 +773,7 @@ type CreateRequest__6 =
                 max_amount: NumVariant;
               };
  };
-type CreateRequest__5 = 
+type CreateRequest__6 = 
  record {
    init: record {};
    variables:
@@ -750,12 +785,12 @@ type CreateRequest__5 =
       throttle_interval: NumVariant;
     };
  };
-type CreateRequest__4 = 
+type CreateRequest__5 = 
  record {
    init: record {};
    variables: record {split: vec nat;};
  };
-type CreateRequest__3 = 
+type CreateRequest__4 = 
  record {
    init: record {};
    variables: record {
@@ -763,7 +798,7 @@ type CreateRequest__3 =
                 range: Range;
               };
  };
-type CreateRequest__2 = 
+type CreateRequest__3 = 
  record {
    init: record {};
    variables:
@@ -772,6 +807,20 @@ type CreateRequest__2 =
       buy_interval_seconds: nat64;
       max_impact: float64;
       max_rate: opt float64;
+    };
+ };
+type CreateRequest__2 = 
+ record {
+   init: record {};
+   variables:
+    record {
+      price_ledger_id: principal;
+      rebalance_interval_seconds: nat64;
+      remove_amount_usd: nat;
+      remove_interval_seconds: nat64;
+      swap_amount_usd: nat;
+      threshold_percent: float64;
+      token_ratios: vec nat;
     };
  };
 type CreateRequest__1 = 
@@ -788,12 +837,13 @@ type CreateRequest__1 =
 type CreateRequest = 
  variant {
    auto_liquidity: CreateRequest__1;
-   exchange: CreateRequest__2;
-   exchange_liquidity: CreateRequest__3;
-   split: CreateRequest__4;
-   switcher: CreateRequest__5;
-   throttle: CreateRequest__6;
-   vault: CreateRequest__7;
+   balancer: CreateRequest__2;
+   exchange: CreateRequest__3;
+   exchange_liquidity: CreateRequest__4;
+   split: CreateRequest__5;
+   switcher: CreateRequest__6;
+   throttle: CreateRequest__7;
+   vault: CreateRequest__8;
  };
 type CreateNodeResponse = 
  variant {
@@ -941,4 +991,4 @@ type Account =
    owner: principal;
    subaccount: opt blob;
  };
-service : (DFV_SETTINGS: opt SETTINGS) -> _anon_class_31_1
+service : (DFV_SETTINGS: opt SETTINGS) -> _anon_class_32_1

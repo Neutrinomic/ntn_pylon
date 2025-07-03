@@ -100,12 +100,13 @@ export interface Controller {
 export type CreateNodeRequest = [CommonCreateRequest, CreateRequest];
 export type CreateNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type CreateRequest = { 'switcher' : CreateRequest__5 } |
-  { 'vault' : CreateRequest__7 } |
-  { 'split' : CreateRequest__4 } |
-  { 'throttle' : CreateRequest__6 } |
-  { 'exchange' : CreateRequest__2 } |
-  { 'exchange_liquidity' : CreateRequest__3 } |
+export type CreateRequest = { 'switcher' : CreateRequest__6 } |
+  { 'vault' : CreateRequest__8 } |
+  { 'split' : CreateRequest__5 } |
+  { 'throttle' : CreateRequest__7 } |
+  { 'exchange' : CreateRequest__3 } |
+  { 'exchange_liquidity' : CreateRequest__4 } |
+  { 'balancer' : CreateRequest__2 } |
   { 'auto_liquidity' : CreateRequest__1 };
 export interface CreateRequest__1 {
   'init' : {},
@@ -119,21 +120,33 @@ export interface CreateRequest__1 {
 export interface CreateRequest__2 {
   'init' : {},
   'variables' : {
+    'token_ratios' : Array<bigint>,
+    'remove_amount_usd' : bigint,
+    'remove_interval_seconds' : bigint,
+    'price_ledger_id' : Principal,
+    'threshold_percent' : number,
+    'rebalance_interval_seconds' : bigint,
+    'swap_amount_usd' : bigint,
+  },
+}
+export interface CreateRequest__3 {
+  'init' : {},
+  'variables' : {
     'max_impact' : number,
     'max_rate' : [] | [number],
     'buy_for_amount' : bigint,
     'buy_interval_seconds' : bigint,
   },
 }
-export interface CreateRequest__3 {
+export interface CreateRequest__4 {
   'init' : {},
   'variables' : { 'flow' : Flow, 'range' : Range },
 }
-export interface CreateRequest__4 {
+export interface CreateRequest__5 {
   'init' : {},
   'variables' : { 'split' : Array<bigint> },
 }
-export interface CreateRequest__5 {
+export interface CreateRequest__6 {
   'init' : {},
   'variables' : {
     'throttle_interval' : NumVariant,
@@ -143,11 +156,11 @@ export interface CreateRequest__5 {
     'switch_chance' : bigint,
   },
 }
-export interface CreateRequest__6 {
+export interface CreateRequest__7 {
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
 }
-export interface CreateRequest__7 {
+export interface CreateRequest__8 {
   'init' : {},
   'variables' : { 'description' : string },
 }
@@ -303,12 +316,13 @@ export type ModifyNodeRequest = [
 ];
 export type ModifyNodeResponse = { 'ok' : GetNodeResponse } |
   { 'err' : string };
-export type ModifyRequest = { 'switcher' : ModifyRequest__5 } |
-  { 'vault' : ModifyRequest__7 } |
-  { 'split' : ModifyRequest__4 } |
-  { 'throttle' : ModifyRequest__6 } |
-  { 'exchange' : ModifyRequest__2 } |
-  { 'exchange_liquidity' : ModifyRequest__3 } |
+export type ModifyRequest = { 'switcher' : ModifyRequest__6 } |
+  { 'vault' : ModifyRequest__8 } |
+  { 'split' : ModifyRequest__5 } |
+  { 'throttle' : ModifyRequest__7 } |
+  { 'exchange' : ModifyRequest__3 } |
+  { 'exchange_liquidity' : ModifyRequest__4 } |
+  { 'balancer' : ModifyRequest__2 } |
   { 'auto_liquidity' : ModifyRequest__1 };
 export interface ModifyRequest__1 {
   'mode' : Mode,
@@ -317,25 +331,34 @@ export interface ModifyRequest__1 {
   'remove_percent' : number,
 }
 export interface ModifyRequest__2 {
+  'token_ratios' : Array<bigint>,
+  'remove_amount_usd' : bigint,
+  'remove_interval_seconds' : bigint,
+  'price_ledger_id' : Principal,
+  'threshold_percent' : number,
+  'rebalance_interval_seconds' : bigint,
+  'swap_amount_usd' : bigint,
+}
+export interface ModifyRequest__3 {
   'max_impact' : number,
   'max_rate' : [] | [number],
   'buy_for_amount' : bigint,
   'buy_interval_seconds' : bigint,
 }
-export interface ModifyRequest__3 { 'flow' : Flow, 'range' : Range }
-export interface ModifyRequest__4 { 'split' : Array<bigint> }
-export interface ModifyRequest__5 {
+export interface ModifyRequest__4 { 'flow' : Flow, 'range' : Range }
+export interface ModifyRequest__5 { 'split' : Array<bigint> }
+export interface ModifyRequest__6 {
   'throttle_interval' : NumVariant,
   'switch_interval' : NumVariant,
   'amount_a' : NumVariant,
   'amount_b' : NumVariant,
   'switch_chance' : bigint,
 }
-export interface ModifyRequest__6 {
+export interface ModifyRequest__7 {
   'interval_sec' : NumVariant,
   'max_amount' : NumVariant,
 }
-export interface ModifyRequest__7 { 'description' : string }
+export interface ModifyRequest__8 { 'description' : string }
 export interface ModuleMeta {
   'id' : string,
   'create_allowed' : boolean,
@@ -469,12 +492,13 @@ export interface Sent {
   'ledger' : Principal,
   'amount' : bigint,
 }
-export type Shared = { 'switcher' : Shared__5 } |
-  { 'vault' : Shared__7 } |
-  { 'split' : Shared__4 } |
-  { 'throttle' : Shared__6 } |
-  { 'exchange' : Shared__2 } |
-  { 'exchange_liquidity' : Shared__3 } |
+export type Shared = { 'switcher' : Shared__6 } |
+  { 'vault' : Shared__8 } |
+  { 'split' : Shared__5 } |
+  { 'throttle' : Shared__7 } |
+  { 'exchange' : Shared__3 } |
+  { 'exchange_liquidity' : Shared__4 } |
+  { 'balancer' : Shared__2 } |
   { 'auto_liquidity' : Shared__1 };
 export interface Shared__1 {
   'internals' : {
@@ -496,6 +520,26 @@ export interface Shared__1 {
 }
 export interface Shared__2 {
   'internals' : {
+    'last_error' : [] | [string],
+    'last_remove' : bigint,
+    'current_ratios' : Array<number>,
+    'last_rebalance' : bigint,
+    'total_value_usd' : number,
+    'last_run' : bigint,
+  },
+  'init' : {},
+  'variables' : {
+    'token_ratios' : Array<bigint>,
+    'remove_amount_usd' : bigint,
+    'remove_interval_seconds' : bigint,
+    'price_ledger_id' : Principal,
+    'threshold_percent' : number,
+    'rebalance_interval_seconds' : bigint,
+    'swap_amount_usd' : bigint,
+  },
+}
+export interface Shared__3 {
+  'internals' : {
     'next_buy' : bigint,
     'last_error' : [] | [string],
     'swap_fee_e4s' : bigint,
@@ -512,7 +556,7 @@ export interface Shared__2 {
     'buy_interval_seconds' : bigint,
   },
 }
-export interface Shared__3 {
+export interface Shared__4 {
   'internals' : {
     'last_error' : [] | [string],
     'tokenA' : bigint,
@@ -524,12 +568,12 @@ export interface Shared__3 {
   'init' : {},
   'variables' : { 'flow' : Flow, 'range' : Range },
 }
-export interface Shared__4 {
+export interface Shared__5 {
   'internals' : {},
   'init' : {},
   'variables' : { 'split' : Array<bigint> },
 }
-export interface Shared__5 {
+export interface Shared__6 {
   'internals' : {
     'next_send_ts' : bigint,
     'next_switch_ts' : bigint,
@@ -544,12 +588,12 @@ export interface Shared__5 {
     'switch_chance' : bigint,
   },
 }
-export interface Shared__6 {
+export interface Shared__7 {
   'internals' : { 'wait_until_ts' : bigint },
   'init' : {},
   'variables' : { 'interval_sec' : NumVariant, 'max_amount' : NumVariant },
 }
-export interface Shared__7 {
+export interface Shared__8 {
   'internals' : {},
   'init' : {},
   'variables' : { 'description' : string },
@@ -611,7 +655,7 @@ export type ValueMap = [string, Value];
 export type Version = { 'alpha' : Uint16Array | number[] } |
   { 'beta' : Uint16Array | number[] } |
   { 'release' : Uint16Array | number[] };
-export interface _anon_class_31_1 {
+export interface _anon_class_32_1 {
   'add_supported_ledger' : ActorMethod<
     [Principal, { 'icp' : null } | { 'icrc' : null }],
     undefined
@@ -649,6 +693,6 @@ export interface _anon_class_31_1 {
     Array<[Uint8Array | number[], bigint]>
   >,
 }
-export interface _SERVICE extends _anon_class_31_1 {}
+export interface _SERVICE extends _anon_class_32_1 {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

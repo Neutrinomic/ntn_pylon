@@ -136,7 +136,7 @@ module {
                 variables = {
                     token_ratios = [8, 2]; // Default 80%/20% ratio
                     threshold_percent = 3.0; // Default 3% threshold
-                    swap_amount_usd = 10; // Default $10 swap amount
+                    swap_amount_usd = 5; // Default $10 swap amount
                     rebalance_interval_seconds = 60; // Default 1 minute
                     remove_interval_seconds = 300; // Default 5 minutes
                     remove_amount_usd = 10; // Default $10 removal amount
@@ -157,8 +157,8 @@ module {
             if (m.token_ratios.size() != 2) return #err("Must provide exactly 2 token ratios");
             if (m.token_ratios[0] == 0 and m.token_ratios[1] == 0) return #err("At least one token ratio must be non-zero");
             if (m.threshold_percent < 1.0) return #err("Threshold percentage must be at least 1%");
-            if (m.swap_amount_usd < 10) return #err("Swap amount must be at least 10 USD");
-            if (m.swap_amount_usd > 30) return #err("Swap amount must be at most 30 USD");
+            if (m.swap_amount_usd < 5) return #err("Swap amount must be at least 5 USD");
+            if (m.swap_amount_usd > 40) return #err("Swap amount must be at most 40 USD");
             if (m.rebalance_interval_seconds < 20) return #err("Rebalance interval must be at least 20 seconds");
             if (m.remove_interval_seconds < 30) return #err("Remove interval must be at least 30 seconds");
             
@@ -242,7 +242,7 @@ module {
                 
                 // Check if it's time to remove tokens
                 let remove_interval_ns : Nat64 = parm.variables.remove_interval_seconds * 1_000_000_000;
-                if (parm.internals.last_remove + remove_interval_ns <= now) {
+                if (parm.internals.last_remove + remove_interval_ns <= now and parm.variables.remove_amount_usd > 0) {
                     switch (Run.remove(vid, vec, parm)) {
                         case (#err(e)) {
                             parm.internals.last_error := ?e;
@@ -316,109 +316,97 @@ module {
                 let ?source_account_A = core.Source.getAccount(source_A) else return #err("No source account A");
                 let ?source_account_B = core.Source.getAccount(source_B) else return #err("No source account B");
                 
-                // Get token balances directly from sources
+                // Get token balances
                 let balance_A = core.Source.balance(source_A);
                 let balance_B = core.Source.balance(source_B);
                 
-                // Skip only if both balances are zero - we can handle one token being zero
-                if (balance_A == 0 and balance_B == 0) return #skip;
+                let fee_A = core.Source.fee(source_A);
+                let fee_B = core.Source.fee(source_B);
+                // Skip if both balances are zero
+                if (balance_A < 100 * fee_A and balance_B < 100 * fee_B) return #skip;
                 
-                // Get token prices in USD using the price_ledger_id from node memory
+                // Get token prices in USD
                 let ?price_A_usd = getTokenPriceUSD(ledger_A, bal.variables.price_ledger_id) else return #err("Could not get USD price for token A");
                 let ?price_B_usd = getTokenPriceUSD(ledger_B, bal.variables.price_ledger_id) else return #err("Could not get USD price for token B");
                 
-                // Calculate token values in USD, adjusting for decimals
+                // Calculate token values in USD
                 let adjusted_balance_A = adjustBalanceForDecimals(balance_A, source_A);
                 let adjusted_balance_B = adjustBalanceForDecimals(balance_B, source_B);
-                
                 let value_A_usd = adjusted_balance_A * price_A_usd;
                 let value_B_usd = adjusted_balance_B * price_B_usd;
                 let total_value_usd = value_A_usd + value_B_usd;
                 
-                // Skip if total value is zero or too small
-                if (total_value_usd < 0.01) return #skip;
+                // Skip if total value is too small
+                if (total_value_usd < 1.0) return #skip;
                 
-                // Calculate current ratios - guard against division by zero
+                // Calculate current ratio
                 let current_ratio_A = if (total_value_usd == 0.0) 0.0 else value_A_usd / total_value_usd;
-                let current_ratio_B = if (total_value_usd == 0.0) 0.0 else value_B_usd / total_value_usd;
+                let current_ratio_B = 1.0 - current_ratio_A;
                 
                 // Update internals
                 bal.internals.total_value_usd := total_value_usd;
                 bal.internals.current_ratios := [current_ratio_A, current_ratio_B];
                 
-                // Calculate target ratios on-the-fly
+                // Calculate target ratio
                 let target_ratios = calculateTargetRatios(bal.variables.token_ratios);
                 let target_ratio_A = target_ratios[0];
-                let target_ratio_B = target_ratios[1];
                 
-                // Calculate percentage difference from target
-                // Guard against division by zero
-                let diff_A_percent = if (target_ratio_A == 0.0) {
-                    if (current_ratio_A == 0.0) 0.0 else 100.0 // If target is 0, any non-zero value is 100% off
-                } else {
-                    Float.abs((current_ratio_A - target_ratio_A) / target_ratio_A) * 100.0
-                };
+                // Calculate difference from target
+                let diff_percent = Float.abs((current_ratio_A - target_ratio_A) / target_ratio_A) * 100.0;
                 
-                let diff_B_percent = if (target_ratio_B == 0.0) {
-                    if (current_ratio_B == 0.0) 0.0 else 100.0 // If target is 0, any non-zero value is 100% off
-                } else {
-                    Float.abs((current_ratio_B - target_ratio_B) / target_ratio_B) * 100.0
-                };
+                // Skip if difference is below threshold
+                if (diff_percent < bal.variables.threshold_percent) return #skip;
                 
-                // Handle special case when one token has zero balance
-                let needs_rebalancing = if (balance_A == 0 or balance_B == 0) {
-                    true // Always rebalance if one token is missing
-                } else {
-                    // Normal case: check if difference exceeds threshold
-                    diff_A_percent >= bal.variables.threshold_percent or diff_B_percent >= bal.variables.threshold_percent
-                };
+                // Determine which token to sell
+                let is_selling_A = current_ratio_A > target_ratio_A;
                 
-                // Check if rebalancing is needed
-                if (not needs_rebalancing) {
-                    return #skip; // No rebalancing needed
-                };
+                // Calculate imbalance amount
+                let target_value_A = total_value_usd * target_ratio_A;
+                let imbalance_usd = Float.abs(value_A_usd - target_value_A);
                 
-                // Determine which token to sell and which to buy
-                let (from_ledger, to_ledger, from_source, to_account, amount_to_swap) = if (current_ratio_A > target_ratio_A) {
-                    // Token A is overweight, sell some A to buy B
-                    let swap_amount_usd = Float.fromInt(bal.variables.swap_amount_usd);
-                    let swap_amount_tokens = if (price_A_usd == 0.0) 0.0 else Float.min(
-                        Float.fromInt(balance_A),
-                        (swap_amount_usd / price_A_usd) * Float.pow(10, Float.fromInt(core.Source.decimals(source_A)))
-                    );
-                    let amount = Nat.max(1, Int.abs(Float.toInt(swap_amount_tokens)));
+                // Get configured swap amount
+                let max_swap_usd = Float.fromInt(bal.variables.swap_amount_usd);
+                
+                // Skip if imbalance is too small
+                if (imbalance_usd < max_swap_usd) return #skip;
+                
+                // Cap swap amount at configured maximum
+                let swap_amount_usd = max_swap_usd;
+                
+                // Calculate token amount to swap
+                let (from_ledger, to_ledger, from_source, to_account, amount_to_swap) = if (is_selling_A) {
+                    // Sell token A
+                    let amount = if (price_A_usd == 0.0) 0 else 
+                        Nat.max(1, Int.abs(Float.toInt(
+                            (swap_amount_usd / price_A_usd) * Float.pow(10, Float.fromInt(core.Source.decimals(source_A)))
+                        )));
                     (ledger_A, ledger_B, source_A, source_account_B, amount)
                 } else {
-                    // Token B is overweight, sell some B to buy A
-                    let swap_amount_usd = Float.fromInt(bal.variables.swap_amount_usd);
-                    let swap_amount_tokens = if (price_B_usd == 0.0) 0.0 else Float.min(
-                        Float.fromInt(balance_B),
-                        (swap_amount_usd / price_B_usd) * Float.pow(10, Float.fromInt(core.Source.decimals(source_B)))
-                    );
-                    let amount = Nat.max(1, Int.abs(Float.toInt(swap_amount_tokens)));
+                    // Sell token B
+                    let amount = if (price_B_usd == 0.0) 0 else 
+                        Nat.max(1, Int.abs(Float.toInt(
+                            (swap_amount_usd / price_B_usd) * Float.pow(10, Float.fromInt(core.Source.decimals(source_B)))
+                        )));
                     (ledger_B, ledger_A, source_B, source_account_A, amount)
                 };
                 
-                // Skip if amount to swap is too small
+                // Skip if amount is too small
                 if (amount_to_swap == 0) return #skip;
                 
-                // Skip if the source balance is zero (can happen when one token is missing)
-                if (core.Source.balance(from_source) == 0) return #skip;
+                // Check if we have enough balance
+                if (core.Source.balance(from_source) < amount_to_swap) return #skip;
                 
                 // Get source account
                 let ?from_account = core.Source.getAccount(from_source) else return #err("No source account");
                 
-                // Get ledger fee and check if amount is sufficient (at least 200x the fee)
+                // Check if amount exceeds minimum fee requirement
                 let ledger_fee = core.Source.fee(from_source);
-                if (amount_to_swap < 200 * ledger_fee) {
-                    if (DEBUG) U.log("Skipping swap: amount " # debug_show(amount_to_swap) # " is less than 200x fee " # debug_show(ledger_fee));
-                    return #skip;
-                };
+                if (amount_to_swap < 200 * ledger_fee) return #skip;
                 
-                // Create swap intent - send tokens to the correct destination account
+                // Create swap intent
                 let intent = swap.Intent.get(
                     from_account, 
-                    to_account, // Send to the destination token's account
+                    to_account,
                     from_ledger, 
                     to_ledger, 
                     amount_to_swap, 
@@ -430,9 +418,6 @@ module {
                     switch (intent) {
                         case (#err(e)) #err(e);
                         case (#ok(intent)) {
-                            let {amount_in; amount_out} = swap.Intent.quote(intent);
-                            
-                            // Execute the swap
                             swap.Intent.commit(intent);
                             #ok;
                         };

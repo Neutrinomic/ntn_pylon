@@ -301,20 +301,20 @@ export const idlFactory = ({ IDL }) => {
     'rnd' : IDL.Record({ 'max' : IDL.Nat64, 'min' : IDL.Nat64 }),
     'fixed' : IDL.Nat64,
   });
-  const ModifyRequest__5 = IDL.Record({
+  const ModifyRequest__6 = IDL.Record({
     'throttle_interval' : NumVariant,
     'switch_interval' : NumVariant,
     'amount_a' : NumVariant,
     'amount_b' : NumVariant,
     'switch_chance' : IDL.Nat64,
   });
-  const ModifyRequest__7 = IDL.Record({ 'description' : IDL.Text });
-  const ModifyRequest__4 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
-  const ModifyRequest__6 = IDL.Record({
+  const ModifyRequest__8 = IDL.Record({ 'description' : IDL.Text });
+  const ModifyRequest__5 = IDL.Record({ 'split' : IDL.Vec(IDL.Nat) });
+  const ModifyRequest__7 = IDL.Record({
     'interval_sec' : NumVariant,
     'max_amount' : NumVariant,
   });
-  const ModifyRequest__2 = IDL.Record({
+  const ModifyRequest__3 = IDL.Record({
     'max_impact' : IDL.Float64,
     'max_rate' : IDL.Opt(IDL.Float64),
     'buy_for_amount' : IDL.Nat,
@@ -327,7 +327,16 @@ export const idlFactory = ({ IDL }) => {
       'from_price' : IDL.Float64,
     }),
   });
-  const ModifyRequest__3 = IDL.Record({ 'flow' : Flow, 'range' : Range });
+  const ModifyRequest__4 = IDL.Record({ 'flow' : Flow, 'range' : Range });
+  const ModifyRequest__2 = IDL.Record({
+    'token_ratios' : IDL.Vec(IDL.Nat),
+    'remove_amount_usd' : IDL.Nat,
+    'remove_interval_seconds' : IDL.Nat64,
+    'price_ledger_id' : IDL.Principal,
+    'threshold_percent' : IDL.Float64,
+    'rebalance_interval_seconds' : IDL.Nat64,
+    'swap_amount_usd' : IDL.Nat,
+  });
   const Mode = IDL.Variant({ 'remove' : IDL.Null, 'auto' : IDL.Null });
   const ModifyRequest__1 = IDL.Record({
     'mode' : Mode,
@@ -336,12 +345,13 @@ export const idlFactory = ({ IDL }) => {
     'remove_percent' : IDL.Float64,
   });
   const ModifyRequest = IDL.Variant({
-    'switcher' : ModifyRequest__5,
-    'vault' : ModifyRequest__7,
-    'split' : ModifyRequest__4,
-    'throttle' : ModifyRequest__6,
-    'exchange' : ModifyRequest__2,
-    'exchange_liquidity' : ModifyRequest__3,
+    'switcher' : ModifyRequest__6,
+    'vault' : ModifyRequest__8,
+    'split' : ModifyRequest__5,
+    'throttle' : ModifyRequest__7,
+    'exchange' : ModifyRequest__3,
+    'exchange_liquidity' : ModifyRequest__4,
+    'balancer' : ModifyRequest__2,
     'auto_liquidity' : ModifyRequest__1,
   });
   const ModifyNodeRequest = IDL.Tuple(
@@ -362,7 +372,7 @@ export const idlFactory = ({ IDL }) => {
     'temporary' : IDL.Bool,
     'refund' : Account,
   });
-  const CreateRequest__5 = IDL.Record({
+  const CreateRequest__6 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
       'throttle_interval' : NumVariant,
@@ -372,22 +382,22 @@ export const idlFactory = ({ IDL }) => {
       'switch_chance' : IDL.Nat64,
     }),
   });
-  const CreateRequest__7 = IDL.Record({
+  const CreateRequest__8 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'description' : IDL.Text }),
   });
-  const CreateRequest__4 = IDL.Record({
+  const CreateRequest__5 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'split' : IDL.Vec(IDL.Nat) }),
   });
-  const CreateRequest__6 = IDL.Record({
+  const CreateRequest__7 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
       'interval_sec' : NumVariant,
       'max_amount' : NumVariant,
     }),
   });
-  const CreateRequest__2 = IDL.Record({
+  const CreateRequest__3 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
       'max_impact' : IDL.Float64,
@@ -396,9 +406,21 @@ export const idlFactory = ({ IDL }) => {
       'buy_interval_seconds' : IDL.Nat64,
     }),
   });
-  const CreateRequest__3 = IDL.Record({
+  const CreateRequest__4 = IDL.Record({
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'flow' : Flow, 'range' : Range }),
+  });
+  const CreateRequest__2 = IDL.Record({
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({
+      'token_ratios' : IDL.Vec(IDL.Nat),
+      'remove_amount_usd' : IDL.Nat,
+      'remove_interval_seconds' : IDL.Nat64,
+      'price_ledger_id' : IDL.Principal,
+      'threshold_percent' : IDL.Float64,
+      'rebalance_interval_seconds' : IDL.Nat64,
+      'swap_amount_usd' : IDL.Nat,
+    }),
   });
   const CreateRequest__1 = IDL.Record({
     'init' : IDL.Record({}),
@@ -410,12 +432,13 @@ export const idlFactory = ({ IDL }) => {
     }),
   });
   const CreateRequest = IDL.Variant({
-    'switcher' : CreateRequest__5,
-    'vault' : CreateRequest__7,
-    'split' : CreateRequest__4,
-    'throttle' : CreateRequest__6,
-    'exchange' : CreateRequest__2,
-    'exchange_liquidity' : CreateRequest__3,
+    'switcher' : CreateRequest__6,
+    'vault' : CreateRequest__8,
+    'split' : CreateRequest__5,
+    'throttle' : CreateRequest__7,
+    'exchange' : CreateRequest__3,
+    'exchange_liquidity' : CreateRequest__4,
+    'balancer' : CreateRequest__2,
     'auto_liquidity' : CreateRequest__1,
   });
   const CreateNodeRequest = IDL.Tuple(CommonCreateRequest, CreateRequest);
@@ -456,7 +479,7 @@ export const idlFactory = ({ IDL }) => {
     'expire_at' : IDL.Opt(IDL.Nat64),
     'commands' : IDL.Vec(Command),
   });
-  const Shared__5 = IDL.Record({
+  const Shared__6 = IDL.Record({
     'internals' : IDL.Record({
       'next_send_ts' : IDL.Nat64,
       'next_switch_ts' : IDL.Nat64,
@@ -471,17 +494,17 @@ export const idlFactory = ({ IDL }) => {
       'switch_chance' : IDL.Nat64,
     }),
   });
-  const Shared__7 = IDL.Record({
+  const Shared__8 = IDL.Record({
     'internals' : IDL.Record({}),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'description' : IDL.Text }),
   });
-  const Shared__4 = IDL.Record({
+  const Shared__5 = IDL.Record({
     'internals' : IDL.Record({}),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'split' : IDL.Vec(IDL.Nat) }),
   });
-  const Shared__6 = IDL.Record({
+  const Shared__7 = IDL.Record({
     'internals' : IDL.Record({ 'wait_until_ts' : IDL.Nat64 }),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({
@@ -489,7 +512,7 @@ export const idlFactory = ({ IDL }) => {
       'max_amount' : NumVariant,
     }),
   });
-  const Shared__2 = IDL.Record({
+  const Shared__3 = IDL.Record({
     'internals' : IDL.Record({
       'next_buy' : IDL.Nat64,
       'last_error' : IDL.Opt(IDL.Text),
@@ -507,7 +530,7 @@ export const idlFactory = ({ IDL }) => {
       'buy_interval_seconds' : IDL.Nat64,
     }),
   });
-  const Shared__3 = IDL.Record({
+  const Shared__4 = IDL.Record({
     'internals' : IDL.Record({
       'last_error' : IDL.Opt(IDL.Text),
       'tokenA' : IDL.Nat,
@@ -518,6 +541,26 @@ export const idlFactory = ({ IDL }) => {
     }),
     'init' : IDL.Record({}),
     'variables' : IDL.Record({ 'flow' : Flow, 'range' : Range }),
+  });
+  const Shared__2 = IDL.Record({
+    'internals' : IDL.Record({
+      'last_error' : IDL.Opt(IDL.Text),
+      'last_remove' : IDL.Nat64,
+      'current_ratios' : IDL.Vec(IDL.Float64),
+      'last_rebalance' : IDL.Nat64,
+      'total_value_usd' : IDL.Float64,
+      'last_run' : IDL.Nat64,
+    }),
+    'init' : IDL.Record({}),
+    'variables' : IDL.Record({
+      'token_ratios' : IDL.Vec(IDL.Nat),
+      'remove_amount_usd' : IDL.Nat,
+      'remove_interval_seconds' : IDL.Nat64,
+      'price_ledger_id' : IDL.Principal,
+      'threshold_percent' : IDL.Float64,
+      'rebalance_interval_seconds' : IDL.Nat64,
+      'swap_amount_usd' : IDL.Nat,
+    }),
   });
   const Shared__1 = IDL.Record({
     'internals' : IDL.Record({
@@ -538,12 +581,13 @@ export const idlFactory = ({ IDL }) => {
     }),
   });
   const Shared = IDL.Variant({
-    'switcher' : Shared__5,
-    'vault' : Shared__7,
-    'split' : Shared__4,
-    'throttle' : Shared__6,
-    'exchange' : Shared__2,
-    'exchange_liquidity' : Shared__3,
+    'switcher' : Shared__6,
+    'vault' : Shared__8,
+    'split' : Shared__5,
+    'throttle' : Shared__7,
+    'exchange' : Shared__3,
+    'exchange_liquidity' : Shared__4,
+    'balancer' : Shared__2,
     'auto_liquidity' : Shared__1,
   });
   const BillingTransactionFee = IDL.Variant({
@@ -697,7 +741,7 @@ export const idlFactory = ({ IDL }) => {
     }),
     'modules' : IDL.Vec(ModuleMeta),
   });
-  const _anon_class_31_1 = IDL.Service({
+  const _anon_class_32_1 = IDL.Service({
     'add_supported_ledger' : IDL.Func(
         [IDL.Principal, IDL.Variant({ 'icp' : IDL.Null, 'icrc' : IDL.Null })],
         [],
@@ -767,7 +811,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
   });
-  return _anon_class_31_1;
+  return _anon_class_32_1;
 };
 export const init = ({ IDL }) => {
   const BillingFeeSplit = IDL.Record({
