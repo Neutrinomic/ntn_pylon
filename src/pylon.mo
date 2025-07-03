@@ -22,6 +22,7 @@ import VecAutoLiquidity "./modules/auto_liquidity/auto_liquidity";
 // import VecEscrow "./modules/escrow/escrow";
 import VecSplit "./modules/split/split";
 import VecVault "./modules/vault/vault";
+import VecBalancer "./modules/balancer/balancer";
 import Core "mo:devefi/core";
 import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
@@ -119,6 +120,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let mem_vec_vault_1 = VecVault.Mem.Vector.V1.new();
     let vec_vault = VecVault.Mod({xmem=mem_vec_vault_1; core});
 
+    stable let mem_vec_balancer_1 = VecBalancer.Mem.Vector.V1.new();
+    let vec_balancer = VecBalancer.Mod({xmem=mem_vec_balancer_1; core; swap});
+
     let vmod = T.VectorModules({
         vec_throttle;
         vec_switcher;
@@ -130,6 +134,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_exchange_liquidity;
         vec_auto_liquidity;
         vec_vault;
+        vec_balancer;
     });
 
     
@@ -149,6 +154,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         vec_switcher.run();
         vec_split.run();
         vec_vault.run();
+        vec_balancer.run();
     };
 
     ignore Timer.recurringTimer<system>(#seconds 2, func () : async () {
