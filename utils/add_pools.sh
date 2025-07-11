@@ -124,9 +124,14 @@
 #     quote = principal \"n6tkf-tqaaa-aaaal-qsneq-cai\";
 # }"
 
+# dfx canister --network ic call transcendence dex_pool_create  "record {
+#     base = principal \"o7oak-iyaaa-aaaaq-aadzq-cai\";
+#     quote = principal \"n6tkf-tqaaa-aaaal-qsneq-cai\";
+# }"
+
+
 dfx canister --network ic call transcendence dex_pool_create  "record {
-    base = principal \"o7oak-iyaaa-aaaaq-aadzq-cai\";
+    base = principal \"kknbx-zyaaa-aaaaq-aae4a-cai\";
     quote = principal \"n6tkf-tqaaa-aaaal-qsneq-cai\";
 }"
-
 

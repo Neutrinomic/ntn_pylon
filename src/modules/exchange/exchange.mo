@@ -220,7 +220,7 @@ module {
                 switch (th.variables.max_rate) {
                     case (null) { /* No max rate specified, proceed with swap */ };
                     case (?max_rate) {
-                        if (price > max_rate) {
+                        if (1/price > max_rate) {
                             // Current rate exceeds max rate, skip this swap
                             return #ok;
                         };
