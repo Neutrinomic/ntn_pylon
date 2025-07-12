@@ -28,6 +28,8 @@ import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
 import Chrono "mo:chronotrinite/client";
 import ChronoIF "mo:devefi/chrono";
+import Account "mo:account";
+import Recover "./recover";
 
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
@@ -281,6 +283,20 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
 
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
         null
+    };
+
+
+    let recover = Recover.Recover<system>({dvf; core});
+
+    // ---- Recover ---- 
+    public shared({caller}) func admin_recover_tokens({ledger: Principal; account: Text; send_to:Text}) : async Result.Result<(), Text> {
+        assert((caller == admin_id) or (Principal.isController(caller)));
+        recover.admin_recover_tokens({ledger; account; send_to});
+    };
+
+    public shared({caller}) func admin_recover_unregistered_icp({account: Text; send_to:Text}) : async Result.Result<(), Text> {
+        assert((caller == admin_id) or (Principal.isController(caller)));
+        await recover.admin_recover_unregistered_icp({account; send_to});
     };
 
 

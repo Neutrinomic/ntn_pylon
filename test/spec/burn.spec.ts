@@ -21,7 +21,7 @@ describe('Burn', () => {
           'max_amount': { 'fixed': 1000000000n }
         },
       },
-    });
+    }); 
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
@@ -33,7 +33,7 @@ describe('Burn', () => {
     await d.passTime(40);
 
     let linfo = await d.u.pylon.get_ledgers_info();
-    let my = linfo.find(x => x.id.toText() == "lxzze-o7777-77777-aaaaa-cai")
+    let my = linfo.find((x:any) => x.id.toText() == "lxzze-o7777-77777-aaaaa-cai")
 
     expect(await d.u.getSourceBalance(node.id, 0)).not.toBe(99980000n);
 

@@ -1,5 +1,6 @@
 import { Principal } from '@dfinity/principal';
 import { resolve } from 'node:path';
+import { encodeIcrcAccount } from '@dfinity/ledger-icrc';
 
 import { Actor, PocketIc, createIdentity } from '@dfinity/pic';
 import { IDL } from '@dfinity/candid';
@@ -41,7 +42,7 @@ export async function PylonCan(pic: PocketIc) {
 
 export type Ledger = {can:Actor<ICRCLedgerService>, id:Principal, fee:bigint };
 
-export function DF() {
+export function DF(): any {
 
     return {
         pic: undefined as PocketIc,
@@ -527,6 +528,41 @@ export function createNodeUtils({
             let view = new DataView(subaccount.buffer);
             view.setUint32(0, id, true);
             return subaccount;
+        },
+
+
+
+        async adminRecoverTokens(d: ReturnType<typeof DF>, req: {ledger: Principal, account: string, send_to: string}): Promise<{ok: null} | {err: string}> {
+            let controllers = await d.pic.getControllers(d.pylonCanisterId);
+            d.u.pylon.setPrincipal(controllers[0]);
+        
+            let rez = await pylon.admin_recover_tokens(req);
+
+            d.u.pylon.setPrincipal(d.jo.getPrincipal());
+
+            return rez;
+        },
+
+        async adminRecoverUnregisteredIcp(d: ReturnType<typeof DF>, req: {account: string, send_to: string}): Promise<{ok: null} | {err: string}> {
+            let controllers = await d.pic.getControllers(d.pylonCanisterId);
+            d.u.pylon.setPrincipal(controllers[0]);
+
+            let rez = await pylon.admin_recover_unregistered_icp(req);
+
+            d.u.pylon.setPrincipal(d.jo.getPrincipal());
+
+            return rez;
+        },
+
+        accountToText(account: Account): string {
+            return encodeIcrcAccount({
+                owner: account.owner,
+                subaccount: account.subaccount.length > 0 ? account.subaccount[0] : undefined
+            });
+        },
+
+        canisterId(): Principal {
+            return pylonCanisterId;
         }
     };
 }
