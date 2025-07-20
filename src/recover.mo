@@ -42,7 +42,7 @@ module {
 
             switch(dvf.send({
                 ledger = ledger;
-                to = send_to_acc;
+                to = #icrc(send_to_acc);
                 amount = balance;
                 memo = null;
                 from_subaccount = acc.subaccount;

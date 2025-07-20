@@ -6,16 +6,9 @@ import Core "mo:devefi/core";
 import I "./interface";
 import U "mo:devefi/utils";
 import Result "mo:base/Result";
-import Array "mo:base/Array";
-import Blob "mo:base/Blob";
-import Iter "mo:base/Iter";
-import IT "mo:itertools/Iter";
-import Nat32 "mo:base/Nat32";
-import Nat "mo:base/Nat";
+
 import Int "mo:base/Int";
-import Vector "mo:vector";
 import Swap "mo:devefi_swap";
-import Debug "mo:base/Debug";
 import Option "mo:base/Option";
 import Float "mo:base/Float";
 
@@ -221,15 +214,15 @@ module {
         let RUN_ONCE_EVERY : Nat64 = 6 * 1_000_000_000;
         let RUN_ONCE_UNLESS_INPUTS_CHANGED : Nat64 = 90 * 1_000_000_000;
 
-        private func has_input_changed(vid : T.NodeId, vec : T.NodeCoreMem, vmem : VM.NodeMem) : Bool {
-            let ?sourceA = core.getSource(vid, vec, 0) else return false;
-            let ?sourceB = core.getSource(vid, vec, 1) else return false;
-            let { tokenA; tokenB } = vmem.internals.last_inputs;
-            let new_tokenA = core.Source.balance(sourceA);
-            let new_tokenB = core.Source.balance(sourceB);
+        // private func has_input_changed(vid : T.NodeId, vec : T.NodeCoreMem, vmem : VM.NodeMem) : Bool {
+        //     let ?sourceA = core.getSource(vid, vec, 0) else return false;
+        //     let ?sourceB = core.getSource(vid, vec, 1) else return false;
+        //     let { tokenA; tokenB } = vmem.internals.last_inputs;
+        //     let new_tokenA = core.Source.balance(sourceA);
+        //     let new_tokenB = core.Source.balance(sourceB);
 
-            (tokenA != new_tokenA or tokenB != new_tokenB);
-        };
+        //     (tokenA != new_tokenA or tokenB != new_tokenB);
+        // };
 
         public func run() : () {
             let now = U.now();
@@ -366,8 +359,8 @@ module {
                 let ?sourceAccount_B = core.Source.getAccount(source_B) else return #err("no source account 1");
 
                 // Get destination accounts for sending the remove_percent
-                let ?destination_A = core.getDestinationAccountIC(vec, 0) else return #err("no destination 0");
-                let ?destination_B = core.getDestinationAccountIC(vec, 1) else return #err("no destination 1");
+                let ?_destination_A = core.getDestinationAccountIC(vec, 0) else return #err("no destination 0");
+                let ?_destination_B = core.getDestinationAccountIC(vec, 1) else return #err("no destination 1");
 
                 let from_account = swap.Pool.accountFromVid(vid, 0);
 

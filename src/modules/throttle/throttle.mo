@@ -101,7 +101,7 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, _req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             if (not validate_min_amount(t.variables.interval_sec, 60)) return #err("Min interval_sec must be 60 sec");
 
             let obj : M.NodeMem = {
@@ -134,7 +134,7 @@ module {
             #ok();
         };
 
-        public func get(id : T.NodeId, vec: T.NodeCoreMem) : T.Get<I.Shared> {
+        public func get(id : T.NodeId, _vec: T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             #ok {

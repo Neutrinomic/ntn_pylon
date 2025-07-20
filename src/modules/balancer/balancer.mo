@@ -6,20 +6,13 @@ import Core "mo:devefi/core";
 import I "./interface";
 import U "mo:devefi/utils";
 import Result "mo:base/Result";
-import Array "mo:base/Array";
-import Blob "mo:base/Blob";
-import Iter "mo:base/Iter";
-import IT "mo:itertools/Iter";
-import Nat32 "mo:base/Nat32";
+
 import Nat "mo:base/Nat";
 import Int "mo:base/Int";
-import Vector "mo:vector";
 import Swap "mo:devefi_swap";
-import Debug "mo:base/Debug";
 import Option "mo:base/Option";
 import Float "mo:base/Float";
 import Principal "mo:base/Principal";
-import Buffer "mo:base/Buffer";
 
 module {
     let T = Core.VectorModule;
@@ -436,8 +429,8 @@ module {
                 let ?source_B = core.getSource(vid, vec, 1) else return #err("No source for token B");
                 
                 // Get destination accounts
-                let ?destination_A = core.getDestinationAccountIC(vec, 0) else return #err("No destination for token A");
-                let ?destination_B = core.getDestinationAccountIC(vec, 1) else return #err("No destination for token B");
+                let ?_destination_A = core.getDestinationAccountIC(vec, 0) else return #err("No destination for token A");
+                let ?_destination_B = core.getDestinationAccountIC(vec, 1) else return #err("No destination for token B");
                 
                 // Get token balances directly from sources
                 let balance_A = core.Source.balance(source_A);

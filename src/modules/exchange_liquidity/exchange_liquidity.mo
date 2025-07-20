@@ -65,16 +65,16 @@ module {
         };
 
         // Helper function to convert range from raw price to actual price
-        private func convertRangeToActualPrice(ledgerA : Principal, ledgerB : Principal, range : I.Range) : I.Range {
-            switch (range) {
-                case (#partial({ from_price; to_price })) {
-                    #partial({
-                        from_price = convertToActualPrice(ledgerA, ledgerB, from_price);
-                        to_price = convertToActualPrice(ledgerA, ledgerB, to_price);
-                    })
-                };
-            };
-        };
+        // private func convertRangeToActualPrice(ledgerA : Principal, ledgerB : Principal, range : I.Range) : I.Range {
+        //     switch (range) {
+        //         case (#partial({ from_price; to_price })) {
+        //             #partial({
+        //                 from_price = convertToActualPrice(ledgerA, ledgerB, from_price);
+        //                 to_price = convertToActualPrice(ledgerA, ledgerB, to_price);
+        //             })
+        //         };
+        //     };
+        // };
 
         public func meta() : T.Meta {
             {

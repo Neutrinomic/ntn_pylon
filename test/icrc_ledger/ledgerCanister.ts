@@ -4,7 +4,11 @@ import { _SERVICE as ICRCLedgerService, idlFactory, init, LedgerArg } from './le
 import { IDL } from '@dfinity/candid';
 import { Principal } from '@dfinity/principal';
 
-const WASM_PATH = resolve(__dirname, "../icrc_ledger/ledger.wasm");
+let WASM_PATH = resolve(__dirname, "../icrc_ledger/ledger.wasm");
+if (process.env['LEDGER'] === "motoko") {
+    console.log("🚀🦀 USING MOTOKO LEDGER - BRACE FOR IMPACT! 💥🦑");
+    WASM_PATH = resolve(__dirname, "../icrc_ledger/motoko_ledger.wasm");
+}
 
 export async function ICRCLedger(pic: PocketIc, me:Principal, subnet:Principal | undefined, symbol:string, fee: bigint = 10000n, decimals:number = 8) {
    
@@ -14,7 +18,7 @@ export async function ICRCLedger(pic: PocketIc, me:Principal, subnet:Principal |
                 owner: me,
                 subaccount: []
             },
-            fee_collector_account: [{ owner: me, subaccount:[] }],
+            fee_collector_account: [],
             transfer_fee: fee,
             decimals: [decimals],
             token_symbol: symbol,
@@ -22,7 +26,7 @@ export async function ICRCLedger(pic: PocketIc, me:Principal, subnet:Principal |
             metadata: [],
             initial_balances: [[{ owner: me, subaccount:[] }, 10000000000000n]],
             archive_options: {
-                num_blocks_to_archive: 10000n,
+                num_blocks_to_archive: 1000n,
                 trigger_threshold: 9000n,
                 controller_id: me,
                 max_transactions_per_response: [],

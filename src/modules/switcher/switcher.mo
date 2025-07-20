@@ -137,7 +137,7 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, _req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             if (not validate_min_amount(t.variables.switch_interval, 60)) return #err("Min switch_interval must be 60 sec");
             if (not validate_min_amount(t.variables.throttle_interval, 20)) return #err("Min throttle_interval must be 20 sec");
             if (t.variables.switch_chance > 1000) return #err("switch_chance must be between 0 and 1000");
@@ -183,7 +183,7 @@ module {
             #ok();
         };
 
-        public func get(id : T.NodeId, vec : T.NodeCoreMem) : T.Get<I.Shared> {
+        public func get(id : T.NodeId, _vec : T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             #ok {

@@ -3,8 +3,7 @@ import Billing "../../billing_all";
 import MU "mo:mosup";
 import Ver1 "./memory/v1";
 import Map "mo:map/Map";
-import Nat "mo:base/Nat";
-import Nat64 "mo:base/Nat64";
+
 import Text "mo:base/Text";
 import Result "mo:base/Result";
 import Core "mo:devefi/core";
@@ -58,7 +57,7 @@ module {
         };
 
         module Run {
-            public func single(vid : T.NodeId, vec : T.NodeCoreMem, vault : M.NodeMem) : () {
+            public func single(vid : T.NodeId, _vec : T.NodeCoreMem, _vault : M.NodeMem) : () {
                 // This vault just stores tokens, it doesn't do any active operations
                 // No operations needed
             };
@@ -71,7 +70,7 @@ module {
             #ok();
         };
 
-        public func create(id : T.NodeId, req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, _req : T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             switch (validateDescription(t.variables.description)) {
                 case (#err(e)) return #err(e);
                 case _ {};
@@ -108,7 +107,7 @@ module {
             #ok();
         };
 
-        public func get(id : T.NodeId, vec : T.NodeCoreMem) : T.Get<I.Shared> {
+        public func get(id : T.NodeId, _vec : T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             #ok {

@@ -7,9 +7,7 @@ import Timer "mo:base/Timer";
 import U "mo:devefi/utils";
 import T "./vector_modules";
 import MU_sys "mo:devefi/sys";
-import Vector "mo:vector";
-import Nat64 "mo:base/Nat64";
-import Error "mo:base/Error";
+
 import Result "mo:base/Result";
 
 import VecThrottle "./modules/throttle/throttle";
@@ -28,7 +26,6 @@ import Swap "mo:devefi_swap";
 import Option "mo:base/Option";
 import Chrono "mo:chronotrinite/client";
 import ChronoIF "mo:devefi/chrono";
-import Account "mo:account";
 import Recover "./recover";
 
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
@@ -47,12 +44,13 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let chrono_mem_v1 = Chrono.Mem.ChronoClient.V1.new({router = Principal.fromText("hik73-dyaaa-aaaal-qsaqa-cai")});
     let chrono = Chrono.ChronoClient<system>({ xmem = chrono_mem_v1 });
 
-    stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
-
-
     let admin_id = Principal.fromText("v6ksx-vfv66-dlpks-agv2k-2pafk-yjlow-5fesr-dxigk-rzvzp-xrfbg-tae");
 
-    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_1 ; me_can; chrono;});
+
+    stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
+    stable let dvf_mem_2 = Ledgers.Mem.Ledgers.V2.upgrade(dvf_mem_1);
+
+    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_2 ; me_can; chrono;});
 
     stable let mem_core_1 = Core.Mem.Core.V1.new();
 

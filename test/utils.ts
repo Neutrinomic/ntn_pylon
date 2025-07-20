@@ -289,7 +289,8 @@ export function createNodeUtils({
                             ic: to
                         }
                     },
-                    amount
+                    amount,
+                    memo: []
                 }}]});
             },
         async virtualBalances(acc: Account) : Promise<AccountsResponse> {
@@ -346,7 +347,8 @@ export function createNodeUtils({
                     to : {
                         node_billing : nodeId
                     },
-                    amount
+                    amount,
+                    memo: []
                 }}]});
         },
         async setControllers(nodeId: NodeId, controllers: Account[]): Promise<BatchCommandResponse> {
@@ -406,7 +408,8 @@ export function createNodeUtils({
                     to : {
                         external_account : {ic:to}
                     },
-                    amount
+                    amount,
+                    memo: []
                 }}]});
         },
         async setDestination(nodeId: NodeId, port: number, account: Account, ledger_idx : number = 0): Promise<BatchCommandResponse> {

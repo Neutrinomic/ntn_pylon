@@ -48,7 +48,7 @@ module {
             };
         };
 
-        public func create(id : T.NodeId, req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
+        public func create(id : T.NodeId, _req:T.CommonCreateRequest, t : I.CreateRequest) : T.Create {
             if (t.variables.split.size() == 0) return #err("Split must have at least one destination"); 
             if (t.variables.split.size() > 10) return #err("Split must have at most 10 destinations");
 
@@ -64,7 +64,7 @@ module {
             #ok(ID);
         };
 
-        public func get(id : T.NodeId, vec: T.NodeCoreMem) : T.Get<I.Shared> {
+        public func get(id : T.NodeId, _vec: T.NodeCoreMem) : T.Get<I.Shared> {
             let ?t = Map.get(mem.main, Map.n32hash, id) else return #err("Not found");
 
             #ok {
