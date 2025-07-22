@@ -274,10 +274,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
-    // public shared ({caller}) func admin_withdraw_all() : async Result.Result<[{ledger: Principal; amount: Nat; result: Result.Result<Nat64, Text>}], Text> {
-    //     assert Principal.isController(caller);
-    //     await sys.admin_withdraw_all();
-    // };
+
 
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
         null
