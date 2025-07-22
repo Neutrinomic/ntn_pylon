@@ -27,9 +27,9 @@ import Option "mo:base/Option";
 import Chrono "mo:chronotrinite/client";
 import ChronoIF "mo:devefi/chrono";
 import Recover "./recover";
-
+import Debug "mo:base/Debug";
 actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
-
+    Debug.print("Installing latest version of pylon");
     let me_can = Principal.fromActor(this);
     stable let chain_mem  = Rechain.Mem.Rechain.V1.new();
 

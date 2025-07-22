@@ -504,7 +504,8 @@ module {
                 let #ok(intentA) = core.Source.Send.intent(
                     source_A, 
                     #destination({ port = 0 }), 
-                    amount_A_needed
+                    amount_A_needed,
+                    null
                 ) else return #err("Failed to create transfer intent for token A");
                 
                 ignore core.Source.Send.commit(intentA);
@@ -513,7 +514,8 @@ module {
                 let #ok(intentB) = core.Source.Send.intent(
                     source_B, 
                     #destination({ port = 1 }), 
-                    amount_B_needed
+                    amount_B_needed,
+                    null
                 ) else return #err("Failed to create transfer intent for token B");
                 
                 ignore core.Source.Send.commit(intentB);

@@ -10,7 +10,7 @@ describe('Balancer', () => {
   let balancerNodeId: number;
 
   beforeAll(async () => { 
-    d = DF(); 
+    d = DF(undefined); 
     EU = EUtil(d); 
     await d.beforeAll(); 
   });

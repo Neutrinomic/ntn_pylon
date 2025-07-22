@@ -5,7 +5,7 @@ describe('Chained vectors', () => {
 
   let d: ReturnType<typeof DF>
 
-  beforeAll(async () => { d = DF(); await d.beforeAll(); });
+  beforeAll(async () => { d = DF(undefined); await d.beforeAll(); });
 
   afterAll(async () => { await d.afterAll(); });
 

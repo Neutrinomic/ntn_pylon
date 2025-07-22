@@ -6,7 +6,7 @@ describe('Exchange swap point ptest', () => {
   let d: ReturnType<typeof DF>
 
   let EU: ReturnType<typeof EUtil>;
-  beforeAll(async () => { d = DF(); EU=EUtil(d); await d.beforeAll(); });
+  beforeAll(async () => { d = DF(undefined); EU=EUtil(d); await d.beforeAll(); });
 
   afterAll(async () => { await d.afterAll(); });
 

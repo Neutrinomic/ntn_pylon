@@ -4,8 +4,10 @@
   },
   "license": "MIT",
   "scripts": {
-    "test": "NODE_OPTIONS=\"--no-deprecation\" ./build.sh && jest -c ./jest.config.ts",
+    "test": "NODE_OPTIONS=\"--no-deprecation\" ./build.sh && LEDGER_TYPE=icrc jest -c ./jest.config.ts",
+    "test-icp": "NODE_OPTIONS=\"--no-deprecation\" ./build.sh && LEDGER_TYPE=icp jest -c ./jest.config.ts",
     "testw": "NODE_OPTIONS=\"--no-deprecation\" jest -c ./jest.config.ts",
+    "testw-icp": "NODE_OPTIONS=\"--no-deprecation\" LEDGER_TYPE=icp jest -c ./jest.config.ts",
     "test:basic": "NO_MOTOKO_OUTPUT=true jest -c ./jest.config.ts -t 'Basic'",
     "test:basic2": "jest -c ./jest.config.ts -t 'Basic'",
     "test-motoko": "./build.sh && LEDGER=motoko jest -c ./jest.config.ts"

@@ -1,11 +1,11 @@
 
-import { DF } from "../utils";
+import { DF, LEDGER_TYPE } from "../utils";
 
 describe('Top-up vector', () => {
 
     let d: ReturnType<typeof DF>
   
-    beforeAll(async () => { d = DF(); await d.beforeAll(); });
+    beforeAll(async () => { d = DF(undefined); await d.beforeAll(); });
   
     afterAll(async () => { await d.afterAll(); });
   
@@ -31,7 +31,10 @@ describe('Top-up vector', () => {
 
     it(`Top-up vector`, async () => {
 
-        
+            
+        if (LEDGER_TYPE == 'icp') {
+            await d.pylon.icrc55_account_register(d.u.mainAccount());
+        }
         let billing_account = d.u.userBillingAccount();
         await d.u.sendToAccount(billing_account,  10_0000_0000n);
         await d.passTime(3);

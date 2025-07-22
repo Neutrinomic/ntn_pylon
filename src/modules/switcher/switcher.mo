@@ -124,7 +124,7 @@ module {
                     if (bal - amount : Nat <= fee * 100) amount := bal; // Don't leave dust
 
                     // Send to the corresponding destination
-                    let #ok(intent) = core.Source.Send.intent(source, #destination({ port = source_idx }), amount) else return;
+                    let #ok(intent) = core.Source.Send.intent(source, #destination({ port = source_idx }), amount, null) else return;
                     ignore core.Source.Send.commit(intent);
                 };
             };

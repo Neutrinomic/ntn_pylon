@@ -1,11 +1,10 @@
-
-import { DF } from "../utils";
+import { DF, LEDGER_TYPE } from "../utils";
 
 describe('Burn', () => {
 
   let d: ReturnType<typeof DF>
 
-  beforeAll(async () => { d = DF(); await d.beforeAll(); });
+  beforeAll(async () => { d = DF(undefined); await d.beforeAll(); });
 
   afterAll(async () => { await d.afterAll(); });
 
@@ -38,7 +37,7 @@ describe('Burn', () => {
     expect(await d.u.getSourceBalance(node.id, 0)).not.toBe(99980000n);
 
     //@ts-ignore
-    expect(my.info.icrc.pending).toBe(0n);
+    expect(my.info[LEDGER_TYPE].pending).toBe(0n);
 
   }, 600 * 1000);
 

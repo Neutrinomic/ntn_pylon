@@ -1,12 +1,12 @@
 import { Account } from "../build/transcendence.idl";
-import { DF } from "../utils";
+import { DF , LEDGER_TYPE} from "../utils";
 import {match, P } from 'ts-pattern';
 
 describe('Virtual virtest', () => {
 
   let d: ReturnType<typeof DF>
 
-  beforeAll(async () => { d = DF(); await d.beforeAll(); });
+  beforeAll(async () => { d = DF(undefined); await d.beforeAll(); });
 
   afterAll(async () => { await d.afterAll(); });
 
@@ -24,6 +24,10 @@ describe('Virtual virtest', () => {
 
   it(`Can't open a new virtual account unless amount is 20 * fee` , async () => {
     
+    if (LEDGER_TYPE == 'icp') {
+          await d.pylon.icrc55_account_register(d.u.mainAccount());
+    }
+
     await d.u.sendToAccount(d.u.virtual(d.u.mainAccount()), d.ledgers[0].fee*17n);
     await d.passTime(5);
 
@@ -119,9 +123,23 @@ describe('Virtual virtest', () => {
       owner : d.jo.getPrincipal(),
       subaccount : [d.u.subaccountFromId(44232323)]
     };
+    // if (LEDGER_TYPE == 'icp') {
+    //   await d.pylon.icrc55_account_register(jo_acc);
+    // }
+
+    let before_virtual2 = await d.u.virtualBalances( jo_acc );
+    let before_bal2 = before_virtual2[0].balance;
+    expect(before_bal2).toBe(0n);
+
+    d.inspect(d.u.mainAccount());
+    d.inspect(d.u.virtual(jo_acc));
+
+    let log_before = await d.ledgers[0].can.get_transactions({start:0n, length:100n});
+    expect(log_before.transactions.length).toBe(5);
 
     let resp = await d.u.virtualTransfer(d.u.mainAccount(), d.u.virtual(jo_acc), 2000_0000n);
 
+    
     await d.passTime(5);
 
     let virtual = await d.u.virtualBalances( d.u.mainAccount() );
@@ -131,6 +149,10 @@ describe('Virtual virtest', () => {
     let virtual2 = await d.u.virtualBalances( jo_acc );
     let bal2 = virtual2[0].balance;
     expect(bal2).toBe(2000_0000n - d.ledgers[0].fee);
+
+
+    let log = await d.ledgers[0].can.get_transactions({start:0n, length:100n});
+    expect(log.transactions.length).toBe(5);
 
   });
 

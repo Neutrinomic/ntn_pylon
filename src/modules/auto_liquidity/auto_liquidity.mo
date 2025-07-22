@@ -411,12 +411,12 @@ module {
 
                             // Transfer to destination accounts using core.Source.Send
                             if (safe_tokenA_to_send > 5*fee_a) {
-                                let #ok(intentA) = core.Source.Send.intent(source_A, #destination({ port = 0 }), Int.abs(safe_tokenA_to_send)) else return #err("Failed to create transfer intent for token A");
+                                let #ok(intentA) = core.Source.Send.intent(source_A, #destination({ port = 0 }), Int.abs(safe_tokenA_to_send), null) else return #err("Failed to create transfer intent for token A");
                                 ignore core.Source.Send.commit(intentA);
                             };
 
                             if (safe_tokenB_to_send > 5*fee_b) {
-                                let #ok(intentB) = core.Source.Send.intent(source_B, #destination({ port = 1 }), Int.abs(safe_tokenB_to_send)) else return #err("Failed to create transfer intent for token B");
+                                let #ok(intentB) = core.Source.Send.intent(source_B, #destination({ port = 1 }), Int.abs(safe_tokenB_to_send), null) else return #err("Failed to create transfer intent for token B");
                                 ignore core.Source.Send.commit(intentB);
                             };
                         };

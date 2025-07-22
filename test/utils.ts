@@ -20,6 +20,8 @@ import {
 } from './build/transcendence.idl.js';
 
 import { ICRCLedgerService, ICRCLedger } from "./icrc_ledger/ledgerCanister";
+import { ICPLedger } from "./icp_ledger/ledgerCanister";
+
 
 import { Account, Subaccount} from './icrc_ledger/ledger.idl.js';
 //@ts-ignore
@@ -28,12 +30,15 @@ import {AccountIdentifier, SubAccount} from "@dfinity/ledger-icp"
 import util from 'util';
 const WASM_PYLON_PATH = resolve(__dirname, "./build/transcendence.wasm.gz");
 
+export const LEDGER_TYPE = (process.env['LEDGER_TYPE'] as "icrc" | "icp") ?? "icrc";
 
-export async function PylonCan(pic: PocketIc) {
-
+export async function PylonCan(pic: PocketIc, start_wasm: string | undefined) {
+    
+    if (!start_wasm) start_wasm = WASM_PYLON_PATH;
+    console.log("Installing ", start_wasm);
     const fixture = await pic.setupCanister<PylonService>({
         idlFactory: PylonIdlFactory,
-        wasm: WASM_PYLON_PATH,
+        wasm: start_wasm,
         arg: IDL.encode(PylonInit({ IDL }), [[]]),
     });
 
@@ -42,7 +47,7 @@ export async function PylonCan(pic: PocketIc) {
 
 export type Ledger = {can:Actor<ICRCLedgerService>, id:Principal, fee:bigint };
 
-export function DF(): any {
+export function DF(start_wasm: string | undefined): any {
 
     return {
         pic: undefined as PocketIc,
@@ -61,6 +66,12 @@ export function DF(): any {
         inspect(obj: any) : void {
             console.log(util.inspect(toState(obj), { depth: null, colors: true }));
         },
+
+        async pylonCanUpgrade(wasm:string) : Promise<void> {
+            await this.passTime(10);
+            console.log("Upgrading to ", wasm);
+            return this.pic.upgradeCanister({canisterId:this.pylonCanisterId, wasm, arg: IDL.encode(PylonInit({ IDL }), [[]])});
+        },
         async passTime(n: number): Promise<void> {
             n = n * 2;
             if (!this.pic) throw new Error('PocketIc is not initialized');
@@ -70,12 +81,34 @@ export function DF(): any {
                 //    await this.pylon.beat();
             }
         },
+        async passTimeSkip(n: number): Promise<void> {
+            n = n * 2;
+            if (!this.pic) throw new Error('PocketIc is not initialized');
+            for (let i = 0; i < n; i++) {
+                await this.pic.advanceTime(3 * 1000);
+                await this.pic.tick(1);
+                //    await this.pylon.beat();
+            }
+        },
+        async passTick(n: number): Promise<void> {
+             await this.pic.tick(n);
+        },
         async passTimeMinute(n: number): Promise<void> {
             if (!this.pic) throw new Error('PocketIc is not initialized');
             await this.pic.advanceTime( n * 60 * 1000);
             await this.pic.tick(3);
             // await this.pylon.beat();
             await this.passTime(3)
+        },
+        async stopAllLedgers(): Promise<void> {
+            for (let lg of this.ledgers) {
+               await this.pic.stopCanister({ canisterId: lg.id });
+            }
+        },
+        async startAllLedgers(): Promise<void> {
+            for (let lg of this.ledgers) {
+               await this.pic.startCanister({ canisterId: lg.id });
+            }
         },
 
         async beforeAll(): Promise<void> {
@@ -104,7 +137,15 @@ export function DF(): any {
             ];
 
             for (let i=0 ; i < TOTAL_LEDGERS; i++) {
-                const ledgerFixture = await ICRCLedger(this.pic, this.jo.getPrincipal(), undefined, tokens[i].name, tokens[i].fee, tokens[i].decimals); // , this.pic.getSnsSubnet()?.id
+                let ledgerFixture;
+                
+                if (LEDGER_TYPE === 'icp') {
+                    ledgerFixture = await ICPLedger(this.pic, this.jo.getPrincipal(), undefined, tokens[i].name, tokens[i].fee, tokens[i].decimals); 
+                } else {
+                    ledgerFixture = await ICRCLedger(this.pic, this.jo.getPrincipal(), undefined, tokens[i].name, tokens[i].fee, tokens[i].decimals);
+                }
+                
+                
       
                 this.ledgers.push({
                     can: ledgerFixture.actor, 
@@ -114,15 +155,21 @@ export function DF(): any {
             }
 
             // Pylon canister initialization
-            const pylonFixture = await PylonCan(this.pic);
+            const pylonFixture = await PylonCan(this.pic, start_wasm);
             this.pylon = pylonFixture.actor;
             this.pylonCanisterId = pylonFixture.canisterId;
             await this.pic.addCycles(this.pylonCanisterId, 100_000_000_000_000);
             // Setup interactions between ledger and pylon
 
-            for (let lg of this.ledgers) {
-                await this.pylon.add_supported_ledger(lg.id, { icrc: null });
-                lg.can.setIdentity(this.jo);
+
+            for (let i=0; i < TOTAL_LEDGERS; i++) {
+                if (LEDGER_TYPE === 'icp') {
+                    await this.pylon.add_supported_ledger(this.ledgers[i].id, { icp: null });
+                } else {
+                    await this.pylon.add_supported_ledger(this.ledgers[i].id, { icrc: null });
+                }
+               
+                this.ledgers[i].can.setIdentity(this.jo);
             };
 
    
@@ -139,7 +186,9 @@ export function DF(): any {
                 user: this.jo.getPrincipal()
             });
 
-            
+            if (LEDGER_TYPE == 'icp') {
+                await this.pylon.icrc55_account_register(this.u.mainAccount());
+            }
             // Advance time to sync with initialization
             await this.passTime(10);
         },
@@ -210,6 +259,9 @@ export function createNodeUtils({
         },
         async sendToAccount(account: Account, amount: bigint, from_subaccount:Subaccount | undefined = undefined, from_ledger:number = 0): Promise<void> {
             let ledger = ledgers[from_ledger].can;
+            
+            
+      
             ledger.setPrincipal(user);
             let txresp = await ledger.icrc1_transfer({
                 from_subaccount: from_subaccount?[from_subaccount]:[],
