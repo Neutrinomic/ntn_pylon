@@ -274,6 +274,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getLedgersInfo();
     };
 
+    public query func get_pending_transactions() : async [Ledgers.PendingTransactions] {
+        dvf.getPendingTransactions();
+    };
 
 
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
