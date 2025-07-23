@@ -130,8 +130,15 @@
 # }"
 
 
+# dfx canister --network ic call transcendence dex_pool_create  "record {
+#     base = principal \"kknbx-zyaaa-aaaaq-aae4a-cai\";
+#     quote = principal \"n6tkf-tqaaa-aaaal-qsneq-cai\";
+# }"
+
+
 dfx canister --network ic call transcendence dex_pool_create  "record {
-    base = principal \"kknbx-zyaaa-aaaaq-aae4a-cai\";
-    quote = principal \"n6tkf-tqaaa-aaaal-qsneq-cai\";
+    base = principal \"7dx3o-7iaaa-aaaal-qsrdq-cai\";
+    quote = principal \"cngnf-vqaaa-aaaar-qag4q-cai\";
 }"
+
 

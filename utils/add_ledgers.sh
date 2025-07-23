@@ -75,24 +75,29 @@
 
 
 
+# dfx canister --network ic call transcendence add_supported_ledger  "(
+#     principal \"4c4fd-caaaa-aaaaq-aaa3a-cai\",
+#     variant {icrc}
+# )"
+
+
+
+# dfx canister --network ic call transcendence add_supported_ledger  "(
+#     principal \"np5km-uyaaa-aaaaq-aadrq-cai\",
+#     variant {icrc}
+# )"
+
+
+# dfx canister --network ic call transcendence add_supported_ledger  "(
+#     principal \"lrtnw-paaaa-aaaaq-aadfa-cai\",
+#     variant {icrc}
+# )"
+
+
 dfx canister --network ic call transcendence add_supported_ledger  "(
-    principal \"4c4fd-caaaa-aaaaq-aaa3a-cai\",
+    principal \"7dx3o-7iaaa-aaaal-qsrdq-cai\",
     variant {icrc}
 )"
-
-
-
-dfx canister --network ic call transcendence add_supported_ledger  "(
-    principal \"np5km-uyaaa-aaaaq-aadrq-cai\",
-    variant {icrc}
-)"
-
-
-dfx canister --network ic call transcendence add_supported_ledger  "(
-    principal \"lrtnw-paaaa-aaaaq-aadfa-cai\",
-    variant {icrc}
-)"
-
 
 
 
