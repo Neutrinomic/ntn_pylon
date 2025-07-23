@@ -278,6 +278,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         dvf.getPendingTransactions();
     };
 
+    public shared({caller}) func clear_pending_transactions() : async () {
+        assert((caller == admin_id) or (Principal.isController(caller)));
+        dvf.clearPendingTransactions();
+    };
+
 
     public query func chrono_records() : async ?ChronoIF.ChronoRecord {
         null
