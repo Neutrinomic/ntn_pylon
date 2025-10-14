@@ -131,8 +131,8 @@ describe('Virtual virtest', () => {
     let before_bal2 = before_virtual2[0].balance;
     expect(before_bal2).toBe(0n);
 
-    d.inspect(d.u.mainAccount());
-    d.inspect(d.u.virtual(jo_acc));
+    // d.inspect(d.u.mainAccount());
+    // d.inspect(d.u.virtual(jo_acc));
 
     let log_before = await d.ledgers[0].can.get_transactions({start:0n, length:100n});
     expect(log_before.transactions.length).toBe(5);

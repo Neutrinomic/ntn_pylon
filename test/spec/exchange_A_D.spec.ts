@@ -134,7 +134,7 @@ describe('Exchange adtest', () => {
 
     let node_after = await d.u.getNode(node.id);
     expect(node_after.sources[PORT_0].balance).toBe(0n);
-    d.inspect(node_after);
+    // d.inspect(node_after);
     // Check balance of destination
     let balance_out = await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(12)] }, LEDGER_D);
 
@@ -162,7 +162,7 @@ describe('Exchange adtest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
     let node_afterb = await d.u.getNode(node.id);
-    d.inspect(node_afterb);
+    // d.inspect(node_afterb);
     expect(n1.tokenA).toBeApprox(a - 2n*d.ledgers[LEDGER_A].fee, 100n);
     expect(n1.tokenB).toBeApprox(b - 2n*d.ledgers[LEDGER_D].fee, 100n);
 

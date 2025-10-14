@@ -13,6 +13,7 @@ import ExchangeLiquidity "./modules/exchange_liquidity/exchange_liquidity";
 import AutoLiquidity "./modules/auto_liquidity/auto_liquidity";
 import Vault "./modules/vault/vault";
 import Balancer "./modules/balancer/balancer";
+import GridTrader "./modules/grid_trader/grid_trader";
 
 // THIS SHOULD BE AUTO-GENERATED FILE
 
@@ -30,6 +31,7 @@ module {
         #auto_liquidity: AutoLiquidity.Interface.CreateRequest;
         #vault: Vault.Interface.CreateRequest;
         #balancer: Balancer.Interface.CreateRequest;
+        #grid_trader: GridTrader.Interface.CreateRequest;
         //...
     };
 
@@ -45,6 +47,7 @@ module {
         #auto_liquidity: AutoLiquidity.Interface.Shared;
         #vault: Vault.Interface.Shared;
         #balancer: Balancer.Interface.Shared;
+        #grid_trader: GridTrader.Interface.Shared;
         //...
     };
     
@@ -60,6 +63,7 @@ module {
         #auto_liquidity: AutoLiquidity.Interface.ModifyRequest;
         #vault: Vault.Interface.ModifyRequest;
         #balancer: Balancer.Interface.ModifyRequest;
+        #grid_trader: GridTrader.Interface.ModifyRequest;
         //...
     };
 
@@ -76,6 +80,7 @@ module {
         vec_auto_liquidity : AutoLiquidity.Mod;
         vec_vault : Vault.Mod;
         vec_balancer : Balancer.Mod;
+        vec_grid_trader : GridTrader.Mod;
     }) {
     
         public func get(mid :Core.ModuleId, id : Core.NodeId, vec:Core.NodeMem) : Result.Result<Shared, Text> {
@@ -146,6 +151,12 @@ module {
                     case (#err(x)) return #err(x);
                 }
             };
+            if (mid == GridTrader.ID) {
+                switch(m.vec_grid_trader.get(id, vec)) {
+                    case (#ok(x)) return #ok(#grid_trader(x));
+                    case (#err(x)) return #err(x);
+                }
+            };
 
             #err("Unknown variant");
         };
@@ -162,6 +173,7 @@ module {
             if (mid == AutoLiquidity.ID) return #auto_liquidity(m.vec_auto_liquidity.defaults());
             if (mid == Vault.ID) return #vault(m.vec_vault.defaults());
             if (mid == Balancer.ID) return #balancer(m.vec_balancer.defaults());
+            if (mid == GridTrader.ID) return #grid_trader(m.vec_grid_trader.defaults());
             Debug.trap("Unknown variant");
 
         };
@@ -179,6 +191,7 @@ module {
             if (mid == AutoLiquidity.ID) return m.vec_auto_liquidity.sources(id);
             if (mid == Vault.ID) return m.vec_vault.sources(id);
             if (mid == Balancer.ID) return m.vec_balancer.sources(id);
+            if (mid == GridTrader.ID) return m.vec_grid_trader.sources(id);
             Debug.trap("Unknown variant");
             
         };
@@ -195,6 +208,7 @@ module {
             if (mid == AutoLiquidity.ID) return m.vec_auto_liquidity.destinations(id);
             if (mid == Vault.ID) return m.vec_vault.destinations(id);
             if (mid == Balancer.ID) return m.vec_balancer.destinations(id);
+            if (mid == GridTrader.ID) return m.vec_grid_trader.destinations(id);
             Debug.trap("Unknown variant");
         };
 
@@ -214,6 +228,7 @@ module {
                 case (#auto_liquidity(t)) return m.vec_auto_liquidity.create(id, creq, t);
                 case (#vault(t)) return m.vec_vault.create(id, creq, t);
                 case (#balancer(t)) return m.vec_balancer.create(id, creq, t);
+                case (#grid_trader(t)) return m.vec_grid_trader.create(id, creq, t);
                 //...
             };
             #err("Unknown variant or mismatch.");
@@ -232,6 +247,7 @@ module {
                 case (#auto_liquidity(r)) if (mid == AutoLiquidity.ID) return m.vec_auto_liquidity.modify(id, r);
                 case (#vault(r)) if (mid == Vault.ID) return m.vec_vault.modify(id, r);
                 case (#balancer(r)) if (mid == Balancer.ID) return m.vec_balancer.modify(id, r);
+                case (#grid_trader(r)) if (mid == GridTrader.ID) return m.vec_grid_trader.modify(id, r);
                 //...
             };
             #err("Unknown variant or mismatch.");
@@ -249,6 +265,7 @@ module {
             if (mid == AutoLiquidity.ID) return m.vec_auto_liquidity.delete(id);
             if (mid == Vault.ID) return m.vec_vault.delete(id);
             if (mid == Balancer.ID) return m.vec_balancer.delete(id);
+            if (mid == GridTrader.ID) return m.vec_grid_trader.delete(id);
             #err("Unknown variant.");
         };
 
@@ -264,6 +281,7 @@ module {
             if (mid == AutoLiquidity.ID) return m.vec_auto_liquidity.meta();
             if (mid == Vault.ID) return m.vec_vault.meta();
             if (mid == Balancer.ID) return m.vec_balancer.meta();
+            if (mid == GridTrader.ID) return m.vec_grid_trader.meta();
             Debug.trap("Unknown variant");
         };
 
@@ -281,6 +299,7 @@ module {
                 m.vec_auto_liquidity.meta(),
                 m.vec_vault.meta(),
                 m.vec_balancer.meta(),
+                m.vec_grid_trader.meta(),
             //...
             ];
         };

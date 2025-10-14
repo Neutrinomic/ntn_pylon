@@ -121,7 +121,7 @@ describe('Balancer', () => {
     
     // Verify funds were received, accounting for transaction fees and potential removal
     let node_after = await d.u.getNode(balancerNodeId);
-    d.inspect(node_after.sources);
+    // d.inspect(node_after.sources);
     
     // Calculate expected balances based on initial amounts minus fees
     const expectedBalanceA = tokenAAmount - d.ledgers[LEDGER_A].fee;
@@ -166,7 +166,7 @@ describe('Balancer', () => {
     let exchangeNode_after = await d.u.getNode(exchangeNode.id);
     
     // Log the actual balance for debugging
-    d.inspect(exchangeNode_after.sources);
+    // d.inspect(exchangeNode_after.sources);
     
     // The exchange might not have processed yet, so we'll just check if the destination received tokens
     // instead of checking if the source is empty
@@ -191,7 +191,7 @@ describe('Balancer', () => {
     const finalBalanceB = node_after.sources[PORT_1].balance;
     
     // Log the balancer internals for debugging
-    d.inspect((node_after.custom[0] as any).balancer.internals);
+    // d.inspect((node_after.custom[0] as any).balancer.internals);
     
     // Verify that rebalancing occurred (balances changed)
     // Either A decreased and B increased, or vice versa
@@ -327,7 +327,7 @@ describe('Balancer', () => {
     const finalBalanceB = node_after.sources[PORT_1].balance;
     
     // Log the balancer internals for debugging
-    d.inspect((node_after.custom[0] as any).balancer.internals);
+    // d.inspect((node_after.custom[0] as any).balancer.internals);
     
     // Verify that rebalancing occurred in response to price change
     const balancesChanged = 
@@ -363,9 +363,9 @@ describe('Balancer', () => {
     
     // Log initial state
     let node_before = await d.u.getNode(node.id);
-    console.log("Initial balancer state:");
-    d.inspect(node_before.sources);
-    d.inspect((node_before.custom[0] as any).balancer.internals);
+    // console.log("Initial balancer state:");
+    // d.inspect(node_before.sources);
+    // d.inspect((node_before.custom[0] as any).balancer.internals);
     
     // Wait for rebalance interval (plus buffer) - increased to 60
     await d.passTime(60);
@@ -374,9 +374,9 @@ describe('Balancer', () => {
     let node_after = await d.u.getNode(node.id);
     
     // Log the balancer internals for debugging
-    console.log("Final balancer state:");
-    d.inspect(node_after.sources);
-    d.inspect((node_after.custom[0] as any).balancer.internals);
+    // console.log("Final balancer state:");
+    // d.inspect(node_after.sources);
+    // d.inspect((node_after.custom[0] as any).balancer.internals);
     
     // Verify that some token A was swapped for token B
     expect(node_after.sources[PORT_1].balance).toBeGreaterThan(0n);

@@ -139,7 +139,7 @@ describe('Exchange cbtest', () => {
     await d.passTime(3);
 
     let node_after = await d.u.getNode(node.id);
-    d.inspect(node_after);
+    // d.inspect(node_after);
     expect(node_after.sources[PORT_0].balance).toBe(0n);
 
     // Check balance of destination

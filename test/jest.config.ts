@@ -3,6 +3,7 @@ import type { Config } from 'jest';
 
 const config: Config = {
   watch: false,
+  verbose: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"], // Adjust path if setup file is elsewhere
   preset: 'ts-jest/presets/js-with-ts',
   testEnvironment: 'node',

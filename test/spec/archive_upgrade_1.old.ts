@@ -122,7 +122,7 @@ describe('Archive upgrade 1', () => {
     await d.passTime(2);
     expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(4980000n);
     expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(11)] })).toBe(4980000n);
-    console.log("Stopping ledgers");
+    // console.log("Stopping ledgers");
     await d.stopAllLedgers();
 
     await d.passTimeSkip(150);

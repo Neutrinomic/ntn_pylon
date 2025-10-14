@@ -141,11 +141,11 @@ describe('Exchange btest', () => {
     expect(n1.tokenA).toBeLessThan(a);
     expect(n1.tokenB).toBeLessThan(b);
 
-    d.inspect(n1);
+    // d.inspect(n1);
 
     let nafter = await d.u.getNode(node.id);
 
-    d.inspect(nafter.custom[0]);
+    // d.inspect(nafter.custom[0]);
 
     expect(n1.tokenA).toBeApprox(a - 11n*d.ledgers[LEDGER_A].fee, 1000000n);
     expect(n1.tokenB).toBeApprox(0n, 300n);

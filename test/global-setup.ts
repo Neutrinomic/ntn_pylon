@@ -2,7 +2,7 @@ import { PocketIcServer } from '@dfinity/pic';
 
 
 module.exports = async function (): Promise<void> {
-  const pic = process.env['NO_MOTOKO_OUTPUT'] ? await PocketIcServer.start() : await PocketIcServer.start({showRuntimeLogs:false, showCanisterLogs:true });
+  const pic = process.env['NO_MOTOKO_OUTPUT'] ? await PocketIcServer.start() : await PocketIcServer.start({showRuntimeLogs:false, showCanisterLogs:false });
 
   const url = pic.getUrl();
 

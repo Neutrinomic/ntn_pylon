@@ -32,7 +32,7 @@ describe('Recovery Functions', () => {
     let node_account = node_full.sources[0].endpoint.ic.account;
     
     // Send ledger[1] tokens to the node's account that expects ledger[0] tokens
-    console.log("Node account:", d.u.accountToText(node_account));
+    // console.log("Node account:", d.u.accountToText(node_account));
     await d.u.sendToNode(node.id, 0, 50000000n, LEDGER_B);
 
     await d.passTime(5);
@@ -135,11 +135,11 @@ describe('Recovery Functions', () => {
       owner: d.jo.getPrincipal(),
       subaccount: [d.u.subaccountFromId(7777)]
     };
-    d.inspect({
-        ledger: d.ledgers[0].id,
-        account: d.u.accountToText(fake_account),
-        send_to: d.u.accountToText(recovery_account)
-      });
+    // d.inspect({
+    //     ledger: d.ledgers[0].id,
+    //     account: d.u.accountToText(fake_account),
+    //     send_to: d.u.accountToText(recovery_account)
+    //   });
     // Attempt to recover from non-existent node
     let recovery_result = await d.u.adminRecoverTokens(d, {
       ledger: d.ledgers[0].id,
@@ -147,7 +147,7 @@ describe('Recovery Functions', () => {
       send_to: d.u.accountToText(recovery_account)
     });
 
-    d.inspect(recovery_result);
+    // d.inspect(recovery_result);
 
     // Should fail with "Node not found"
     match(recovery_result).with({

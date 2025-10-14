@@ -69,7 +69,7 @@ describe('Auto Liquidity', () => {
 
     // Check that tokens were added to liquidity
     let node_after = await d.u.getNode(node.id);
-    d.inspect(node_after);
+    // d.inspect(node_after);
 
     // Source balances should be close to zero (some might remain if below min fee threshold)
     expect(node_after.sources[PORT_0].balance).toBeLessThan(1_000_000n);
@@ -603,7 +603,7 @@ describe('Auto Liquidity', () => {
 
     // Check that token A was added to liquidity
     let node_after = await d.u.getNode(node.id);
-    d.inspect(node_after);
+    // d.inspect(node_after);
     
     const tokenA = (node_after.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB = (node_after.custom[0] as any).auto_liquidity.internals.tokenB;
@@ -641,7 +641,7 @@ describe('Auto Liquidity', () => {
 
     // Check that token B was added to liquidity
     let node_after = await d.u.getNode(node.id);
-    d.inspect(node_after);
+    // d.inspect(node_after);
     
     const tokenA = (node_after.custom[0] as any).auto_liquidity.internals.tokenA;
     const tokenB = (node_after.custom[0] as any).auto_liquidity.internals.tokenB;
