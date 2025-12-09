@@ -50,8 +50,9 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
     stable let dvf_mem_1 = Ledgers.Mem.Ledgers.V1.new();
     stable let dvf_mem_2 = Ledgers.Mem.Ledgers.V2.upgrade(dvf_mem_1);
     stable let dvf_mem_3 = Ledgers.Mem.Ledgers.V3.upgrade(dvf_mem_2);
+    stable let dvf_mem_4 = Ledgers.Mem.Ledgers.V4.upgrade(dvf_mem_3);
 
-    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_3 ; me_can; chrono;});
+    let dvf = Ledgers.Ledgers<system>({ xmem = dvf_mem_4 ; me_can; chrono;});
 
     stable let mem_core_1 = Core.Mem.Core.V1.new();
 

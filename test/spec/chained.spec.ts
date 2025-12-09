@@ -38,7 +38,7 @@ describe('Chained vectors', () => {
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
-    await d.passTime(2);
+    await d.passTime(4);
 
 
     expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(1)] })).toBe(4985000n);
@@ -90,7 +90,7 @@ describe('Chained vectors', () => {
 
     await d.u.sendToNode(node.id, 0, 99990000n);
 
-    await d.passTime(2);
+    await d.passTime(4);
 
 
     expect(await d.u.getLedgerBalance({ owner: d.jo.getPrincipal(), subaccount: [d.u.subaccountFromId(10)] })).toBe(4980000n);
