@@ -61,11 +61,11 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
         xmem = mem_core_1;
         settings = Option.get(DFV_SETTINGS, {
             PYLON_NAME = "Transcendence";
-            PYLON_GOVERNED_BY = "Neutrinite";
+            PYLON_GOVERNED_BY = "Neutrinite DAO";
             BILLING = {
-                ledger = Principal.fromText("lxzze-o7777-77777-aaaaa-cai");
-                min_create_balance = 2000_0000;
-                operation_cost = 1000;
+                ledger = Principal.fromText("f54if-eqaaa-aaaaq-aacea-cai");
+                min_create_balance = 2_0000_0000;
+                operation_cost = 20000;
                 freezing_threshold_days = 10;
                 split = {
                     platform = 20;
@@ -79,7 +79,7 @@ actor class (DFV_SETTINGS: ?Core.SETTINGS) = this {
             TEMP_NODE_EXPIRATION_SEC = 3600;
             MAX_INSTRUCTIONS_PER_HEARTBEAT = 300_000_000;
             REQUEST_MAX_EXPIRE_SEC = 3600;
-            ALLOW_TEMP_NODE_CREATION = true;
+            ALLOW_TEMP_NODE_CREATION = false;
         }:Core.SETTINGS);
         dvf;
         me_can;
